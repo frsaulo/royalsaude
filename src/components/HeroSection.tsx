@@ -53,9 +53,13 @@ const HeroSection = () => {
             </span>
           </motion.div>
 
-          <h1 className="text-5xl md:text-7xl font-cinzel font-bold text-primary-foreground leading-tight mb-6">
+          <h1 className="text-5xl md:text-7xl font-cinzel font-bold text-primary-foreground leading-tight mb-2">
             Royal <span className="text-gradient-gold">Saúde</span>
           </h1>
+          
+          <h2 className="text-2xl md:text-3xl font-cinzel text-accent mb-6 italic tracking-wide">
+            Cuidar não pode esperar!
+          </h2>
 
           <p className="text-xl md:text-2xl text-[#e9e6c9] font-body font-light mb-4">
             Consulta médica sem filas.
