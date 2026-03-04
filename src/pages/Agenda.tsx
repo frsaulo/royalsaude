@@ -7,6 +7,16 @@ import { toZonedTime } from "date-fns-tz";
 import { Button } from "../components/ui/button";
 import { Calendar } from "../components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Loader2, LogOut, User, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -29,6 +39,7 @@ export const Agenda = () => {
   const [loadingHours, setLoadingHours] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [appointmentToDelete, setAppointmentToDelete] = useState<{id: string, date: string, time: string} | null>(null);
 
   const [myAppointments, setMyAppointments] = useState<any[]>([]);
 
@@ -121,29 +132,28 @@ export const Agenda = () => {
     setIsSubmitting(false);
   };
 
-  const handleDeleteAppointment = async (id: string, appDate: string, appTime: string) => {
-    if (!confirm(`Tem certeza que deseja cancelar o agendamento do dia ${appDate.split('-').reverse().join('/')} às ${appTime}?`)) {
-      return;
-    }
+  const executeDelete = async () => {
+    if (!appointmentToDelete) return;
 
-    setDeletingId(id);
+    setDeletingId(appointmentToDelete.id);
     const { error } = await supabase
       .from('appointments')
       .delete()
-      .eq('id', id);
+      .eq('id', appointmentToDelete.id);
 
     if (error) {
       toast.error("Erro ao cancelar o agendamento: " + error.message);
     } else {
       toast.success("Agendamento cancelado com sucesso!");
-      setMyAppointments(myAppointments.filter(app => app.id !== id));
+      setMyAppointments(myAppointments.filter(app => app.id !== appointmentToDelete.id));
       
       // If we just deleted a slot from the currently viewed date, we should unbook it locally
-      if (date && format(date, 'yyyy-MM-dd') === appDate) {
-        setBookedSlots(bookedSlots.filter(time => time !== appTime));
+      if (date && format(date, 'yyyy-MM-dd') === appointmentToDelete.date) {
+        setBookedSlots(bookedSlots.filter(time => time !== appointmentToDelete.time));
       }
     }
     setDeletingId(null);
+    setAppointmentToDelete(null);
   };
 
   const isPastHour = (timeStr: string) => {
@@ -336,7 +346,7 @@ export const Agenda = () => {
                            size="icon"
                            className="h-8 w-8 text-rose-500 hover:bg-rose-100 hover:text-rose-600 opacity-80"
                            disabled={deletingId === app.id}
-                           onClick={() => handleDeleteAppointment(app.id, app.date, app.time)}
+                           onClick={() => setAppointmentToDelete({id: app.id, date: app.date, time: app.time})}
                            title="Cancelar Agendamento"
                         >
                           {deletingId === app.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
@@ -350,6 +360,25 @@ export const Agenda = () => {
           </Card>
         </div>
       </main>
+
+      <AlertDialog open={!!appointmentToDelete} onOpenChange={(open) => !open && setAppointmentToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar Agendamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja cancelar sua consulta marcada para o dia{" "}
+              <span className="font-bold">{appointmentToDelete?.date.split('-').reverse().join('/')}</span> às <span className="font-bold">{appointmentToDelete?.time}</span>?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction onClick={executeDelete} className="bg-rose-600 hover:bg-rose-700">
+              Sim, cancelar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
