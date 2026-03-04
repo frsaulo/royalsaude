@@ -8,13 +8,6 @@ import { Label } from "../components/ui/label";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { ArrowLeft } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/select";
 
 export const Login = () => {
   const [email, setEmail] = useState("");
@@ -22,7 +15,6 @@ export const Login = () => {
   const [fullName, setFullName] = useState("");
   const [cpf, setCpf] = useState("");
   const [phone, setPhone] = useState("");
-  const [userType, setUserType] = useState<"titular" | "dependente" | "">("");
 
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -34,10 +26,7 @@ export const Login = () => {
 
     try {
       if (isRegistering) {
-        if (!userType) {
-          throw new Error("Por favor, selecione se você é Titular ou Dependente.");
-        }
-
+        
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -46,7 +35,6 @@ export const Login = () => {
               full_name: fullName,
               cpf: cpf,
               phone: phone,
-              user_type: userType,
             }
           }
         });
@@ -74,6 +62,8 @@ export const Login = () => {
         errorMessage = "Este e-mail já está cadastrado em nosso sistema.";
       } else if (errorMessage.includes("Password should be at least")) {
         errorMessage = "A senha deve ter pelo menos 6 caracteres.";
+      } else if (errorMessage.includes("email rate limit exceeded")) {
+        errorMessage = "Nossos servidores de e-mail estão ocupados, aguarde alguns minutos antes de tentar novamente.";
       }
       
       toast.error(errorMessage);
@@ -142,19 +132,6 @@ export const Login = () => {
                       required={isRegistering}
                     />
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Tipo de Paciente</Label>
-                  <Select required={isRegistering} value={userType} onValueChange={(value: "titular" | "dependente") => setUserType(value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="titular">Titular</SelectItem>
-                      <SelectItem value="dependente">Dependente</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </>
             )}
