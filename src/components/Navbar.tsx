@@ -32,12 +32,10 @@ const Navbar = () => {
             </a>
           ))}
           <a
-            href="https://wa.me/5567992916792"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-primary text-gold-light font-cinzel text-sm font-semibold px-5 py-2 rounded-sm shadow-royal hover:brightness-110 transition-all"
+            href="https://royalsaude.vercel.app/login"
+            className="bg-primary text-gold-light font-cinzel text-sm font-semibold px-5 py-2 rounded-sm shadow-royal hover:brightness-110 transition-all cursor-pointer"
           >
-            Contato
+            ENTRAR
           </a>
         </div>
 
