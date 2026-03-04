@@ -57,7 +57,7 @@ const HeroSection = () => {
             Royal <span className="text-gradient-gold">Saúde</span>
           </h1>
           
-          <h2 className="text-2xl md:text-3xl font-cinzel text-accent mb-6 italic tracking-wide">
+          <h2 className="text-2xl md:text-3xl font-cinzel text-accent mb-6 tracking-wide">
             Cuidar não pode esperar!
           </h2>
 
