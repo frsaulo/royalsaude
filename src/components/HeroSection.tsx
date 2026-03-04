@@ -72,12 +72,10 @@ const HeroSection = () => {
 
           <div className="flex flex-col sm:flex-row gap-4">
             <motion.a
-              href="https://wa.me/5567992916792"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="https://royalsaude.vercel.app/login"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-gradient-gold text-accent-foreground font-cinzel font-semibold px-8 py-4 rounded-sm text-center shadow-gold transition-all hover:brightness-110 tracking-wide"
+              className="bg-gradient-gold text-accent-foreground font-cinzel font-semibold px-8 py-4 rounded-sm text-center shadow-gold transition-all hover:brightness-110 tracking-wide cursor-pointer"
             >
               Agende sua Consulta
             </motion.a>
