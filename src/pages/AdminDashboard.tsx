@@ -39,7 +39,7 @@ export const AdminDashboard = () => {
         return;
       }
 
-      // Vefifca perfil real
+      // Verifica perfil real
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('is_admin')
@@ -94,7 +94,7 @@ export const AdminDashboard = () => {
       if (error) throw error;
 
       setAppointments(prev => prev.filter(app => app.id !== id));
-      toast.success("Agendamento excluÃ­do com sucesso.");
+      toast.success("Agendamento excluído com sucesso.");
     } catch (error: any) {
       toast.error("Erro ao excluir: " + error.message);
     }
@@ -144,7 +144,7 @@ export const AdminDashboard = () => {
              </div>
              <div>
                 <h1 className="text-xl font-bold">Painel Master</h1>
-                <p className="text-xs text-slate-400">Gerenciamento Interno (Royal SaÃºde)</p>
+                <p className="text-xs text-slate-400">Gerenciamento Interno (Royal Saúde)</p>
              </div>
           </div>
           
@@ -165,7 +165,7 @@ export const AdminDashboard = () => {
                  Todos os Agendamentos
                </h2>
                <p className="text-slate-500 mt-1">
-                 VocÃª estÃ¡ visualizando todo o banco de dados. Tenha cuidado ao deletar registros de pacientes.
+                 Você está visualizando todo o banco de dados. Tenha cuidado ao deletar registros de pacientes.
                </p>
             </div>
             
@@ -198,7 +198,7 @@ export const AdminDashboard = () => {
                            <CardTitle className="text-lg font-bold text-slate-800">{app.patient_name}</CardTitle>
                            <CardDescription className="font-medium text-blue-600 mt-1 flex items-center gap-1.5">
                                <CalendarIcon className="w-4 h-4" />
-                               {format(parseISO(app.date), "dd 'de' MMMM, yyyy", { locale: ptBR })} Ã s {app.time}
+                               {format(parseISO(app.date), "dd 'de' MMMM, yyyy", { locale: ptBR })} às {app.time}
                            </CardDescription>
                         </div>
 
@@ -242,14 +242,14 @@ export const AdminDashboard = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Zona de Perigo!</AlertDialogTitle>
                               <AlertDialogDescription>
-                                VocÃª estÃ¡ prestes a forÃ§ar o cancelamento da consulta de <strong>{app.patient_name}</strong> dia {format(parseISO(app.date), "dd/MM/yyyy")} Ã s {app.time}.
-                                Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita. Tem certeza?
+                                Você está prestes a forçar o cancelamento da consulta de <strong>{app.patient_name}</strong> dia {format(parseISO(app.date), "dd/MM/yyyy")} às {app.time}.
+                                Esta ação não poderá ser desfeita. Tem certeza?
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Voltar atrÃ¡s</AlertDialogCancel>
+                              <AlertDialogCancel>Voltar atrás</AlertDialogCancel>
                               <AlertDialogAction onClick={() => handleDelete(app.id)} className="bg-red-600 hover:bg-red-700">
-                                Sim, excluir Ã¡gora
+                                Sim, excluir agora
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>

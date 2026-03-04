@@ -26,7 +26,7 @@ export const AdminLogin = () => {
       });
       if (error) throw error;
       
-      // Checar se o usuÃ¡rio logado possui cargo de admin nos profiles
+      // Checar se o usuário logado possui cargo de admin nos profiles
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('is_admin')
@@ -39,17 +39,17 @@ export const AdminLogin = () => {
          toast.success("Acesso administrativo autorizado!");
          navigate("/admin-dashboard");
       } else {
-         // Fazer logout instantanÃªo para garantir que ele nÃ£o transite lÃ¡
+         // Fazer logout instantâneo para garantir que ele não transite lá
          await supabase.auth.signOut();
-         toast.error("VocÃª nÃ£o tem permissÃµes de Administrador.");
+         toast.error("Você não tem permissões de Administrador.");
       }
 
     } catch (error: any) {
-      let errorMessage = error.message || "Ocorreu um erro durante a autenticaÃ§Ã£o.";
+      let errorMessage = error.message || "Ocorreu um erro durante a autenticação.";
       
       // Traduzir mensagens de erro conhecidas do Supabase
       if (errorMessage.includes("Invalid login credentials")) {
-        errorMessage = "UsuÃ¡rio ou Senha administrativos invÃ¡lidos.";
+        errorMessage = "Usuário ou Senha administrativos inválidos.";
       }
       
       toast.error(errorMessage);
@@ -74,7 +74,7 @@ export const AdminLogin = () => {
                <ShieldAlert className="w-8 h-8 text-red-500" />
             </div>
             <CardTitle className="text-2xl font-bold tracking-tight text-center text-white">
-              Painel de FuncionaÌrios
+              PAINEL ADMINISTRATIVO
             </CardTitle>
             <CardDescription className="text-center text-slate-400">
               Uso exclusivo administrativo. Login monitorado.
@@ -83,7 +83,7 @@ export const AdminLogin = () => {
           <CardContent className="space-y-4">
             
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-300">UsuÃ¡rio (E-mail Master)</Label>
+              <Label htmlFor="email" className="text-slate-300">Usuário (E-mail Master)</Label>
               <Input
                 id="email"
                 type="email"
@@ -115,7 +115,7 @@ export const AdminLogin = () => {
         </form>
       </Card>
       <div className="text-slate-500 text-xs text-center">
-         Royal SaÃºde &copy; {new Date().getFullYear()} - Sistema de Agendamentos (V.Admin)
+         Royal Saúde &copy; {new Date().getFullYear()} - Sistema de Agendamentos (V.Admin)
       </div>
     </div>
   );
