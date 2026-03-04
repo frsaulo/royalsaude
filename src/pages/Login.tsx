@@ -138,7 +138,7 @@ export const Login = () => {
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="titular">Titular do Plano</SelectItem>
+                      <SelectItem value="titular">Titular</SelectItem>
                       <SelectItem value="dependente">Dependente</SelectItem>
                     </SelectContent>
                   </Select>
