@@ -63,7 +63,20 @@ export const Login = () => {
         navigate("/agenda");
       }
     } catch (error: any) {
-      toast.error(error.message || "Ocorreu um erro durante a autenticação.");
+      let errorMessage = error.message || "Ocorreu um erro durante a autenticação.";
+      
+      // Traduzir mensagens de erro conhecidas do Supabase
+      if (errorMessage.includes("Email not confirmed")) {
+        errorMessage = "E-mail ainda não confirmado. Por favor, cheque sua caixa de entrada.";
+      } else if (errorMessage.includes("Invalid login credentials")) {
+        errorMessage = "E-mail ou senha incorretos.";
+      } else if (errorMessage.includes("User already registered")) {
+        errorMessage = "Este e-mail já está cadastrado em nosso sistema.";
+      } else if (errorMessage.includes("Password should be at least")) {
+        errorMessage = "A senha deve ter pelo menos 6 caracteres.";
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
