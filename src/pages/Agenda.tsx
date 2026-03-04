@@ -64,7 +64,9 @@ export const Agenda = () => {
       if (error) {
         toast.error("Erro ao buscar horários: " + error.message);
       } else {
-        const booked = data.map(app => app.time);
+        const booked = data.map(app => {
+          return app.time ? app.time.substring(0, 5) : '';
+        });
         setBookedSlots(booked);
       }
       setLoadingHours(false);
@@ -112,8 +114,9 @@ export const Agenda = () => {
           user_id: user.id, 
           date: dateStr, 
           time: selectedTime,
-          status: 'agendado',
-          type: attendanceType
+          type: attendanceType,
+          patient_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Paciente',
+          phone: user.user_metadata?.phone || 'Não informado'
         }
       ]);
 
@@ -331,13 +334,13 @@ export const Agenda = () => {
                             </span>
                           )}
                           <span className="text-xs font-semibold px-2 py-1 bg-green-100 text-green-700 rounded-full uppercase">
-                            {app.status}
+                            Agendado
                           </span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center mt-1">
                         <span className="text-sm font-medium text-slate-600 flex items-center gap-1">
-                          Horário: <span className="text-[#1E3A8A]">{app.time}</span>
+                          Horário: <span className="text-[#1E3A8A]">{app.time?.substring(0, 5) || app.time}</span>
                         </span>
                         
                         {/* Botão de Excluir / Cancelar */}
@@ -367,7 +370,7 @@ export const Agenda = () => {
             <AlertDialogTitle>Cancelar Agendamento</AlertDialogTitle>
             <AlertDialogDescription>
               Tem certeza que deseja cancelar sua consulta marcada para o dia{" "}
-              <span className="font-bold">{appointmentToDelete?.date.split('-').reverse().join('/')}</span> às <span className="font-bold">{appointmentToDelete?.time}</span>?
+              <span className="font-bold">{appointmentToDelete?.date.split('-').reverse().join('/')}</span> às <span className="font-bold">{appointmentToDelete?.time?.substring(0, 5) || appointmentToDelete?.time}</span>?
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>

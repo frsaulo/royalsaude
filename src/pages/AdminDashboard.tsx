@@ -65,18 +65,29 @@ export const AdminDashboard = () => {
     try {
       setLoading(true);
       
-      // Busca todos cruzando com profiles preenchendo cpf se ter
-      const { data, error } = await supabase
+      // Busca todos os agendamentos isolados
+      const { data: appointmentsData, error: appError } = await supabase
         .from('appointments')
-        .select(`
-          *,
-          profiles:user_id(full_name, cpf, phone)
-        `)
+        .select(`*`)
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
-      if (error) throw error;
-      setAppointments(data || []);
+      if (appError) throw appError;
+      
+      // Busca todos os profiles para mesclar o CPF de forma blindada contra erros de Schema
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name, cpf, phone');
+        
+      const appointmentsWithProfiles = (appointmentsData || []).map(app => {
+         const userProfile = profilesData?.find(p => p.id === app.user_id);
+         return {
+            ...app,
+            profiles: userProfile || null
+         };
+      });
+
+      setAppointments(appointmentsWithProfiles);
     } catch (error: any) {
       toast.error("Erro ao carregar agendamentos: " + error.message);
     } finally {

@@ -27,6 +27,17 @@ CREATE POLICY "Users can delete appointments" ON public.appointments
     (SELECT is_admin FROM public.profiles WHERE id = auth.uid()) = true
   );
 
+-- Execute APENAS ESSA QUERY MÁGICA lá no campo SQL do Supabase. 
+-- Cole tudo listado abaixo e dê RUN e feche:
+
+UPDATE public.profiles
+SET is_admin = true
+WHERE id IN (
+  SELECT id FROM auth.users WHERE email = 'royalsuper@royalsaude.com'
+);
+
+-- FIM DA QUERY MÁGICA, pode voltar a utilizar o /login.  );
+
 -- Admins can update ALL appointments
 CREATE POLICY "Admins can update appointments" ON public.appointments
   FOR UPDATE USING (
