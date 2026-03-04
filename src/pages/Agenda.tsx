@@ -23,6 +23,7 @@ export const Agenda = () => {
 
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [attendanceType, setAttendanceType] = useState<string>("local");
   
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [loadingHours, setLoadingHours] = useState(false);
@@ -100,7 +101,8 @@ export const Agenda = () => {
           user_id: user.id, 
           date: dateStr, 
           time: selectedTime,
-          status: 'agendado' 
+          status: 'agendado',
+          type: attendanceType
         }
       ]);
 
@@ -264,16 +266,27 @@ export const Agenda = () => {
 
           {selectedTime && date && (
             <Card className="border-[#1E3A8A] bg-blue-50/50">
-              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div>
+              <CardContent className="p-6 flex flex-col items-start justify-between gap-4">
+                <div className="w-full">
                   <h3 className="font-bold text-slate-800 text-lg">Revisão do Agendamento</h3>
-                  <p className="text-slate-600">
+                  <p className="text-slate-600 mb-4">
                     Data: <span className="font-medium text-[#1E3A8A]">{format(date, "dd/MM/yyyy")}</span> às <span className="font-medium text-[#1E3A8A]">{selectedTime}</span>
                   </p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 mb-2">
+                    <label className="flex items-center justify-center text-center gap-2 cursor-pointer p-3 border rounded-md bg-white flex-1 hover:border-[#1E3A8A] transition-colors" style={{borderColor: attendanceType === 'local' ? '#1E3A8A' : '', borderWidth: attendanceType === 'local' ? '2px' : '1px'}}>
+                      <input type="radio" value="local" checked={attendanceType === 'local'} onChange={(e) => setAttendanceType(e.target.value)} className="hidden" />
+                      <span className={`font-semibold ${attendanceType === 'local' ? 'text-[#1E3A8A]' : 'text-slate-500'}`}>Local (Clínica)</span>
+                    </label>
+                    <label className="flex items-center justify-center text-center gap-2 cursor-pointer p-3 border rounded-md bg-white flex-1 hover:border-[#1E3A8A] transition-colors" style={{borderColor: attendanceType === 'telemedicina' ? '#1E3A8A' : '', borderWidth: attendanceType === 'telemedicina' ? '2px' : '1px'}}>
+                      <input type="radio" value="telemedicina" checked={attendanceType === 'telemedicina'} onChange={(e) => setAttendanceType(e.target.value)} className="hidden" />
+                      <span className={`font-semibold ${attendanceType === 'telemedicina' ? 'text-[#1E3A8A]' : 'text-slate-500'}`}>Remoto (Telemedicina)</span>
+                    </label>
+                  </div>
                 </div>
                 <Button 
                   size="lg" 
-                  className="w-full md:w-auto bg-[#1E3A8A] hover:bg-[#1E3A8A]/90"
+                  className="w-full bg-[#1E3A8A] hover:bg-[#1E3A8A]/90"
                   onClick={handleCreateAppointment}
                   disabled={isSubmitting}
                 >
@@ -302,6 +315,11 @@ export const Agenda = () => {
                       <div className="flex justify-between items-start">
                         <span className="font-bold text-slate-800">{app.date.split('-').reverse().join('/')}</span>
                         <div className="flex items-center gap-2">
+                          {app.type && (
+                            <span className="text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-700 rounded-full uppercase">
+                              {app.type === 'telemedicina' ? 'Telemedicina' : 'Local'}
+                            </span>
+                          )}
                           <span className="text-xs font-semibold px-2 py-1 bg-green-100 text-green-700 rounded-full uppercase">
                             {app.status}
                           </span>
