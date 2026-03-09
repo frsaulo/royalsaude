@@ -23,7 +23,7 @@ const Footer = () => {
         <p className="text-[#092952] font-body text-xs mt-2">
           © {new Date().getFullYear()} Royal Saúde Clube de Benefícios Ltda<br /> 
  Todos os Direitos Reservados<br />
- Responsáveis Técnicos 
+ Responsáveis Técnicos:<br /> 
 Drª Fernanda Flores C. Neves CRM-MS 15.493<br />
 Dr Felipe Flores C. Neves CRM-MS 15.973<br />
 CNPJ: 61.889.391/0001-31
