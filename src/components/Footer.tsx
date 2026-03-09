@@ -21,7 +21,7 @@ const Footer = () => {
           <span>sac@fidelidaderoyalsaude.com.br</span>
         </a>
         <p className="text-[#e5e5e5] font-body text-xs mt-2">
-          © {new Date().getFullYear()}2026 Royal Saúde Clube de Benefícios Ltda<br /> 
+          © {new Date().getFullYear()}Royal Saúde Clube de Benefícios Ltda<br /> 
  Todos os Direitos Reservados<br />
  Responsáveis Técnicos 
 Drª Fernanda Flores C. Neves CRM-MS 15.493<br />
