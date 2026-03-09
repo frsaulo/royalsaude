@@ -5,7 +5,7 @@ const Footer = () => {
   return (
     <footer className="bg-[#fefdf8] py-12 border-t border-gold/10">
       <div className="container mx-auto px-6 text-center">
-        <img src={logo} alt="Royal Saúde" className="h-16 mx-auto mb-4" />
+        <img src={logo} alt="Royal Saúde" className="h-48 mx-auto mb-4" />
         <p className="text-[#092952] font-body text-sm mb-6">
           Clube de benefícios acessível para<br /> Campo Grande – MS e região
         </p>
