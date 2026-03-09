@@ -1,0 +1,29 @@
+(node:26192) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+2026-03-05T09:30:24.680Z - ­ƒÜÇ [Info] Give Feedback / Get Help: https://dub.composio.dev/discord 
+2026-03-05T09:30:24.680Z - ­ƒÉø [Info] Create a new issue: https://github.com/ComposioHQ/composio/issues 
+2026-03-05T09:30:24.680Z - Ôøö [Info] If you need to debug this error, set env variable COMPOSIO_LOGGING_LEVEL=debug
+C:\Users\55359\AppData\Local\npm-cache\_npx\b96ba1bb11ad2274\node_modules\composio-core\cli\index:1530
+        throw new ComposioError(messageCode, finalMessage, finalDescription, finalPossibleFix, metadata, originalError);
+              ^
+
+ComposioError: ­ƒöæ API Key is not provided
+    at CEG.getCustomError (C:\Users\55359\AppData\Local\npm-cache\_npx\b96ba1bb11ad2274\node_modules\composio-core\cli\index:1530:15)
+    at new Composio (C:\Users\55359\AppData\Local\npm-cache\_npx\b96ba1bb11ad2274\node_modules\composio-core\cli\index:3670:23)
+    at AddCommand.handleAction (C:\Users\55359\AppData\Local\npm-cache\_npx\b96ba1bb11ad2274\node_modules\composio-core\cli\index:3848:32)
+    at Command.listener [as _actionHandler] (C:\Users\55359\AppData\Local\npm-cache\_npx\b96ba1bb11ad2274\node_modules\commander\lib\command.js:542:17)
+    at C:\Users\55359\AppData\Local\npm-cache\_npx\b96ba1bb11ad2274\node_modules\commander\lib\command.js:1502:14
+    at Command._chainOrCall (C:\Users\55359\AppData\Local\npm-cache\_npx\b96ba1bb11ad2274\node_modules\commander\lib\command.js:1386:12)
+    at Command._parseCommand (C:\Users\55359\AppData\Local\npm-cache\_npx\b96ba1bb11ad2274\node_modules\commander\lib\command.js:1501:27)
+    at C:\Users\55359\AppData\Local\npm-cache\_npx\b96ba1bb11ad2274\node_modules\commander\lib\command.js:1265:27
+    at Command._chainOrCall (C:\Users\55359\AppData\Local\npm-cache\_npx\b96ba1bb11ad2274\node_modules\commander\lib\command.js:1386:12)
+    at Command._dispatchSubcommand (C:\Users\55359\AppData\Local\npm-cache\_npx\b96ba1bb11ad2274\node_modules\commander\lib\command.js:1261:25) {
+  metadata: undefined,
+  errCode: 'COMMON::API_KEY_INVALID',
+  description: 'You need to provide it in the constructor or as an environment variable COMPOSIO_API_KEY',
+  possibleFix: "Please provide a valid API Key. You can get it from https://app.composio.dev/settings OR Check if you are passing it as an object in the constructor like - { apiKey: 'your-api-key' }",
+  timestamp: '2026-03-05T09:30:24.679Z',
+  errorId: '09e6f9cd-fc5c-48cf-9083-4b648b71858d'
+}
+
+Node.js v24.13.1
