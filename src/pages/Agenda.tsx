@@ -39,7 +39,7 @@ export const Agenda = () => {
   const [loadingHours, setLoadingHours] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [appointmentToDelete, setAppointmentToDelete] = useState<{id: string, date: string, time: string} | null>(null);
+  const [appointmentAction, setAppointmentAction] = useState<{id: string, date: string, time: string, actionType: 'delete' | 'reschedule'} | null>(null);
 
   const [myAppointments, setMyAppointments] = useState<any[]>([]);
 
@@ -135,28 +135,33 @@ export const Agenda = () => {
     setIsSubmitting(false);
   };
 
-  const executeDelete = async () => {
-    if (!appointmentToDelete) return;
+  const executeAction = async () => {
+    if (!appointmentAction) return;
 
-    setDeletingId(appointmentToDelete.id);
+    setDeletingId(appointmentAction.id);
     const { error } = await supabase
       .from('appointments')
       .delete()
-      .eq('id', appointmentToDelete.id);
+      .eq('id', appointmentAction.id);
 
     if (error) {
-      toast.error("Erro ao cancelar o agendamento: " + error.message);
+      toast.error(`Erro ao ${appointmentAction.actionType === 'delete' ? 'cancelar' : 'remarcar'}: ` + error.message);
     } else {
-      toast.success("Agendamento cancelado com sucesso!");
-      setMyAppointments(myAppointments.filter(app => app.id !== appointmentToDelete.id));
+      if (appointmentAction.actionType === 'delete') {
+        toast.success("Agendamento cancelado com sucesso!");
+      } else {
+        toast.success("Consulta liberada. Escolha o novo horário na agenda.");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      setMyAppointments(myAppointments.filter(app => app.id !== appointmentAction.id));
       
       // If we just deleted a slot from the currently viewed date, we should unbook it locally
-      if (date && format(date, 'yyyy-MM-dd') === appointmentToDelete.date) {
-        setBookedSlots(bookedSlots.filter(time => time !== appointmentToDelete.time));
+      if (date && format(date, 'yyyy-MM-dd') === appointmentAction.date) {
+        setBookedSlots(bookedSlots.filter(time => time !== appointmentAction.time));
       }
     }
     setDeletingId(null);
-    setAppointmentToDelete(null);
+    setAppointmentAction(null);
   };
 
   const isPastHour = (timeStr: string) => {
@@ -343,17 +348,29 @@ export const Agenda = () => {
                           Horário: <span className="text-[#1E3A8A]">{app.time?.substring(0, 5) || app.time}</span>
                         </span>
                         
-                        {/* Botão de Excluir / Cancelar */}
-                        <Button 
-                           variant="ghost" 
-                           size="icon"
-                           className="h-8 w-8 text-rose-500 hover:bg-rose-100 hover:text-rose-600 opacity-80"
-                           disabled={deletingId === app.id}
-                           onClick={() => setAppointmentToDelete({id: app.id, date: app.date, time: app.time})}
-                           title="Cancelar Agendamento"
-                        >
-                          {deletingId === app.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                        </Button>
+                        {/* Botões de Ação */}
+                        <div className="flex items-center gap-2">
+                          <Button 
+                             variant="outline" 
+                             size="sm"
+                             className="h-8 text-xs font-medium text-[#1E3A8A] border-[#1E3A8A] hover:bg-blue-50"
+                             disabled={deletingId === app.id}
+                             onClick={() => setAppointmentAction({id: app.id, date: app.date, time: app.time, actionType: 'reschedule'})}
+                             title="Remarcar Consulta"
+                          >
+                            Remarcar
+                          </Button>
+                          <Button 
+                             variant="ghost" 
+                             size="icon"
+                             className="h-8 w-8 text-rose-500 hover:bg-rose-100 hover:text-rose-600"
+                             disabled={deletingId === app.id}
+                             onClick={() => setAppointmentAction({id: app.id, date: app.date, time: app.time, actionType: 'delete'})}
+                             title="Cancelar Agendamento"
+                          >
+                            {deletingId === app.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -364,20 +381,30 @@ export const Agenda = () => {
         </div>
       </main>
 
-      <AlertDialog open={!!appointmentToDelete} onOpenChange={(open) => !open && setAppointmentToDelete(null)}>
+      <AlertDialog open={!!appointmentAction} onOpenChange={(open) => !open && setAppointmentAction(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancelar Agendamento</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja cancelar sua consulta marcada para o dia{" "}
-              <span className="font-bold">{appointmentToDelete?.date.split('-').reverse().join('/')}</span> às <span className="font-bold">{appointmentToDelete?.time?.substring(0, 5) || appointmentToDelete?.time}</span>?
-              Esta ação não pode ser desfeita.
+            <AlertDialogTitle>
+              {appointmentAction?.actionType === 'reschedule' ? 'Remarcar Consulta' : 'Cancelar Agendamento'}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-4 pt-2">
+              <span className="block">
+                {appointmentAction?.actionType === 'reschedule' 
+                  ? 'Para remarcar, primeiro precisaremos cancelar esta consulta. Confirma a liberação do horário no dia '
+                  : 'Tem certeza que deseja cancelar sua consulta marcada para o dia '}
+                <span className="font-bold">{appointmentAction?.date.split('-').reverse().join('/')}</span> às <span className="font-bold">{appointmentAction?.time?.substring(0, 5) || appointmentAction?.time}</span>?
+                {appointmentAction?.actionType === 'delete' && ' Esta ação não pode ser desfeita.'}
+              </span>
+              
+              <span className="block bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-md text-sm font-medium mt-4">
+                Aviso: O prazo para cancelar ou remarcar sem custos é de no mínimo 24h de antecedência. Em caso de prazo inferior, será cobrada uma nova consulta.
+              </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Voltar</AlertDialogCancel>
-            <AlertDialogAction onClick={executeDelete} className="bg-rose-600 hover:bg-rose-700">
-              Sim, cancelar
+            <AlertDialogAction onClick={executeAction} className={appointmentAction?.actionType === 'delete' ? "bg-rose-600 hover:bg-rose-700" : "bg-[#1E3A8A] hover:bg-[#1E3A8A]/90"}>
+              {appointmentAction?.actionType === 'reschedule' ? 'Sim, remarcar' : 'Sim, cancelar'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
