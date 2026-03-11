@@ -62,15 +62,15 @@ const HeroSection = () => {
           </h2>
 
           <p className="text-xl md:text-2xl text-[#e9e6c9] font-body font-light mb-4">
-            Consulta médica sem filas.
+            Consulta medica disponivel <b>JÁ</b>
           </p>
           <p className="text-lg text-[#e9e6c9] font-body mb-8 max-w-lg">
             Atendimento imediato com agenda aberta. Acesso direto a médicos
             generalistas por apenas{" "}
-            <span className="text-accent font-bold text-2xl">R$100</span>{" "}
+            <span className="text-accent font-bold text-2xl">R$99,90</span>{" "}
             <span className="text-[#e9e6c9]">/mês*</span>
             <span className="block text-sm mt-2">
-             *Além da mensalidade de R$100,00, há uma taxa de R$70,00 por consulta.
+             *Além da mensalidade de R$99,90, há uma taxa de R$69,90 por consulta.
             </span>
           </p>
 
