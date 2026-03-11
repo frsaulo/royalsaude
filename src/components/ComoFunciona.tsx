@@ -5,7 +5,7 @@ const steps = [
   {
     icon: CreditCard,
     title: "Assine o Clube de Benefícios",
-    description: "Apenas R$100/mês para ter acesso completo a consultas médicas generalistas.",
+    description: "Apenas R$99,90/mês para ter acesso completo a consultas médicas generalistas.",
   },
   {
     icon: CalendarCheck,
