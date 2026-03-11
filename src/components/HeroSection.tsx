@@ -62,7 +62,7 @@ const HeroSection = () => {
           </h2>
 
           <p className="text-xl md:text-2xl text-[#e9e6c9] font-body font-light mb-4">
-            Consulta médica <b>JÁ</b>
+            Consulta médica disponivel <b>JÁ</b>
           </p>
           <p className="text-lg text-[#e9e6c9] font-body mb-8 max-w-lg">
             Atendimento imediato com agenda aberta. Acesso direto a médicos
