@@ -49,7 +49,7 @@ const HeroSection = () => {
             className="inline-block mb-6"
           >
             <span className="bg-gradient-gold px-4 py-2 rounded-sm text-accent-foreground font-cinzel text-sm font-semibold tracking-widest uppercase">
-              Clube de Benefícios
+              Clube de Benefícios em Saúde
             </span>
           </motion.div>
 
@@ -58,19 +58,24 @@ const HeroSection = () => {
           </h1>
           
           <h2 className="text-2xl md:text-3xl font-cinzel text-accent mb-6 tracking-wide">
-            Cuidar não pode esperar!
+            Cuidar de você não pode esperar!
           </h2>
 
           <p className="text-xl md:text-2xl text-[#e9e6c9] font-body font-light mb-4">
-            Consulta médica disponivel <b>JÁ</b>
+            Consulta Médica <b>AGORA</b> mesmo!
           </p>
           <p className="text-lg text-[#e9e6c9] font-body mb-8 max-w-lg">
-            Atendimento imediato com agenda aberta. Acesso direto a médicos
-            generalistas por apenas{" "}
+            Acesso direto a médicos (Clínicos Gerais/Generalistas) por apenas{" "}
             <span className="text-accent font-bold text-2xl">R$99,90</span>{" "}
             <span className="text-[#e9e6c9]">/mês*</span>
             <span className="block text-sm mt-2">
-             *Além da mensalidade de R$99,90, há uma taxa de R$69,90 por consulta.
+             *Ao assinar a mensalidade, você têm o direito de consultas ILIMITADAS com 1 pequena taxa de participação de R$69,90 por consulta.
+            </span>
+            <span className="block text-sm mt-2">
+            - Agende <b>AGORA!</b>
+            </span>
+            <span className="block text-sm mt-2">
+            - Conheça os <b>Benefícios</b>
             </span>
           </p>
 
