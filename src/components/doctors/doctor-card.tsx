@@ -77,7 +77,9 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
                 <Link href={`/doctors/${doctor.id}`}>Ver Perfil</Link>
               </Button>
               <Button asChild>
-                <Link href={`/agendamento?doctor_id=${doctor.id}`}>Agendar</Link>
+                <Link href={`/agenda?doctor=${encodeURIComponent(doctor.name)}&specialty=${encodeURIComponent(doctor.specialties[0])}`}>
+                  Agendar
+                </Link>
               </Button>
             </div>
           </div>

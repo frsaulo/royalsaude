@@ -67,10 +67,10 @@ export function DoctorList() {
     <div className="flex flex-col gap-8 max-w-5xl mx-auto w-full">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Encontre seu Médico
+          Encontre sua Especialidade
         </h1>
         <p className="text-muted-foreground text-lg">
-          Profissionais de excelência prontos para cuidar de você. Agende consultas presenciais ou por telemedicina.
+          Escolha a especialidade desejada e agende sua consulta com nossos profissionais de excelência.
         </p>
       </div>
 

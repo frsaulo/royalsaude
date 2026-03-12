@@ -4,26 +4,32 @@ import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
-import { Button } from "../components/ui/button";
-import { Calendar } from "../components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../components/ui/alert-dialog";
-import { toast } from "sonner";
-import { Loader2, LogOut, User, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { Badge } from "../components/ui/badge";
+import { Separator } from "../components/ui/separator";
+import { Loader2, LogOut, User, Trash2, Calendar as CalendarIcon, Clock, Stethoscope, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// Horários de atendimento base (8h as 12 e 14h as 18)
-const MORNING_SLOTS = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00"];
-const AFTERNOON_SLOTS = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"];
+const MORNING_SLOTS = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"];
+const AFTERNOON_SLOTS = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"];
+
+const SPECIALTIES = [
+  "Clínica Médica",
+  "Pediatria",
+  "Cardiologia",
+  "Ortopedia",
+  "Ginecologia",
+  "Dermatologia"
+];
+
+const DOCTORS: Record<string, string[]> = {
+  "Clínica Médica": ["Dr. Saulo Santana", "Dra. Mariana Costa"],
+  "Pediatria": ["Dra. Fernanda Silva"],
+  "Cardiologia": ["Dr. Ricardo Oliveira"],
+  "Ortopedia": ["Dr. Luiz Santos"],
+  "Ginecologia": ["Dra. Beatriz Lima"],
+  "Dermatologia": ["Dra. Ana Paula"]
+};
 
 const TIMEZONE = "America/Sao_Paulo";
 
@@ -31,7 +37,10 @@ export const Agenda = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [specialty, setSpecialty] = useState<string>("");
+  const [doctor, setDoctor] = useState<string>("");
+  
+  const [date, setDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [attendanceType, setAttendanceType] = useState<string>("local");
   
@@ -102,7 +111,10 @@ export const Agenda = () => {
   };
 
   const handleCreateAppointment = async () => {
-    if (!user || !date || !selectedTime) return;
+    if (!user || !date || !selectedTime || !specialty || !doctor) {
+      toast.error("Por favor, preencha todos os campos.");
+      return;
+    }
 
     setIsSubmitting(true);
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -116,18 +128,35 @@ export const Agenda = () => {
           time: selectedTime,
           type: attendanceType,
           patient_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Paciente',
-          phone: user.user_metadata?.phone || 'Não informado'
+          phone: user.user_metadata?.phone || 'Não informado',
+          // Assuming these columns might exist or just ignore if they don't for now (best effort)
+          // doctor_name: doctor,
+          // specialty: specialty
         }
       ]);
 
     if (error) {
-      if (error.code === '23505') { // unique violation
+      if (error.code === '23505') {
         toast.error("Este horário acabou de ser agendado por outra pessoa.");
       } else {
         toast.error("Falha ao agendar: " + error.message);
       }
     } else {
-      toast.success(`Agendamento confirmado para ${format(date, "dd/MM/yyyy")} às ${selectedTime}`);
+      const whatsappMessage = window.encodeURIComponent(
+        `Olá, sou ${user.user_metadata?.full_name || user.email}. Confirmo meu agendamento de ${specialty} com ${doctor} para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.`
+      );
+      const whatsappUrl = `https://wa.me/5535991823126?text=${whatsappMessage}`;
+      
+      toast.success(
+        <div className="flex flex-col gap-2">
+          <span>Agendamento confirmado!</span>
+          <Button size="sm" variant="outline" className="bg-green-600 text-white border-none hover:bg-green-700" onClick={() => window.open(whatsappUrl, '_blank')}>
+            <MessageCircle className="h-4 w-4 mr-2" /> Confirmar no WhatsApp
+          </Button>
+        </div>,
+        { duration: 8000 }
+      );
+      
       setBookedSlots([...bookedSlots, selectedTime]);
       setSelectedTime(null);
     }
@@ -197,15 +226,57 @@ export const Agenda = () => {
         </div>
       </header>
 
-      <main className="container mx-auto max-w-5xl px-4 py-8 grid gap-8 md:grid-cols-12">
+      <main className="container mx-auto max-w-6xl px-4 py-8 grid gap-8 md:grid-cols-12">
         <div className="md:col-span-8 flex flex-col gap-8">
-          <div className="flex flex-col md:flex-row gap-6">
-            <Card className="flex-1">
-              <CardHeader>
-                <CardTitle>Escolha o Dia</CardTitle>
-                <CardDescription>Selecione a data para seu atendimento</CardDescription>
+          {/* Nova Seção de Seleção Profissional */}
+          <Card className="border-t-4 border-t-[#10b981]">
+            <CardHeader>
+              <div className="flex items-center gap-2 mb-1">
+                <Stethoscope className="h-5 w-5 text-[#10b981]" />
+                <CardTitle className="text-xl">O que você procura?</CardTitle>
+              </div>
+              <CardDescription>Escolha a especialidade e o médico para seu atendimento.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Especialidade</label>
+                <Select value={specialty} onValueChange={(val) => {setSpecialty(val); setDoctor("");}}>
+                  <SelectTrigger className="bg-white border-slate-200 focus:ring-[#1E3A8A]">
+                    <SelectValue placeholder="Selecione a especialidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SPECIALTIES.map(s => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Médico(a)</label>
+                <Select value={doctor} onValueChange={setDoctor} disabled={!specialty}>
+                  <SelectTrigger className="bg-white border-slate-200 focus:ring-[#1E3A8A]">
+                    <SelectValue placeholder={specialty ? "Selecione o profissional" : "Escolha a especialidade primeiro"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {specialty && DOCTORS[specialty].map(d => (
+                      <SelectItem key={d} value={d}>{d}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className={`grid md:grid-cols-2 gap-6 transition-all duration-500 ${!doctor ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+            <Card className="shadow-lg border-none">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="h-5 w-5 text-[#1E3A8A]" />
+                  <CardTitle className="text-lg">Escolha o Dia</CardTitle>
+                </div>
               </CardHeader>
-              <CardContent className="flex justify-center pb-6">
+              <CardContent className="flex justify-center pt-0">
                 <Calendar
                   mode="single"
                   selected={date}
@@ -215,31 +286,38 @@ export const Agenda = () => {
                     return dStr < todayStringSP || d.getDay() === 0 || d.getDay() === 6;
                   }}
                   locale={ptBR}
-                  className="rounded-md border shadow-sm w-fit"
+                  className="p-0 pointer-events-auto"
                 />
               </CardContent>
             </Card>
 
-            <Card className="flex-1">
-              <CardHeader>
-                <CardTitle>Horários Livres</CardTitle>
-                <CardDescription>
+            <Card className="shadow-lg border-none h-full">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-[#1E3A8A]" />
+                  <CardTitle className="text-lg">Horários Livres</CardTitle>
+                </div>
+                <CardDescription className="capitalize">
                   {date ? format(date, "EEEE, d 'de' MMMM", { locale: ptBR }) : "Selecione uma data"}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {!date ? (
-                  <div className="h-40 flex items-center justify-center text-slate-400 text-sm">
-                    Aguardando Data
+                  <div className="h-40 flex flex-col items-center justify-center text-slate-400 gap-2 border-2 border-dashed rounded-lg border-slate-100">
+                    <CalendarIcon className="h-8 w-8 opacity-20" />
+                    <span className="text-sm">Aguardando Data</span>
                   </div>
                 ) : loadingHours ? (
                   <div className="h-40 flex items-center justify-center text-slate-400">
-                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <Loader2 className="h-8 w-8 animate-spin" />
                   </div>
                 ) : (
                   <div className="space-y-6">
                     <div>
-                      <h4 className="font-medium text-sm text-slate-500 mb-3">MANHÃ (8h às 12h)</h4>
+                      <h4 className="flex items-center gap-2 font-bold text-[10px] text-slate-400 tracking-wider mb-3">
+                        <span className="w-8 h-[1px] bg-slate-200"></span>
+                        PERÍODO DA MANHÃ
+                      </h4>
                       <div className="grid grid-cols-3 gap-2">
                         {MORNING_SLOTS.map((time) => {
                           const isBooked = isTimeBooked(time);
@@ -247,7 +325,7 @@ export const Agenda = () => {
                             <Button
                               key={time}
                               variant={selectedTime === time ? "default" : "outline"}
-                              className={`w-full ${selectedTime === time ? 'bg-[#1E3A8A]' : ''} ${isBooked ? 'opacity-30 cursor-not-allowed hidden' : ''}`}
+                              className={`h-10 text-xs font-semibold rounded-md border-slate-200 ${selectedTime === time ? 'bg-[#1E3A8A] text-white shadow-md' : 'hover:border-[#1E3A8A] hover:bg-blue-50/50'} ${isBooked ? 'hidden' : ''}`}
                               disabled={isBooked}
                               onClick={() => setSelectedTime(time)}
                             >
@@ -258,7 +336,10 @@ export const Agenda = () => {
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-medium text-sm text-slate-500 mb-3">TARDE (14h às 18h)</h4>
+                      <h4 className="flex items-center gap-2 font-bold text-[10px] text-slate-400 tracking-wider mb-3">
+                        <span className="w-8 h-[1px] bg-slate-200"></span>
+                        PERÍODO DA TARDE
+                      </h4>
                       <div className="grid grid-cols-3 gap-2">
                         {AFTERNOON_SLOTS.map((time) => {
                           const isBooked = isTimeBooked(time);
@@ -266,7 +347,7 @@ export const Agenda = () => {
                             <Button
                               key={time}
                               variant={selectedTime === time ? "default" : "outline"}
-                              className={`w-full ${selectedTime === time ? 'bg-[#1E3A8A]' : ''} ${isBooked ? 'opacity-30 cursor-not-allowed hidden' : ''}`}
+                              className={`h-10 text-xs font-semibold rounded-md border-slate-200 ${selectedTime === time ? 'bg-[#1E3A8A] text-white shadow-md' : 'hover:border-[#1E3A8A] hover:bg-blue-50/50'} ${isBooked ? 'hidden' : ''}`}
                               disabled={isBooked}
                               onClick={() => setSelectedTime(time)}
                             >
@@ -283,34 +364,59 @@ export const Agenda = () => {
           </div>
 
           {selectedTime && date && (
-            <Card className="border-[#1E3A8A] bg-blue-50/50">
-              <CardContent className="p-6 flex flex-col items-start justify-between gap-4">
-                <div className="w-full">
-                  <h3 className="font-bold text-slate-800 text-lg">Revisão do Agendamento</h3>
-                  <p className="text-slate-600 mb-4">
-                    Data: <span className="font-medium text-[#1E3A8A]">{format(date, "dd/MM/yyyy")}</span> às <span className="font-medium text-[#1E3A8A]">{selectedTime}</span>
-                  </p>
+            <Card className="border-none bg-gradient-to-br from-[#1E3A8A] to-[#2563eb] text-white overflow-hidden shadow-xl">
+              <CardContent className="p-0">
+                <div className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="space-y-3 text-center md:text-left">
+                    <Badge className="bg-white/20 text-white border-none hover:bg-white/30 backdrop-blur-sm px-3">
+                      Resumo da Escolha
+                    </Badge>
+                    <div>
+                      <h3 className="text-2xl font-bold tracking-tight">{specialty}</h3>
+                      <p className="text-blue-100 flex items-center justify-center md:justify-start gap-2 mt-1">
+                        <User className="h-4 w-4" /> {doctor}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm font-medium pt-2">
+                      <div className="flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-full">
+                        <CalendarIcon className="h-3.5 w-3.5" />
+                        {format(date, "dd/MM/yyyy")}
+                      </div>
+                      <div className="flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-full">
+                        <Clock className="h-3.5 w-3.5" />
+                        {selectedTime}
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-center md:justify-start gap-3 pt-2">
+                      <button 
+                        onClick={() => setAttendanceType('local')}
+                        className={`text-xs px-4 py-2 rounded-lg font-bold transition-all ${attendanceType === 'local' ? 'bg-white text-[#1E3A8A] shadow-lg' : 'bg-white/10 hover:bg-white/20'}`}
+                      >
+                        Presencial
+                      </button>
+                      <button 
+                        onClick={() => setAttendanceType('telemedicina')}
+                        className={`text-xs px-4 py-2 rounded-lg font-bold transition-all ${attendanceType === 'telemedicina' ? 'bg-white text-[#1E3A8A] shadow-lg' : 'bg-white/10 hover:bg-white/20'}`}
+                      >
+                        Telemedicina
+                      </button>
+                    </div>
+                  </div>
                   
-                  <div className="flex flex-col sm:flex-row gap-4 mb-2">
-                    <label className="flex items-center justify-center text-center gap-2 cursor-pointer p-3 border rounded-md bg-white flex-1 hover:border-[#1E3A8A] transition-colors" style={{borderColor: attendanceType === 'local' ? '#1E3A8A' : '', borderWidth: attendanceType === 'local' ? '2px' : '1px'}}>
-                      <input type="radio" value="local" checked={attendanceType === 'local'} onChange={(e) => setAttendanceType(e.target.value)} className="hidden" />
-                      <span className={`font-semibold ${attendanceType === 'local' ? 'text-[#1E3A8A]' : 'text-slate-500'}`}>Local (Clínica)</span>
-                    </label>
-                    <label className="flex items-center justify-center text-center gap-2 cursor-pointer p-3 border rounded-md bg-white flex-1 hover:border-[#1E3A8A] transition-colors" style={{borderColor: attendanceType === 'telemedicina' ? '#1E3A8A' : '', borderWidth: attendanceType === 'telemedicina' ? '2px' : '1px'}}>
-                      <input type="radio" value="telemedicina" checked={attendanceType === 'telemedicina'} onChange={(e) => setAttendanceType(e.target.value)} className="hidden" />
-                      <span className={`font-semibold ${attendanceType === 'telemedicina' ? 'text-[#1E3A8A]' : 'text-slate-500'}`}>Remoto (Telemedicina)</span>
-                    </label>
+                  <div className="w-full md:w-auto">
+                    <Button 
+                      size="lg" 
+                      className="w-full md:w-64 bg-[#10b981] hover:bg-[#059669] text-white font-bold h-16 shadow-lg rounded-xl text-lg group"
+                      onClick={handleCreateAppointment}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
+                      Confirmar Agora
+                      <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                    </Button>
                   </div>
                 </div>
-                <Button 
-                  size="lg" 
-                  className="w-full bg-[#1E3A8A] hover:bg-[#1E3A8A]/90"
-                  onClick={handleCreateAppointment}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Confirmar Agendamento
-                </Button>
               </CardContent>
             </Card>
           )}
