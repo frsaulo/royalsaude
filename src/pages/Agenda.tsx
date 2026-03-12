@@ -171,6 +171,9 @@ export const Agenda = () => {
   const executeAction = async () => {
     if (!appointmentAction) return;
 
+    // Busca os dados completos do agendamento (para ter o telefone)
+    const app = myAppointments.find(a => a.id === appointmentAction.id);
+
     setDeletingId(appointmentAction.id);
     const { error } = await supabase
       .from('appointments')
@@ -186,13 +189,32 @@ export const Agenda = () => {
         toast.success("Consulta liberada. Escolha o novo horário na agenda.");
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-      setMyAppointments(myAppointments.filter(app => app.id !== appointmentAction.id));
-      
-      // If we just deleted a slot from the currently viewed date, we should unbook it locally
+
+      setMyAppointments(myAppointments.filter(a => a.id !== appointmentAction.id));
+
       if (date && format(date, 'yyyy-MM-dd') === appointmentAction.date) {
-        setBookedSlots(bookedSlots.filter(time => time !== appointmentAction.time));
+        setBookedSlots(bookedSlots.filter(t => t !== appointmentAction.time));
+      }
+
+      // Envia WhatsApp de cancelamento ou remarcação (não bloqueia a UI)
+      if (app?.phone && app.phone !== 'Não informado') {
+        fetch(
+          'https://bxkwonqrflctvbjskhmj.supabase.co/functions/v1/notify-whatsapp',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: appointmentAction.actionType === 'delete' ? 'cancel' : 'reschedule',
+              phone: app.phone,
+              patientName: app.patient_name,
+              date: appointmentAction.date,
+              time: appointmentAction.time,
+            }),
+          }
+        ).catch(() => { /* silencioso — não impede o fluxo */ });
       }
     }
+
     setDeletingId(null);
     setAppointmentAction(null);
   };
