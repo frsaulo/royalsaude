@@ -116,19 +116,26 @@ export const Agenda = () => {
     setIsSubmitting(true);
     const dateStr = format(date, 'yyyy-MM-dd');
 
+    // Busca o telefone e nome na tabela profiles (fonte correta dos dados do paciente)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('phone, full_name')
+      .eq('id', user.id)
+      .single();
+
+    const patientPhone = profile?.phone || user.user_metadata?.phone || '';
+    const patientName  = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Paciente';
+
     const { error } = await supabase
       .from('appointments')
       .insert([
-        { 
-          user_id: user.id, 
-          date: dateStr, 
+        {
+          user_id: user.id,
+          date: dateStr,
           time: selectedTime,
           type: attendanceType,
-          patient_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Paciente',
-          phone: user.user_metadata?.phone || 'Não informado',
-          // Assuming these columns might exist or just ignore if they don't for now (best effort)
-          // doctor_name: doctor,
-          // specialty: specialty
+          patient_name: patientName,
+          phone: patientPhone,
         }
       ]);
 
