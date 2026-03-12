@@ -69,13 +69,13 @@ const HeroSection = () => {
             <span className="text-accent font-bold text-2xl">R$99,90</span>{" "}
             <span className="text-[#e9e6c9]">/mês*</span>
             <span className="block text-sm mt-2">
-             *Ao assinar a mensalidade, você têm o direito de consultas ILIMITADAS com 1 pequena taxa de participação de R$69,90 por consulta.
+             *Ao assinar a mensalidade, você tem o direito de consultas ILIMITADAS<br /> com 1 pequena taxa de participação de R$69,90 por consulta.
             </span>
             <span className="block text-sm mt-2">
             - Agende <b>AGORA!</b>
             </span>
             <span className="block text-sm mt-2">
-            - Conheça os <b>Benefícios</b>
+            - Conheça os <b>BENEFÍCIOS!</b>
             </span>
           </p>
 
