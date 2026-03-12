@@ -4,10 +4,10 @@ import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+
 import { Badge } from "../components/ui/badge";
 import { Separator } from "../components/ui/separator";
-import { Loader2, LogOut, User, Trash2, Calendar as CalendarIcon, Clock, Stethoscope, MessageCircle } from "lucide-react";
+import { Loader2, LogOut, User, Trash2, Calendar as CalendarIcon, Clock, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
@@ -27,23 +27,7 @@ import {
 const MORNING_SLOTS = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"];
 const AFTERNOON_SLOTS = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"];
 
-const SPECIALTIES = [
-  "Clínica Médica",
-  "Pediatria",
-  "Cardiologia",
-  "Ortopedia",
-  "Ginecologia",
-  "Dermatologia"
-];
 
-const DOCTORS: Record<string, string[]> = {
-  "Clínica Médica": ["Dr. Saulo Santana", "Dra. Mariana Costa"],
-  "Pediatria": ["Dra. Fernanda Silva"],
-  "Cardiologia": ["Dr. Ricardo Oliveira"],
-  "Ortopedia": ["Dr. Luiz Santos"],
-  "Ginecologia": ["Dra. Beatriz Lima"],
-  "Dermatologia": ["Dra. Ana Paula"]
-};
 
 const TIMEZONE = "America/Sao_Paulo";
 
@@ -51,8 +35,7 @@ export const Agenda = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const [specialty, setSpecialty] = useState<string>("");
-  const [doctor, setDoctor] = useState<string>("");
+
   
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -125,8 +108,8 @@ export const Agenda = () => {
   };
 
   const handleCreateAppointment = async () => {
-    if (!user || !date || !selectedTime || !specialty || !doctor) {
-      toast.error("Por favor, preencha todos os campos.");
+    if (!user || !date || !selectedTime) {
+      toast.error("Por favor, selecione uma data e horário.");
       return;
     }
 
@@ -157,7 +140,7 @@ export const Agenda = () => {
       }
     } else {
       const whatsappMessage = window.encodeURIComponent(
-        `Olá, sou ${user.user_metadata?.full_name || user.email}. Confirmo meu agendamento de ${specialty} com ${doctor} para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.`
+        `Olá, sou ${user.user_metadata?.full_name || user.email}. Confirmo meu agendamento para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.`
       );
       const whatsappUrl = `https://wa.me/5535991823126?text=${whatsappMessage}`;
       
@@ -242,47 +225,7 @@ export const Agenda = () => {
 
       <main className="container mx-auto max-w-6xl px-4 py-8 grid gap-8 md:grid-cols-12">
         <div className="md:col-span-8 flex flex-col gap-8">
-          {/* Nova Seção de Seleção Profissional */}
-          <Card className="border-t-4 border-t-[#10b981]">
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-1">
-                <Stethoscope className="h-5 w-5 text-[#10b981]" />
-                <CardTitle className="text-xl">O que você procura?</CardTitle>
-              </div>
-              <CardDescription>Escolha a especialidade e o médico para seu atendimento.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Especialidade</label>
-                <Select value={specialty} onValueChange={(val) => {setSpecialty(val); setDoctor("");}}>
-                  <SelectTrigger className="bg-white border-slate-200 focus:ring-[#1E3A8A]">
-                    <SelectValue placeholder="Selecione a especialidade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SPECIALTIES.map(s => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Médico(a)</label>
-                <Select value={doctor} onValueChange={setDoctor} disabled={!specialty}>
-                  <SelectTrigger className="bg-white border-slate-200 focus:ring-[#1E3A8A]">
-                    <SelectValue placeholder={specialty ? "Selecione o profissional" : "Escolha a especialidade primeiro"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {specialty && DOCTORS[specialty].map(d => (
-                      <SelectItem key={d} value={d}>{d}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className={`grid md:grid-cols-2 gap-6 transition-all duration-500 ${!doctor ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+          <div className="grid md:grid-cols-2 gap-6">
             <Card className="shadow-lg border-none">
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
@@ -385,12 +328,6 @@ export const Agenda = () => {
                     <Badge className="bg-white/20 text-white border-none hover:bg-white/30 backdrop-blur-sm px-3">
                       Resumo da Escolha
                     </Badge>
-                    <div>
-                      <h3 className="text-2xl font-bold tracking-tight">{specialty}</h3>
-                      <p className="text-blue-100 flex items-center justify-center md:justify-start gap-2 mt-1">
-                        <User className="h-4 w-4" /> {doctor}
-                      </p>
-                    </div>
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm font-medium pt-2">
                       <div className="flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-full">
                         <CalendarIcon className="h-3.5 w-3.5" />
