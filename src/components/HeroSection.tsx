@@ -65,17 +65,11 @@ const HeroSection = () => {
             Consulta Médica <b>AGORA</b> mesmo!
           </p>
           <p className="text-lg text-[#e9e6c9] font-body mb-8 max-w-lg">
-            Acesso direto a médicos (Clínicos Gerais/Generalistas) por apenas{" "}
+            Acesso direto a médicos (Clínicos Gerais) <br>por apenas{" "}</br>
             <span className="text-accent font-bold text-2xl">R$99,90</span>{" "}
             <span className="text-[#e9e6c9]">/mês*</span>
             <span className="block text-sm mt-2">
-             *Ao assinar a mensalidade, você tem o direito a consultas ILIMITADAS<br /> com 1 pequena taxa de participação de R$69,90 por consulta.
-            </span>
-            <span className="block text-sm mt-2">
-            - Agende <b>AGORA!</b>
-            </span>
-            <span className="block text-sm mt-2">
-            - Conheça os <b>BENEFÍCIOS!</b>
+             *Ao assinar a mensalidade, você tem o direito a consultas ILIMITADAS<br /> com uma pequena taxa de participação de R$69,90 por consulta.
             </span>
           </p>
 
