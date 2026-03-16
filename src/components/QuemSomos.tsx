@@ -43,12 +43,12 @@ const QuemSomos = () => {
               {
                 icon: Heart,
                 title: "Atendimento Humanizado",
-                desc: "Médicos dedicados ao seu bem-estar com atenção personalizada.",
+                desc: "Profissionais dedicados ao seu bem-estar, com cuidado e atenção individualizada.",
               },
               {
                 icon: Shield,
                 title: "Confiança e Segurança",
-                desc: "Profissionais qualificados e ambiente seguro para sua consulta.",
+                desc: "Profissionais devidamente registrados em seus respectivos Conselhos Regionais (CRM, CRP, CRN, CREF) com atendimento seguro para sua saúde.",
               },
               {
                 icon: MapPin,
