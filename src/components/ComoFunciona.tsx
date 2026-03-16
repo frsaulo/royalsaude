@@ -5,22 +5,22 @@ const steps = [
   {
     icon: CreditCard,
     title: "Assine o Clube de Benefícios",
-    description: "R$99,90/ mês + taxa por consulta ou exame <br />Médicos Clínicos Gerais, <br />Exame de Refração Oftalmológica, <br />Nutricionistas, <br />Psicólogos, <br />Educadores Físicos, <br />Exames Laboratoriais e Exames de Imagem ",
+    description: "R$99,90/ mês + taxa por consulta ou exame \nMédicos Clínicos Gerais, \nExame de Refração Oftalmológica, \nNutricionistas, \nPsicólogos, \nEducadores Físicos, \nExames Laboratoriais e Exames de Imagem ",
   },
   {
     icon: CalendarCheck,
     title: "Agende Online",
-    description: "Agenda aberta direto no site. <br />Escolha o melhor horário para você.",
+    description: "Agenda aberta direto no site. \nEscolha o melhor horário para você.",
   },
   {
     icon: Clock,
     title: "Sem Filas",
-    description: "Agendamento imediato conforme a sua necessidade.<br />Sem esperar dias para ser atendido!",
+    description: "Agendamento imediato conforme a sua necessidade.\nSem esperar dias para ser atendido!",
   },
   {
     icon: UserCheck,
     title: "Atendimentos",
-    description: "Profissionais qualificados para<br /> atendimentos online e presencial.",
+    description: "Profissionais qualificados para\n atendimentos online e presencial.",
   },
 ];
 
@@ -58,7 +58,7 @@ const ComoFunciona = () => {
               <h3 className="font-cinzel text-lg font-bold text-primary mb-3">
                 {step.title}
               </h3>
-              <p className="text-muted-foreground font-body leading-relaxed text-sm">
+              <p className="text-muted-foreground font-body leading-relaxed text-sm whitespace-pre-line">
                 {step.description}
               </p>
             </motion.div>

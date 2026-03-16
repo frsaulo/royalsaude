@@ -64,12 +64,12 @@ const HeroSection = () => {
           <p className="text-xl md:text-2xl text-[#e9e6c9] font-body font-light mb-4">
             Consulta Médica <b>AGORA</b> mesmo!
           </p>
-          <p className="text-lg text-[#e9e6c9] font-body mb-8 max-w-lg">
-            Acesso direto a médicos clínicos gerais <br /> Por apenas{" "}
+          <p className="text-lg text-[#e9e6c9] font-body mb-8 max-w-lg whitespace-pre-line">
+            Acesso direto a médicos clínicos gerais {"\n"} Por apenas{" "}
             <span className="text-accent font-bold text-2xl">R$99,90</span>{" "}
             <span className="text-[#e9e6c9]">/mês*</span>
             <span className="block text-sm mt-2">
-             *Ao assinar a mensalidade, você tem o direito a consultas ILIMITADAS<br /> com uma pequena taxa de participação de R$69,90 por consulta.
+             *Ao assinar a mensalidade, você tem o direito a consultas ILIMITADAS{"\n"} com uma pequena taxa de participação de R$69,90 por consulta.
             </span>
           </p>
 

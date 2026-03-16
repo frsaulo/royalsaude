@@ -10,8 +10,9 @@ const Footer = () => {
           Saúde de qualidade ao seu alcance
         </p>
         <div className="h-px bg-gradient-gold max-w-xs mx-auto mb-6 opacity-30" />
-        <p className="text-[#092952] font-body text-xs mb-4">
-           <br />R. Dr. Eduardo Machado Metelo, 46 - Chácara Cachoeira, <br />Campo Grande - MS, CEP: 79040-830
+        <p className="text-[#092952] font-body text-xs mb-4 whitespace-pre-line">
+          R. Dr. Eduardo Machado Metelo, 46 - Chácara Cachoeira,
+          Campo Grande - MS, CEP: 79040-830
         </p>
         <div className="flex flex-col items-center gap-4 mb-6">
           <a 
@@ -36,13 +37,13 @@ const Footer = () => {
             <span>sac@fidelidaderoyalsaude.com.br</span>
           </a>
         </div>
-        <p className="text-[#092952] font-body text-xs mt-2">
- Responsáveis Técnicos:<br /> 
-Drª Fernanda Flores C. Neves<br /> CRM-MS 15.493<br />
-Dr Felipe Flores C. Neves <br />CRM-MS 15.973<br />
-CNPJ: 61.889.391/0001-31<br />
- Todos os direitos reservados<br />
-          © {new Date().getFullYear()} Royal Saúde Clube de Benefícios Ltda<br /> 
+        <p className="text-[#092952] font-body text-xs mt-2 whitespace-pre-line">
+          Responsáveis Técnicos:
+          Drª Fernanda Flores C. Neves | CRM-MS 15.493
+          Dr Felipe Flores C. Neves | CRM-MS 15.973
+          CNPJ: 61.889.391/0001-31
+          Todos os direitos reservados
+          © {new Date().getFullYear()} Royal Saúde Clube de Benefícios Ltda
         </p>
       </div>
     </footer>
