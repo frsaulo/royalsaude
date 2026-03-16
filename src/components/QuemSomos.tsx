@@ -29,15 +29,19 @@ const QuemSomos = () => {
               Nosso compromisso é oferecer saúde acessível e de qualidade, através de atendimento humanizado presencial e online.
             </p>
 
-            <div className="space-y-3 mb-8">
+            <div className="space-y-4 mb-8">
               {[
                 "Agendamento rápido",
                 "Atendimento de qualidade",
                 "Consultas acessíveis",
               ].map((text) => (
-                <div key={text} className="flex items-center gap-3 text-[#e9e6c9]">
-                  <Check className="w-5 h-5 text-gold shrink-0" />
-                  <span className="font-body font-medium">{text}</span>
+                <div key={text} className="flex items-center gap-4 text-[#e9e6c9] group transition-all duration-300">
+                  <div className="w-8 h-8 rounded-full border border-gold/20 flex items-center justify-center transition-all duration-300 group-hover:bg-royal group-hover:border-royal group-hover:scale-110 shadow-sm group-hover:shadow-gold/20">
+                    <Check className="w-5 h-5 text-gold transition-colors duration-300 group-hover:text-white" />
+                  </div>
+                  <span className="font-body font-medium transition-colors duration-300 group-hover:text-gold-light cursor-default">
+                    {text}
+                  </span>
                 </div>
               ))}
             </div>
