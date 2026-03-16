@@ -37,11 +37,11 @@ const Footer = () => {
           </a>
         </div>
         <p className="text-[#092952] font-body text-xs mt-2">
- Todos os direitos reservados<br />
  Responsáveis Técnicos:<br /> 
 Drª Fernanda Flores C. Neves<br /> CRM-MS 15.493<br />
 Dr Felipe Flores C. Neves <br />CRM-MS 15.973<br />
-CNPJ: 61.889.391/0001-31
+CNPJ: 61.889.391/0001-31<br />
+ Todos os direitos reservados<br />
           © {new Date().getFullYear()} Royal Saúde Clube de Benefícios Ltda<br /> 
         </p>
       </div>
