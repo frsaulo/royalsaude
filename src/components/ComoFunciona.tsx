@@ -50,12 +50,12 @@ const ComoFunciona = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
-              className="bg-card rounded-lg p-8 shadow-royal text-center group hover:scale-105 transition-transform duration-300"
+              className="bg-card rounded-lg p-8 shadow-royal text-center group hover:scale-105 transition-all duration-300"
             >
-              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-gold rounded-full flex items-center justify-center shadow-gold group-hover:scale-110 transition-transform">
-                <step.icon className="w-7 h-7 text-accent-foreground" />
+              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-gold rounded-full flex items-center justify-center shadow-gold transition-all duration-300 group-hover:!bg-none group-hover:!bg-royal group-hover:scale-110">
+                <step.icon className="w-7 h-7 text-accent-foreground transition-colors duration-300 group-hover:!text-white" />
               </div>
-              <h3 className="font-cinzel text-lg font-bold text-primary mb-3">
+              <h3 className="font-cinzel text-lg font-bold text-primary mb-3 transition-colors duration-300 group-hover:text-gold">
                 {step.title}
               </h3>
               <p className="text-muted-foreground font-body leading-relaxed text-sm whitespace-pre-line">

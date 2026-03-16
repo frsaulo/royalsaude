@@ -60,12 +60,12 @@ const ContatoSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
-              className="bg-card rounded-lg p-8 shadow-royal text-center group hover:scale-105 transition-transform duration-300 cursor-pointer"
+              className="bg-card rounded-lg p-8 shadow-royal text-center group hover:scale-105 transition-all duration-300 cursor-pointer"
             >
-              <div className="w-14 h-14 mx-auto mb-5 bg-gradient-gold rounded-full flex items-center justify-center shadow-gold group-hover:scale-110 transition-transform">
-                <item.icon className="w-6 h-6 text-accent-foreground" />
+              <div className="w-14 h-14 mx-auto mb-5 bg-gradient-gold rounded-full flex items-center justify-center shadow-gold transition-all duration-300 group-hover:!bg-none group-hover:!bg-royal group-hover:scale-110">
+                <item.icon className="w-6 h-6 text-accent-foreground transition-colors duration-300 group-hover:!text-white" />
               </div>
-              <h3 className="font-cinzel text-lg font-bold text-primary mb-2">{item.title}</h3>
+              <h3 className="font-cinzel text-lg font-bold text-primary mb-2 transition-colors duration-300 group-hover:text-gold">{item.title}</h3>
               <p className="text-muted-foreground font-body text-sm leading-relaxed">{item.info}</p>
             </motion.a>
           ))}

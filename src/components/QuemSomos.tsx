@@ -36,8 +36,8 @@ const QuemSomos = () => {
                 "Consultas acessíveis",
               ].map((text) => (
                 <div key={text} className="flex items-center gap-4 text-[#e9e6c9] group transition-all duration-300">
-                  <div className="w-8 h-8 rounded-full border border-gold/20 flex items-center justify-center transition-all duration-300 group-hover:bg-royal group-hover:border-royal group-hover:scale-110 shadow-sm group-hover:shadow-gold/20">
-                    <Check className="w-5 h-5 text-gold transition-colors duration-300 group-hover:text-white" />
+                  <div className="w-8 h-8 rounded-full border border-gold/20 flex items-center justify-center transition-all duration-300 group-hover:!bg-royal group-hover:border-royal group-hover:scale-110 shadow-sm group-hover:shadow-gold/20">
+                    <Check className="w-5 h-5 text-gold transition-colors duration-300 group-hover:!text-white" />
                   </div>
                   <span className="font-body font-medium transition-colors duration-300 group-hover:text-gold-light cursor-default">
                     {text}
@@ -79,14 +79,14 @@ const QuemSomos = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.15 }}
-                className="flex gap-5 p-6 rounded-lg bg-royal-light/30 border border-gold/10 hover:border-gold/30 transition-colors"
+                className="flex gap-5 p-6 rounded-lg bg-royal-light/30 border border-gold/10 hover:border-gold/30 transition-all duration-300 group"
               >
-                <div className="w-12 h-12 shrink-0 bg-gradient-gold rounded-full flex items-center justify-center">
-                  <item.icon className="w-5 h-5 text-accent-foreground" />
+                <div className="w-12 h-12 shrink-0 bg-gradient-gold rounded-full flex items-center justify-center transition-all duration-300 group-hover:!bg-none group-hover:!bg-royal">
+                  <item.icon className="w-5 h-5 text-accent-foreground transition-colors duration-300 group-hover:!text-white" />
                 </div>
                 <div>
-                  <h3 className="font-cinzel text-gold-light font-semibold mb-1">{item.title}</h3>
-                  <p className="text-[#e9e6c9] font-body text-sm">{item.desc}</p>
+                  <h3 className="font-cinzel text-gold-light font-semibold mb-1 transition-colors duration-300 group-hover:text-gold">{item.title}</h3>
+                  <p className="text-[#e9e6c9] font-body text-sm leading-relaxed">{item.desc}</p>
                 </div>
               </motion.div>
             ))}
