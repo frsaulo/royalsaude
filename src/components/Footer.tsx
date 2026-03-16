@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="container mx-auto px-6 text-center">
         <img src={logo} alt="Royal Saúde" className="h-48 mx-auto mb-4" />
         <p className="text-[#092952] font-body text-sm mb-6">
-          Clube de benefícios acessível para<br /> Campo Grande – MS e região
+          Saúde de qualidade e acessível
         </p>
         <div className="h-px bg-gradient-gold max-w-xs mx-auto mb-6 opacity-30" />
         <p className="text-[#092952] font-body text-xs mb-4">
@@ -23,7 +23,7 @@ const Footer = () => {
             <div className="bg-green-100 p-2 rounded-full group-hover:bg-green-200 transition-colors">
               <MessageCircle size={18} className="text-green-600" />
             </div>
-            <span className="font-semibold text-base">SAC: (67) 9174-7844</span>
+            <span className="font-semibold text-base">SAC: (67) 99174-7844</span>
           </a>
 
           <a 
@@ -38,10 +38,10 @@ const Footer = () => {
         </div>
         <p className="text-[#092952] font-body text-xs mt-2">
           © {new Date().getFullYear()} Royal Saúde Clube de Benefícios Ltda<br /> 
- Todos os Direitos Reservados<br />
+ Todos os direitos reservados<br />
  Responsáveis Técnicos:<br /> 
-Drª Fernanda Flores C. Neves CRM-MS 15.493<br />
-Dr Felipe Flores C. Neves CRM-MS 15.973<br />
+Drª Fernanda Flores C. Neves<br /> CRM-MS 15.493<br />
+Dr Felipe Flores C. Neves <br />CRM-MS 15.973<br />
 CNPJ: 61.889.391/0001-31
         </p>
       </div>
