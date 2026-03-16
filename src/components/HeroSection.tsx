@@ -53,11 +53,11 @@ const HeroSection = () => {
             </span>
           </motion.div>
 
-          <h1 className="text-5xl md:text-7xl font-cinzel font-bold text-primary-foreground leading-tight mb-2">
-            Royal <span className="text-gradient-gold">Saúde</span>
+          <h1 className="text-5xl md:text-7xl font-cinzel font-bold leading-tight mb-2" style={{ color: "#f8db8b" }}>
+            Royal <span style={{ color: "#f8db8b" }}>Saúde</span>
           </h1>
           
-          <h2 className="text-2xl md:text-3xl font-cinzel text-accent mb-6 tracking-wide">
+          <h2 className="text-2xl md:text-3xl font-cinzel mb-6 tracking-wide" style={{ color: "#dbb353" }}>
             Cuidar de você não pode esperar!
           </h2>
 
