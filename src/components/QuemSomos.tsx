@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Shield, Heart, MapPin } from "lucide-react";
+import { Shield, Heart, MapPin, Check } from "lucide-react";
 
 const QuemSomos = () => {
   return (
@@ -25,9 +25,22 @@ const QuemSomos = () => {
               e acesso com encaminhamento a nutricionistas, psicólogos, educadores físicos, exames laboratoriais, 
               exames de imagem e exame de refração oftalmológica. Permitindo atendimentos de acordo com a sua necessidade.
             </p>
-            <p className="text-[#e9e6c9] font-body leading-relaxed mb-8">
+            <p className="text-[#e9e6c9] font-body leading-relaxed mb-6">
               Nosso compromisso é oferecer saúde acessível e de qualidade, através de atendimento humanizado presencial e online.
             </p>
+
+            <div className="space-y-3 mb-8">
+              {[
+                "Agendamento rápido",
+                "Atendimento de qualidade",
+                "Consultas acessíveis",
+              ].map((text) => (
+                <div key={text} className="flex items-center gap-3 text-[#e9e6c9]">
+                  <Check className="w-5 h-5 text-gold shrink-0" />
+                  <span className="font-body font-medium">{text}</span>
+                </div>
+              ))}
+            </div>
             <p className="text-[#e9e6c9] font-body text-sm">
               CNPJ: 61.889.391/0001-31
             </p>
