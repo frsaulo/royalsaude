@@ -65,7 +65,7 @@ const HeroSection = () => {
             Consulta Médica <b>AGORA</b> mesmo!
           </p>
           <p className="text-lg text-[#e9e6c9] font-body mb-8 max-w-lg">
-            Acesso direto a médicos (Clínicos Gerais) <br>por apenas{" "}</br>
+            Acesso direto a médicos (Clínicos Gerais) <br /> por apenas{" "}
             <span className="text-accent font-bold text-2xl">R$99,90</span>{" "}
             <span className="text-[#e9e6c9]">/mês*</span>
             <span className="block text-sm mt-2">
