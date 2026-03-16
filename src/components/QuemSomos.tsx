@@ -15,19 +15,18 @@ const QuemSomos = () => {
             viewport={{ once: true }}
           >
             <span className="font-cinzel text-sm text-gold tracking-widest uppercase font-semibold">
-              Sobre Nós
+              Sobre a Royal Saúde
             </span>
             <h2 className="text-4xl md:text-5xl font-cinzel font-bold text-gold-light mt-3 mb-8">
               Quem <span className="text-gradient-gold">Somos</span>
             </h2>
             <p className="text-[#e9e6c9] font-body text-lg leading-relaxed mb-6">
-              A Royal Saúde é um Clube de Benefícios que proporciona o acesso direto a médicos prontos para
-              atender de imediato, com agenda aberta direto no próprio site, sem filas, sem
-              esperar vários dias para ser atendido.
+              A Royal Saúde é um clube de benefícios em saúde que oferece acesso direto a médicos clínicos gerais
+              e acesso com encaminhamento a nutricionistas, psicólogos, educadores físicos, exames laboratoriais, 
+              exames de imagem e exame de refração oftalmológica. Permitindo atendimentos de acordo com a sua necessidade.
             </p>
             <p className="text-[#e9e6c9] font-body leading-relaxed mb-8">
-              Nosso compromisso é oferecer saúde acessível de qualidade para todos mesmo que 
-              seja por telemedicina, com atendimento humanizado e taxas simbólicas.
+              Nosso compromisso é oferecer saúde acessível e de qualidade, através de atendimento humanizado presencial e online.
             </p>
             <p className="text-[#e9e6c9] font-body text-sm">
               CNPJ: 61.889.391/0001-31
