@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="container mx-auto px-6 text-center">
         <img src={logo} alt="Royal Saúde" className="h-48 mx-auto mb-4" />
         <p className="text-[#092952] font-body text-sm mb-6">
-          Saúde de qualidade e acessível
+          Saúde de qualidade ao seu alcance
         </p>
         <div className="h-px bg-gradient-gold max-w-xs mx-auto mb-6 opacity-30" />
         <p className="text-[#092952] font-body text-xs mb-4">
@@ -37,12 +37,12 @@ const Footer = () => {
           </a>
         </div>
         <p className="text-[#092952] font-body text-xs mt-2">
-          © {new Date().getFullYear()} Royal Saúde Clube de Benefícios Ltda<br /> 
  Todos os direitos reservados<br />
  Responsáveis Técnicos:<br /> 
 Drª Fernanda Flores C. Neves<br /> CRM-MS 15.493<br />
 Dr Felipe Flores C. Neves <br />CRM-MS 15.973<br />
 CNPJ: 61.889.391/0001-31
+          © {new Date().getFullYear()} Royal Saúde Clube de Benefícios Ltda<br /> 
         </p>
       </div>
     </footer>

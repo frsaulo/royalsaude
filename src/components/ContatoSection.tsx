@@ -47,8 +47,8 @@ const ContatoSection = () => {
             {
               icon: WhatsappIcon,
               title: "WhatsApp",
-              info: "Envie uma mensagem",
-              href: "https://wa.me/5567992916792",
+              info: "Clique para iniciar uma conversa",
+              href: "https://wa.me/67991747844",
             },
           ].map((item, i) => (
             <motion.a

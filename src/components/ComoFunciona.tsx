@@ -5,22 +5,22 @@ const steps = [
   {
     icon: CreditCard,
     title: "Assine o Clube de Benefícios",
-    description: "Apenas R$99,90/mês para ter acesso completo a consultas médicas generalistas.",
+    description: "R$99,90/ mês + taxa por consulta ou exame <br />Médicos Clínicos Gerais, <br />Exame de Refração Oftalmológica, <br />Nutricionistas, <br />Psicólogos, <br />Educadores Físicos, <br />Exames Laboratoriais e Exames de Imagem ",
   },
   {
     icon: CalendarCheck,
     title: "Agende Online",
-    description: "Agenda aberta direto no site. Escolha o melhor horário para você.",
+    description: "Agenda aberta direto no site. <br />Escolha o melhor horário para você.",
   },
   {
     icon: Clock,
     title: "Sem Filas",
-    description: "Atendimento imediato, sem esperar vários dias para ser atendido.",
+    description: "Agendamento imediato conforme a sua necessidade.<br />Sem esperar dias para ser atendido!",
   },
   {
     icon: UserCheck,
-    title: "Consulte-se",
-    description: "Médicos prontos para atender de imediato com qualidade e atenção.",
+    title: "Atendimentos",
+    description: "Profissionais qualificados para<br /> atendimentos online e presencial.",
   },
 ];
 
