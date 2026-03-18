@@ -23,7 +23,7 @@ const QuemSomos = () => {
             <p className="text-[#e9e6c9] font-body text-lg leading-relaxed mb-6">
               A Royal Saúde é um clube de benefícios em saúde que oferece acesso direto a médicos clínicos gerais
               e acesso com encaminhamento a nutricionistas, psicólogos, educadores físicos, exames laboratoriais, 
-              exames de imagem e exame de refração oftalmológica. Permitindo atendimentos de acordo com a sua necessidade.
+              exames de imagem e exame de refração oftalmológica. <br /> Permitindo atendimentos de acordo com a sua necessidade.
             </p>
             <p className="text-[#e9e6c9] font-body leading-relaxed mb-6">
               Nosso compromisso é oferecer saúde acessível e de qualidade, através de atendimento humanizado presencial e online.
