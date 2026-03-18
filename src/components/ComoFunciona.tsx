@@ -5,7 +5,7 @@ const steps = [
   {
     icon: CreditCard,
     title: "Assine o Clube de Benefícios",
-    description: "R$99,90/ mês + taxa \npor consulta ou exame \nMédicos Clínicos Gerais, \nExame de Refração Oftalmológica, \nNutricionistas, \nPsicólogos, \nEducadores Físicos, \nExames Laboratoriais e \nExames de Imagem ",
+    description: "R$99,90/mês \n+ taxa por consulta ou exame",
   },
   {
     icon: CalendarCheck,
