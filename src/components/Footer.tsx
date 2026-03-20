@@ -11,8 +11,7 @@ const Footer = () => {
         </p>
         <div className="h-px bg-gradient-gold max-w-xs mx-auto mb-6 opacity-30" />
         <p className="text-[#092952] font-body text-xs mb-4 whitespace-pre-line">
-          R. Dr. Eduardo Machado Metelo, 46 - Chácara Cachoeira,
-          Campo Grande - MS, CEP: 79040-830
+          Rua Pedro Celestino, 2395, Campo Grande - MS, CEP: 79002-372
         </p>
         <div className="flex flex-col items-center gap-4 mb-6">
           <a 
