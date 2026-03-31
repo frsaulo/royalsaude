@@ -42,7 +42,7 @@ const Footer = () => {
           CRM-MS 15.493{"\n\n"}
           Dr Felipe Flores C. Neves{"\n"}
           CRM-MS 15.973{"\n\n\n\n"}
-          CNPJ: 61.889.391/0001-31{"\n"}
+          CNPJ: 65.818.151/0001-05{"\n"}
           Todos os direitos reservados{"\n"}
           © {new Date().getFullYear()} Royal Saúde Clube de Benefícios Ltda
         </p>

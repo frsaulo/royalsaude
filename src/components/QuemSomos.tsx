@@ -46,7 +46,7 @@ const QuemSomos = () => {
               ))}
             </div>
             <p className="text-[#e9e6c9] font-body text-sm">
-              CNPJ: 61.889.391/0001-31
+              CNPJ: 65.818.151/0001-05
             </p>
           </motion.div>
 
