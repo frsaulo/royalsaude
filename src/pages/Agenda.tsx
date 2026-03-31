@@ -198,20 +198,19 @@ export const Agenda = () => {
 
       // Envia WhatsApp de cancelamento ou remarcação (não bloqueia a UI)
       if (app?.phone && app.phone !== 'Não informado') {
-        fetch(
-          'https://bxkwonqrflctvbjskhmj.supabase.co/functions/v1/notify-whatsapp',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        supabase.functions
+          .invoke('notify-whatsapp', {
+            body: {
               action: appointmentAction.actionType === 'delete' ? 'cancel' : 'reschedule',
               phone: app.phone,
               patientName: app.patient_name,
               date: appointmentAction.date,
               time: appointmentAction.time,
-            }),
-          }
-        ).catch(() => { /* silencioso — não impede o fluxo */ });
+            },
+          })
+          .catch(() => {
+            // silencioso — não impede o fluxo
+          });
       }
     }
 
