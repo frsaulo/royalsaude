@@ -27,6 +27,28 @@ import {
   DialogFooter,
 } from "../components/ui/dialog";
 
+const relationshipLabelMap: Record<string, string> = {
+  ESPOSA: "Esposa",
+  MARIDO: "Marido",
+  FILHO: "Filho",
+  FILHA: "Filha",
+  PAI: "Pai",
+  MAE: "Mãe",
+};
+
+const normalizeDependents = (rawDependents: any): any[] => {
+  if (Array.isArray(rawDependents)) return rawDependents;
+  if (typeof rawDependents === "string") {
+    try {
+      const parsed = JSON.parse(rawDependents);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
 export const AdminDashboard = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +113,7 @@ export const AdminDashboard = () => {
       // Busca todos os profiles para mesclar o CPF de forma blindada contra erros de Schema
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('id, full_name, cpf, phone, email');
+        .select('id, full_name, cpf, phone, email, account_type, dependents');
         
       const appointmentsWithProfiles = (appointmentsData || []).map(app => {
          const userProfile = profilesData?.find(p => p.id === app.user_id);
@@ -172,12 +194,17 @@ export const AdminDashboard = () => {
     // Extende busca para a tabela profiles colada nela.
     const realCpf = app.profiles?.cpf?.toLowerCase() || '';
     const realEmail = app.profiles?.email?.toLowerCase() || '';
+    const dependents = normalizeDependents(app.profiles?.dependents);
+    const dependentSearch = dependents
+      .map((d: any) => `${d?.full_name || ''} ${d?.cpf || ''} ${d?.relationship || ''}`.toLowerCase())
+      .join(' ');
 
     return patientName.includes(term) || 
            phone.includes(term) || 
            dateStr.includes(term) ||
            realCpf.includes(term) ||
-           realEmail.includes(term);
+           realEmail.includes(term) ||
+           dependentSearch.includes(term);
   });
 
   if (loading) {
@@ -244,8 +271,12 @@ export const AdminDashboard = () => {
            </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             {filteredAppointments.map((app) => (
-                <Card key={app.id} className="relative overflow-hidden hover:shadow-md transition-shadow border-slate-200">
+             {filteredAppointments.map((app) => {
+                const dependents = normalizeDependents(app.profiles?.dependents);
+                const accountType = app.profiles?.account_type || "TITULAR";
+
+                return (
+                 <Card key={app.id} className="relative overflow-hidden hover:shadow-md transition-shadow border-slate-200">
                   <div className={`absolute top-0 left-0 w-1 h-full ${app.type === 'telemedicina' ? 'bg-purple-500' : 'bg-blue-500'}`}></div>
                   
                   <CardHeader className="pb-2">
@@ -289,9 +320,40 @@ export const AdminDashboard = () => {
                                 <span className="font-medium text-slate-900">{app.profiles.cpf}</span>
                             </div>
                         )}
-                         <div className="text-xs text-slate-400 pt-2 border-t border-slate-200 mt-2">
-                            Criado em: {format(new Date(app.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                            <br/> ID Banco: <span className="font-mono text-[10px]">{app.id.split('-')[0]}...</span>
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                            <ShieldAlert className="w-4 h-4 text-slate-400" /> Tipo de cadastro:
+                            <span className="font-medium text-slate-900">{accountType}</span>
+                        </div>
+
+                        {accountType === 'TITULAR' && dependents.length > 0 && (
+                          <div className="pt-2 border-t border-slate-200 mt-2">
+                            <p className="text-xs font-semibold text-slate-700 mb-2">Dependentes ({dependents.length})</p>
+                            <div className="space-y-1.5">
+                              {dependents.map((dependent: any, index: number) => (
+                                <div key={`${app.id}-dependent-${index}`} className="rounded border border-slate-200 bg-white p-2">
+                                  <p className="text-xs text-slate-600">
+                                    <span className="font-medium text-slate-900">
+                                      {relationshipLabelMap[dependent?.relationship] || dependent?.relationship || "Dependente"}
+                                    </span>
+                                    {" - "}
+                                    {dependent?.full_name || "Nome não informado"}
+                                  </p>
+                                  <p className="text-xs text-slate-500">CPF: {dependent?.cpf || "Não informado"}</p>
+                                  {dependent?.phone && (
+                                    <p className="text-xs text-slate-500">WhatsApp: {dependent.phone}</p>
+                                  )}
+                                  {dependent?.email && (
+                                    <p className="text-xs text-slate-500 break-all">E-mail: {dependent.email}</p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                          <div className="text-xs text-slate-400 pt-2 border-t border-slate-200 mt-2">
+                             Criado em: {format(new Date(app.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                             <br/> ID Banco: <span className="font-mono text-[10px]">{app.id.split('-')[0]}...</span>
                         </div>
                      </div>
 
@@ -337,7 +399,8 @@ export const AdminDashboard = () => {
                      </div>
                   </CardContent>
                 </Card>
-             ))}
+                  );
+                })}
           </div>
         )}
       </main>
