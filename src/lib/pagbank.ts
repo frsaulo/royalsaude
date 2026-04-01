@@ -142,52 +142,41 @@ export const fetchUserPayments = async (userId: string): Promise<Payment[]> => {
 };
 
 export const createSubscription = async (params: {
-  userId: string;
   planId: string;
   paymentMethod: PaymentMethod;
   extraDependentsCount: number;
-  monthlyTotalCents: number;
-}): Promise<Subscription> => {
-  const now = new Date();
-  const periodEnd = new Date(now);
-
-  // Buscar plano para determinar período
-  const { data: plan } = await supabase
-    .from("plans")
-    .select("interval_type")
-    .eq("id", params.planId)
-    .single();
-
-  if (plan?.interval_type === "YEARLY") {
-    periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-  } else {
-    periodEnd.setMonth(periodEnd.getMonth() + 1);
-  }
-
-  const { data, error } = await supabase
-    .from("subscriptions")
-    .insert({
-      user_id: params.userId,
+  customer: {
+    name: string;
+    email: string;
+    tax_id: string;
+  };
+  card?: {
+    encrypted: string;
+    holder_name: string;
+    installments?: number;
+  };
+}): Promise<any> => {
+  const { data, error } = await supabase.functions.invoke("pagbank-create-subscription", {
+    body: {
       plan_id: params.planId,
       payment_method: params.paymentMethod,
-      status: "PENDING",
-      extra_dependents_count: params.extraDependentsCount,
-      monthly_total_cents: params.monthlyTotalCents,
-      current_period_start: now.toISOString(),
-      current_period_end: periodEnd.toISOString(),
-    })
-    .select("*, plan:plans(*)")
-    .single();
+      extra_dependents: params.extraDependentsCount,
+      customer: params.customer,
+      card: params.card,
+    },
+  });
 
   if (error) throw error;
   return data;
 };
 
 export const cancelSubscription = async (subscriptionId: string): Promise<void> => {
-  const { error } = await supabase
-    .from("subscriptions")
-    .update({ status: "CANCELLED" })
-    .eq("id", subscriptionId);
+  const { error } = await supabase.functions.invoke("pagbank-manage-subscription", {
+    body: {
+      subscription_id: subscriptionId,
+      action: "CANCEL",
+    },
+  });
 
   if (error) throw error;
 };

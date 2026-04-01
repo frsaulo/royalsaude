@@ -43,11 +43,18 @@ export const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
+  // Customer info
+  const [customerName, setCustomerName] = useState("");
+  const [customerTaxId, setCustomerTaxId] = useState("");
+
   // Credit card form
   const [cardNumber, setCardNumber] = useState("");
   const [cardName, setCardName] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
+
+  // Payment data from API
+  const [paymentData, setPaymentData] = useState<any>(null);
 
   useEffect(() => {
     if (!planId) {
@@ -73,6 +80,11 @@ export const Checkout = () => {
   const handleSubmit = async () => {
     if (!user || !plan) return;
 
+    if (!customerTaxId || customerTaxId.replace(/\D/g, "").length !== 11) {
+      toast.error("CPF válido é obrigatório.");
+      return;
+    }
+
     if (paymentMethod === "CREDIT_CARD") {
       if (!cardNumber || !cardName || !cardExpiry || !cardCvv) {
         toast.error("Preencha todos os dados do cartão.");
@@ -83,32 +95,28 @@ export const Checkout = () => {
     setProcessing(true);
 
     try {
-      const monthlyTotal = calculateMonthlyWithDependents(plan, dependentsCount);
-      const total = calculateTotalWithDependents(plan, dependentsCount);
-
-      // Create subscription
-      const sub = await createSubscription({
-        userId: user.id,
+      // Determinar installments se for cartão (fixo em 1 por enquanto na função, mas o componente permite flexibilidade futura)
+      
+      const response = await createSubscription({
         planId: plan.id,
         paymentMethod,
         extraDependentsCount: Math.max(0, dependentsCount - plan.free_dependents),
-        monthlyTotalCents: monthlyTotal,
+        customer: {
+          name: customerName || user.user_metadata?.full_name || user.email?.split("@")[0] || "Cliente",
+          email: user.email!,
+          tax_id: customerTaxId,
+        },
+        card: paymentMethod === "CREDIT_CARD" ? {
+          encrypted: "MOCK_ENCRYPTED_CARD", // Em produção, usar o SDK do PagBank para criptografar
+          holder_name: cardName,
+        } : undefined,
       });
 
-      // Create initial payment
-      await createPayment({
-        userId: user.id,
-        subscriptionId: sub.id,
-        type: "SUBSCRIPTION",
-        amountCents: total,
-        paymentMethod,
-        description: `Assinatura ${plan.name} - Royal Saúde`,
-      });
-
+      setPaymentData(response);
       setPaymentSuccess(true);
-      toast.success("Assinatura criada com sucesso!");
+      toast.success("Assinatura processada!");
     } catch (err: any) {
-      toast.error("Erro ao processar pagamento: " + (err.message || "tente novamente"));
+      toast.error("Erro ao processar: " + (err.message || "tente novamente"));
     } finally {
       setProcessing(false);
     }
@@ -142,23 +150,78 @@ export const Checkout = () => {
               <Check className="h-10 w-10 text-green-600" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 font-cinzel">Assinatura Criada!</h2>
+              <h2 className="text-2xl font-bold text-slate-900 font-cinzel">Pedido Recebido!</h2>
               <p className="text-slate-600 mt-2">
-                Sua assinatura do plano <strong>{plan?.name}</strong> foi criada com sucesso.
+                Sua adesão ao plano <strong>{plan?.name}</strong> está sendo processada.
               </p>
-              {paymentMethod === "PIX" && (
-                <div className="mt-4 p-4 bg-slate-50 rounded-xl text-left">
-                  <p className="text-sm font-semibold text-slate-700 mb-2">Pagamento via PIX</p>
-                  <p className="text-xs text-slate-500">
-                    Assim que o pagamento for confirmado, sua assinatura será ativada automaticamente.
+              
+              {paymentMethod === "PIX" && paymentData?.pix && (
+                <div className="mt-6 p-6 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center gap-4">
+                  <p className="text-sm font-bold text-[#1E3A8A] uppercase tracking-wider">Escaneie o QR Code PIX</p>
+                  <div className="bg-white p-4 rounded-xl shadow-md">
+                    <img 
+                      src={paymentData.pix.qr_code_image} 
+                      alt="QR Code PIX" 
+                      className="h-48 w-48"
+                    />
+                  </div>
+                  <div className="w-full space-y-2">
+                    <p className="text-xs text-slate-500 text-center font-medium">Copia e Cola:</p>
+                    <div className="flex gap-2">
+                      <Input 
+                        readOnly 
+                        value={paymentData.pix.qr_code} 
+                        className="text-xs font-mono bg-white h-10"
+                      />
+                      <Button size="icon" variant="outline" onClick={() => {
+                        navigator.clipboard.writeText(paymentData.pix.qr_code);
+                        toast.success("Código PIX copiado!");
+                      }}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {paymentMethod === "BOLETO" && paymentData?.boleto && (
+                <div className="mt-6 p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+                  <p className="text-sm font-bold text-[#1E3A8A] text-center uppercase tracking-wider">Boleto Gerado</p>
+                  <div className="flex flex-col gap-3">
+                    <Button className="w-full bg-[#1E3A8A]" asChild>
+                      <a href={paymentData.boleto.pdf_link} target="_blank" rel="noopener noreferrer">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Baixar PDF do Boleto
+                      </a>
+                    </Button>
+                    <div className="space-y-1">
+                      <p className="text-xs text-slate-500 font-medium">Código de Barras:</p>
+                      <div className="flex gap-2">
+                        <Input 
+                          readOnly 
+                          value={paymentData.boleto.barcode} 
+                          className="text-xs font-mono h-10 bg-white"
+                        />
+                        <Button size="icon" variant="outline" onClick={() => {
+                          navigator.clipboard.writeText(paymentData.boleto.barcode);
+                          toast.success("Código de barras copiado!");
+                        }}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-400 text-center">
+                    A compensação do boleto pode levar até 3 dias úteis.
                   </p>
                 </div>
               )}
-              {paymentMethod === "BOLETO" && (
-                <div className="mt-4 p-4 bg-slate-50 rounded-xl text-left">
-                  <p className="text-sm font-semibold text-slate-700 mb-2">Pagamento via Boleto</p>
-                  <p className="text-xs text-slate-500">
-                    O boleto será gerado e enviado por email. Após pagamento (1-3 dias úteis), sua assinatura será ativada.
+
+              {paymentMethod === "CREDIT_CARD" && (
+                <div className="mt-6 p-4 bg-green-50 rounded-xl flex items-center gap-3">
+                  <Check className="h-5 w-5 text-green-600" />
+                  <p className="text-sm text-green-800">
+                    Sua assinatura será ativada assim que a operadora confirmar a transação.
                   </p>
                 </div>
               )}
@@ -211,8 +274,36 @@ export const Checkout = () => {
           <div className="md:col-span-3 space-y-6">
             <div>
               <h1 className="text-2xl font-bold text-slate-900 font-cinzel">Checkout</h1>
-              <p className="text-slate-600 mt-1">Escolha a forma de pagamento</p>
+              <p className="text-slate-600 mt-1">Finalize sua adesão com segurança</p>
             </div>
+
+            <Card className="border-none shadow-md overflow-hidden bg-white">
+              <CardContent className="p-6 space-y-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="custName">Nome Completo</Label>
+                    <Input 
+                      id="custName" 
+                      placeholder="Identificação do titular" 
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="taxId">CPF (obrigatório)</Label>
+                    <Input 
+                      id="taxId" 
+                      placeholder="000.000.000-00" 
+                      value={customerTaxId}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "").slice(0, 11);
+                        setCustomerTaxId(val);
+                      }}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             <Tabs value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
               <TabsList className="grid w-full grid-cols-3 h-12 bg-white border shadow-sm">
