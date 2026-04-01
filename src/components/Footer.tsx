@@ -1,9 +1,9 @@
-import logo from "@/assets/Royal.webp";
+import logo from "@/assets/RoyalMedr.png";
 import { Mail, MessageCircle } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-[#fefdf8] py-12 border-t border-gold/10">
+    <footer className="bg-[#dde400] py-12 border-t border-gold/10">
       <div className="container mx-auto px-6 text-center">
         <img src={logo} alt="Royal Saúde" className="h-48 mx-auto mb-4" />
         <p className="text-[#092952] font-body text-sm mb-6">
