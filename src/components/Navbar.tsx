@@ -26,14 +26,14 @@ const Navbar = () => {
             <a
               key={link.label}
               href={link.href}
-              className="font-cinzel text-sm text-primary hover:text-primary/70 transition-colors tracking-wide"
+              className="font-inter text-sm text-primary font-bold hover:text-primary/70 transition-colors tracking-wide"
             >
               {link.label}
             </a>
           ))}
           <a
             href="https://royalmedhealth.vercel.app/login"
-            className="bg-primary text-gold-light font-cinzel text-sm font-semibold px-5 py-2 rounded-sm shadow-royal hover:brightness-110 transition-all cursor-pointer"
+            className="bg-primary text-gold-light font-inter text-sm font-bold px-5 py-2 rounded-sm shadow-royal hover:brightness-110 transition-all cursor-pointer"
           >
             ENTRAR
           </a>
@@ -60,7 +60,7 @@ const Navbar = () => {
                   key={link.label}
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="font-cinzel text-sm text-primary hover:text-primary/70 transition-colors"
+                  className="font-inter text-sm text-primary font-bold hover:text-primary/70 transition-colors"
                 >
                   {link.label}
                 </a>

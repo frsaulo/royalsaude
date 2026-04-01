@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Lato:wght@300;400;700&family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -89,11 +89,11 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Lato', sans-serif;
+    font-family: 'Inter', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Cinzel', serif;
+    font-family: 'Inter', sans-serif;
   }
 }
 
@@ -102,10 +102,10 @@
     font-family: 'Inter', sans-serif;
   }
   .font-cinzel {
-    font-family: 'Cinzel', serif;
+    font-family: 'Inter', sans-serif;
   }
   .font-body {
-    font-family: 'Lato', sans-serif;
+    font-family: 'Inter', sans-serif;
   }
   .text-gradient-gold {
     @apply bg-clip-text text-transparent;
