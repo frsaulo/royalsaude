@@ -27,13 +27,13 @@ const Footer = () => {
           </a>
 
           <a 
-            href="mailto:sac@fidelidaderoyalsaude.com.br" 
-            className="inline-flex items-center gap-2 text-[#092952] hover:text-gold-light transition-all font-body text-sm group"
+            href="mailto:contato@royalmedhealth.com.br" 
+            className="flex items-center gap-3 text-slate-400 font-light hover:text-white transition-colors"
           >
-            <div className="bg-blue-50 p-2 rounded-full group-hover:bg-blue-100 transition-colors">
-              <Mail size={18} className="text-[#092952]" />
+            <div className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center">
+              <Mail className="h-4 w-4" />
             </div>
-            <span>sac@fidelidaderoyalsaude.com.br</span>
+            <span>contato@royalmedhealth.com.br</span>
           </a>
         </div>
         <p className="text-[#092952] font-body text-xs mt-2 whitespace-pre-line leading-relaxed">

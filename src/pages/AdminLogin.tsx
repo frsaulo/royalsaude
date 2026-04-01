@@ -87,7 +87,7 @@ export const AdminLogin = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="royalsuper@royalsaude.com"
+                placeholder="adm@royalmedhealth.com.br"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

@@ -32,7 +32,7 @@ const Navbar = () => {
             </a>
           ))}
           <a
-            href="https://royalsaude.vercel.app/login"
+            href="https://royalmedhealth.vercel.app/login"
             className="bg-primary text-gold-light font-cinzel text-sm font-semibold px-5 py-2 rounded-sm shadow-royal hover:brightness-110 transition-all cursor-pointer"
           >
             ENTRAR

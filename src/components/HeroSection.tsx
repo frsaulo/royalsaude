@@ -53,8 +53,8 @@ const HeroSection = () => {
             </span>
           </motion.div>
 
-          <h1 className="text-5xl md:text-7xl font-cinzel font-bold leading-tight mb-2" style={{ color: "#f8db8b" }}>
-            Royal <span style={{ color: "#f8db8b" }}>Saúde</span>
+          <h1 className="text-5xl md:text-7xl font-royalmed font-bold leading-tight mb-2" style={{ color: "#f8db8b" }}>
+            RoyalMed Health
           </h1>
           
           <h2 className="text-2xl md:text-3xl font-cinzel mb-6 tracking-wide" style={{ color: "#dbb353" }}>
@@ -75,7 +75,7 @@ const HeroSection = () => {
 
           <div className="flex flex-col sm:flex-row gap-4">
             <motion.a
-              href="https://royalsaude.vercel.app/login"
+              href="https://royalmedhealth.vercel.app/login"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="bg-gradient-gold text-accent-foreground font-cinzel font-semibold px-8 py-4 rounded-sm text-center shadow-gold transition-all hover:brightness-110 tracking-wide cursor-pointer"
