@@ -6,7 +6,7 @@ import { ptBR } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
 
 import { Badge } from "../components/ui/badge";
-import { Loader2, LogOut, User, Trash2, Calendar as CalendarIcon, Clock, MessageCircle, Users, Pencil, Plus, X, Save, ClipboardList } from "lucide-react";
+import { Loader2, LogOut, User, Trash2, Calendar as CalendarIcon, Clock, MessageCircle, Users, Pencil, Plus, X, Save, ClipboardList, Crown, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
@@ -462,7 +462,25 @@ export const Agenda = () => {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="container mx-auto max-w-5xl px-4 h-16 flex items-center justify-between">
           <div className="font-bold text-[#1E3A8A] text-xl">Royal Saúde</div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/planos")}
+              className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 hidden sm:inline-flex"
+            >
+              <Crown className="h-4 w-4 mr-1.5" />
+              Planos
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/minha-assinatura")}
+              className="text-[#1E3A8A] hover:bg-blue-50 hidden sm:inline-flex"
+            >
+              <CreditCard className="h-4 w-4 mr-1.5" />
+              Assinatura
+            </Button>
             <span className="text-sm text-slate-600 hidden md:inline-flex items-center gap-2">
               <User className="h-4 w-4" />
               {user?.email}

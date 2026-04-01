@@ -9,6 +9,9 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { Login } from "./pages/Login";
 import { Agenda } from "./pages/Agenda";
+import { Planos } from "./pages/Planos";
+import { Checkout } from "./components/Checkout";
+import { MinhaAssinatura } from "./components/MinhaAssinatura";
 import { AdminLogin } from "./pages/AdminLogin";
 import { AdminDashboard } from "./pages/AdminDashboard";
 
@@ -24,10 +27,12 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             
-            {/* Novas Rotas de Autenticação */}
+            {/* Autenticação */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            
+            {/* Área do Paciente */}
             <Route 
               path="/agenda" 
               element={
@@ -36,8 +41,32 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/planos" 
+              element={
+                <ProtectedRoute>
+                  <Planos />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/checkout" 
+              element={
+                <ProtectedRoute>
+                  <Checkout />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/minha-assinatura" 
+              element={
+                <ProtectedRoute>
+                  <MinhaAssinatura />
+                </ProtectedRoute>
+              } 
+            />
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
