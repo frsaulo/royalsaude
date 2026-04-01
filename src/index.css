@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Lato:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Lato:wght@300;400;700&family=Inter:wght@400;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -98,6 +98,9 @@
 }
 
 @layer utilities {
+  .font-royalmed {
+    font-family: 'Inter', sans-serif;
+  }
   .font-cinzel {
     font-family: 'Cinzel', serif;
   }

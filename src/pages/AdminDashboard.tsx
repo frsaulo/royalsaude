@@ -227,7 +227,7 @@ export const AdminDashboard = () => {
              </div>
              <div>
                 <h1 className="text-xl font-bold">Painel Master</h1>
-                <p className="text-xs text-slate-400">Gerenciamento Interno (Royal Saúde)</p>
+                <p className="text-xs text-slate-400">Gerenciamento Interno (RoyalMed Health)</p>
              </div>
           </div>
           

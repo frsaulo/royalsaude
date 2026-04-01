@@ -156,7 +156,7 @@ export const Login = () => {
             <CardDescription className="text-center">
               {isRegistering
                 ? "Preencha todos os dados para criar seu acesso à agenda."
-                : "Entre com seu e-mail e senha para acessar a agenda da Royal Saúde."}
+                : "Entre com seu e-mail e senha para acessar a agenda da RoyalMed Health."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -366,7 +366,7 @@ export const Login = () => {
       </Card>
       
       <p className="text-center text-sm text-slate-400 pb-8">
-        &copy; {new Date().getFullYear()} Royal Saúde. Todos os direitos reservados.
+        &copy; {new Date().getFullYear()} RoyalMed Health. Todos os direitos reservados.
       </p>
     </div>
   );

@@ -15,13 +15,13 @@ const QuemSomos = () => {
             viewport={{ once: true }}
           >
             <span className="font-cinzel text-sm text-gold tracking-widest uppercase font-semibold">
-              Sobre a Royal Saúde
+              Sobre a RoyalMed Health
             </span>
             <h2 className="text-4xl md:text-5xl font-cinzel font-bold text-gold-light mt-3 mb-8">
               Quem <span className="text-gradient-gold">Somos</span>
             </h2>
             <p className="text-[#e9e6c9] font-body text-lg leading-relaxed mb-6">
-              A Royal Saúde é um clube de benefícios em saúde que oferece acesso direto a médicos clínicos gerais
+              A RoyalMed Health é um clube de benefícios em saúde que oferece acesso direto a médicos clínicos gerais
               e acesso com encaminhamento a nutricionistas, psicólogos, educadores físicos, exames laboratoriais, 
               exames de imagem e exame de refração oftalmológica. <br /> Permitindo atendimentos de acordo com a sua necessidade.
             </p>

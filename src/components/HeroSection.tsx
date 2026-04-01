@@ -27,7 +27,7 @@ const HeroSection = () => {
         >
           <img
             src={img}
-            alt="Família feliz Royal Saúde"
+            alt="Família feliz RoyalMed Health"
             className="w-full h-full object-cover object-top"
           />
         </div>

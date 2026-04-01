@@ -115,7 +115,7 @@ export const AdminLogin = () => {
         </form>
       </Card>
       <div className="text-slate-500 text-xs text-center">
-         Royal Saúde &copy; {new Date().getFullYear()} - Sistema de Agendamentos (V.Admin)
+         RoyalMed Health &copy; {new Date().getFullYear()} - Sistema de Agendamentos (V.Admin)
       </div>
     </div>
   );

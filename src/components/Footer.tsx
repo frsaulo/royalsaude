@@ -5,7 +5,7 @@ const Footer = () => {
   return (
     <footer className="bg-[#dde400] py-12 border-t border-gold/10">
       <div className="container mx-auto px-6 text-center">
-        <img src={logo} alt="Royal Saúde" className="h-48 mx-auto mb-4" />
+        <img src={logo} alt="RoyalMed Health" className="h-48 mx-auto mb-4" />
         <p className="text-[#092952] font-body text-sm mb-6">
           Saúde de qualidade ao seu alcance
         </p>
@@ -44,7 +44,7 @@ const Footer = () => {
           CRM-MS 15.973{"\n\n\n\n"}
           CNPJ: 65.818.151/0001-05{"\n"}
           Todos os direitos reservados{"\n"}
-          © {new Date().getFullYear()} Royal Saúde Clube de Benefícios Ltda
+          © {new Date().getFullYear()} RoyalMed Health Clube de Benefícios Ltda
         </p>
       </div>
     </footer>

@@ -106,7 +106,7 @@ export const Planos = () => {
             <ChevronLeft className="h-5 w-5" />
             <span className="text-sm font-medium">Voltar</span>
           </button>
-          <div className="font-bold text-[#1E3A8A] text-xl font-cinzel">Royal Saúde</div>
+          <div className="font-bold text-[#1E3A8A] text-xl font-royalmed">RoyalMed Health</div>
           <div className="w-20" />
         </div>
       </header>
@@ -116,7 +116,7 @@ export const Planos = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/10 to-amber-600/10 text-amber-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
             <Crown className="h-4 w-4" />
-            Planos Royal Saúde
+            Planos RoyalMed Health
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-cinzel mb-4">
             Escolha o plano ideal para você

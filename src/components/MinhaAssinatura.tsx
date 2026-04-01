@@ -115,7 +115,7 @@ export const MinhaAssinatura = () => {
             <ChevronLeft className="h-5 w-5" />
             <span className="text-sm font-medium">Voltar</span>
           </button>
-          <div className="font-bold text-[#1E3A8A] text-xl font-cinzel">Royal Saúde</div>
+          <div className="font-bold text-[#1E3A8A] text-xl font-royalmed">RoyalMed Health</div>
           <div className="w-20" />
         </div>
       </header>

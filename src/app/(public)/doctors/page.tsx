@@ -4,8 +4,8 @@ import { MainNav } from "@/components/layout/main-nav";
 import { Footer } from "@/components/layout/footer";
 
 export const metadata: Metadata = {
-  title: "Médicos | Royal Saúde",
-  description: "Encontre os melhores médicos e especialistas na Royal Saúde.",
+  title: "Médicos | RoyalMed Health",
+  description: "Encontre os melhores médicos e especialistas na RoyalMed Health.",
 };
 
 export default function DoctorsPage() {

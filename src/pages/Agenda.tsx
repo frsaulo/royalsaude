@@ -461,7 +461,7 @@ export const Agenda = () => {
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="container mx-auto max-w-5xl px-4 h-16 flex items-center justify-between">
-          <div className="font-bold text-[#1E3A8A] text-xl">Royal Saúde</div>
+          <div className="font-bold text-[#1E3A8A] text-xl font-royalmed">RoyalMed Health</div>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
