@@ -25,7 +25,7 @@ const ContatoSection = () => {
           <span className="font-cinzel text-sm text-[#2566af] tracking-widest uppercase font-semibold">
             Fale Conosco
           </span>
-          <h2 className="text-4xl md:text-5xl font-cinzel font-bold text-primary mt-3">
+          <h2 className="text-4xl md:text-5xl font-cinzel font-bold text-[#2566af] mt-3">
             Entre em <span className="text-[#2566af]">Contato</span>
           </h2>
         </motion.div>
