@@ -53,11 +53,11 @@ const HeroSection = () => {
             </span>
           </motion.div>
 
-          <h1 className="text-5xl md:text-7xl font-royalmed font-bold leading-tight mb-2 text-[#dde400]">
+          <h1 className="text-5xl md:text-7xl font-royalmed font-bold leading-tight mb-2 text-[#2566af]">
             RoyalMed Health
           </h1>
           
-          <h2 className="text-2xl md:text-3xl font-cinzel mb-6 tracking-wide text-[#dde400]">
+          <h2 className="text-2xl md:text-3xl font-cinzel mb-6 tracking-wide text-[#2566af]">
             Cuidar de você não pode esperar!
           </h2>
 
@@ -66,7 +66,7 @@ const HeroSection = () => {
           </p>
           <p className="text-lg text-[#e9e6c9] font-body mb-8 max-w-lg whitespace-pre-line">
             Acesso direto a médicos clínicos gerais {"\n"} Por apenas{" "}
-            <span className="text-[#dde400] font-bold text-2xl">R$99,90</span>{" "}
+            <span className="text-[#2566af] font-bold text-2xl">R$99,90</span>{" "}
             <span className="text-[#e9e6c9]">/mês*</span>
             <span className="block text-sm mt-2">
              *Ao assinar a mensalidade, você tem o direito a consultas ILIMITADAS{"\n"} com uma pequena taxa de participação de R$69,90 por consulta.

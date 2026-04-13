@@ -33,7 +33,7 @@ const Navbar = () => {
           ))}
           <a
             href="/login"
-            className="bg-primary text-gold-light font-inter text-sm font-bold px-5 py-2 rounded-sm shadow-royal hover:brightness-110 transition-all cursor-pointer"
+            className="bg-primary text-white font-inter text-sm font-bold px-5 py-2 rounded-sm shadow-royal hover:brightness-110 transition-all cursor-pointer"
           >
             ENTRAR
           </a>
