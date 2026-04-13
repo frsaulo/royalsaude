@@ -461,7 +461,7 @@ export const Checkout = () => {
             <Card className="border-none shadow-lg sticky top-24">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-amber-500" />
+                  <Crown className="h-5 w-5 text-[#2566af]" />
                   Resumo do Pedido
                 </CardTitle>
               </CardHeader>

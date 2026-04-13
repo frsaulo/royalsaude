@@ -275,8 +275,8 @@ export const Planos = () => {
                     </div>
                   ))}
                   <div className="flex items-center gap-3 text-sm text-slate-700">
-                    <div className="h-6 w-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                      <Check className="h-3.5 w-3.5 text-amber-600" />
+                    <div className="h-6 w-6 rounded-full bg-[#2566af]/10 flex items-center justify-center flex-shrink-0">
+                      <Check className="h-3.5 w-3.5 text-[#2566af]" />
                     </div>
                     Consulta avulsa: {formatCurrency(yearlyPlan.consultation_price_cents)}
                   </div>

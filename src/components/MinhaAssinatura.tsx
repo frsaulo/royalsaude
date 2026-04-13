@@ -42,7 +42,7 @@ import { ptBR } from "date-fns/locale";
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
   ACTIVE: { label: "Ativa", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle2 },
-  PENDING: { label: "Pendente", color: "bg-amber-100 text-amber-700 border-amber-200", icon: Clock },
+  PENDING: { label: "Pendente", color: "bg-[#2566af]/10 text-[#2566af] border-[#2566af]/20", icon: Clock },
   SUSPENDED: { label: "Suspensa", color: "bg-red-100 text-red-700 border-red-200", icon: AlertTriangle },
   CANCELLED: { label: "Cancelada", color: "bg-slate-100 text-slate-600 border-slate-200", icon: XCircle },
   EXPIRED: { label: "Expirada", color: "bg-slate-100 text-slate-600 border-slate-200", icon: XCircle },
@@ -61,7 +61,7 @@ const paymentMethodLabel: Record<string, string> = {
 };
 
 const paymentStatusBadge: Record<string, { label: string; className: string }> = {
-  PENDING: { label: "Pendente", className: "bg-amber-100 text-amber-700" },
+  PENDING: { label: "Pendente", className: "bg-[#2566af]/10 text-[#2566af]" },
   PAID: { label: "Pago", className: "bg-green-100 text-green-700" },
   FAILED: { label: "Falhou", className: "bg-red-100 text-red-700" },
   REFUNDED: { label: "Reembolsado", className: "bg-slate-100 text-slate-600" },
@@ -153,7 +153,7 @@ export const MinhaAssinatura = () => {
               <div className="bg-gradient-to-r from-[#1E3A8A] to-[#2563eb] p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Crown className="h-8 w-8 text-amber-400" />
+                    <Crown className="h-8 w-8 text-[#2566af]" />
                     <div>
                       <h2 className="text-xl font-bold font-cinzel">
                         Plano {plan?.name || "Royal"}
@@ -213,13 +213,13 @@ export const MinhaAssinatura = () => {
 
                 {/* Dependents Info */}
                 {(subscription?.extra_dependents_count || 0) > 0 && (
-                  <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-xl">
-                    <Users className="h-5 w-5 text-amber-600" />
+                  <div className="flex items-center gap-3 p-4 bg-[#2566af]/10 rounded-xl">
+                    <Users className="h-5 w-5 text-[#2566af]" />
                     <div>
-                      <p className="font-semibold text-amber-800 text-sm">
+                      <p className="font-semibold text-[#2566af] text-sm">
                         {subscription!.extra_dependents_count} dependente(s) extra(s)
                       </p>
-                      <p className="text-xs text-amber-600">
+                      <p className="text-xs text-[#2566af]">
                         Custo adicional de {formatCurrency(subscription!.extra_dependents_count * 2490)}/mês
                       </p>
                     </div>
