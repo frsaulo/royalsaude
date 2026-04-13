@@ -48,16 +48,16 @@ const HeroSection = () => {
             transition={{ delay: 0.3, duration: 0.6 }}
             className="inline-block mb-6"
           >
-            <span className="bg-gradient-gold px-4 py-2 rounded-sm text-accent-foreground font-cinzel text-sm font-semibold tracking-widest uppercase">
+            <span className="bg-[#dde400] px-4 py-2 rounded-sm text-[#092952] font-cinzel text-sm font-semibold tracking-widest uppercase">
               Clube de Benefícios em Saúde
             </span>
           </motion.div>
 
-          <h1 className="text-5xl md:text-7xl font-royalmed font-bold leading-tight mb-2" style={{ color: "#f8db8b" }}>
+          <h1 className="text-5xl md:text-7xl font-royalmed font-bold leading-tight mb-2 text-[#dde400]">
             RoyalMed Health
           </h1>
           
-          <h2 className="text-2xl md:text-3xl font-cinzel mb-6 tracking-wide" style={{ color: "#dbb353" }}>
+          <h2 className="text-2xl md:text-3xl font-cinzel mb-6 tracking-wide text-[#dde400]">
             Cuidar de você não pode esperar!
           </h2>
 
@@ -66,7 +66,7 @@ const HeroSection = () => {
           </p>
           <p className="text-lg text-[#e9e6c9] font-body mb-8 max-w-lg whitespace-pre-line">
             Acesso direto a médicos clínicos gerais {"\n"} Por apenas{" "}
-            <span className="text-accent font-bold text-2xl">R$99,90</span>{" "}
+            <span className="text-[#dde400] font-bold text-2xl">R$99,90</span>{" "}
             <span className="text-[#e9e6c9]">/mês*</span>
             <span className="block text-sm mt-2">
              *Ao assinar a mensalidade, você tem o direito a consultas ILIMITADAS{"\n"} com uma pequena taxa de participação de R$69,90 por consulta.
@@ -75,10 +75,10 @@ const HeroSection = () => {
 
           <div className="flex flex-col sm:flex-row gap-4">
             <motion.a
-              href="https://royalmedhealth.vercel.app/login"
+              href="/login"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-gradient-gold text-accent-foreground font-cinzel font-semibold px-8 py-4 rounded-sm text-center shadow-gold transition-all hover:brightness-110 tracking-wide cursor-pointer"
+              className="bg-[#dde400] text-[#092952] font-cinzel font-semibold px-8 py-4 rounded-sm text-center shadow-gold transition-all hover:brightness-110 tracking-wide cursor-pointer"
             >
               Agende sua Consulta
             </motion.a>
@@ -106,7 +106,7 @@ const HeroSection = () => {
       </div>
 
       {/* Bottom decorative line */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-gold" />
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#dde400]" />
     </section>
   );
 };

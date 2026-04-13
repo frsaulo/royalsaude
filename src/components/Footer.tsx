@@ -9,7 +9,7 @@ const Footer = () => {
         <p className="text-[#092952] font-body text-sm mb-6">
           Saúde de qualidade ao seu alcance
         </p>
-        <div className="h-px bg-gradient-gold max-w-xs mx-auto mb-6 opacity-30" />
+        <div className="h-px bg-[#dde400] max-w-xs mx-auto mb-6 opacity-30" />
         <p className="text-[#092952] font-body text-xs mb-4 whitespace-pre-line">
           Rua Pedro Celestino, 2395, Campo Grande - MS, CEP: 79002-372
         </p>

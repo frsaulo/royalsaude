@@ -34,11 +34,11 @@ const ComoFunciona = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="font-cinzel text-sm text-secondary tracking-widest uppercase font-semibold">
+          <span className="font-cinzel text-sm text-[#dde400] tracking-widest uppercase font-semibold">
             Simples e Rápido
           </span>
           <h2 className="text-4xl md:text-5xl font-cinzel font-bold text-primary mt-3">
-            Como <span className="text-gradient-gold">Funciona</span>
+            Como <span className="text-[#dde400]">Funciona</span>
           </h2>
         </motion.div>
 
@@ -52,8 +52,8 @@ const ComoFunciona = () => {
               transition={{ delay: i * 0.15 }}
               className="bg-card rounded-lg p-8 shadow-royal text-center group hover:scale-105 transition-all duration-300"
             >
-              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-gold rounded-full flex items-center justify-center shadow-gold transition-all duration-300 group-hover:!bg-none group-hover:!bg-royal group-hover:scale-110">
-                <step.icon className="w-7 h-7 text-accent-foreground transition-colors duration-300 group-hover:!text-white" />
+              <div className="w-16 h-16 mx-auto mb-6 bg-[#dde400] rounded-full flex items-center justify-center shadow-gold transition-all duration-300 group-hover:!bg-none group-hover:!bg-royal group-hover:scale-110">
+                <step.icon className="w-7 h-7 text-[#092952] transition-colors duration-300 group-hover:!text-white" />
               </div>
               <h3 className="font-cinzel text-lg font-bold text-primary mb-3 transition-colors duration-300 group-hover:text-gold">
                 {step.title}
