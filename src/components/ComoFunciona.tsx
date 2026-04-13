@@ -37,7 +37,7 @@ const ComoFunciona = () => {
           <span className="font-cinzel text-sm text-[#2566af] tracking-widest uppercase font-semibold">
             Simples e Rápido
           </span>
-          <h2 className="text-4xl md:text-5xl font-cinzel font-bold text-[#2566af] mt-3">
+          <h2 className="text-4xl md:text-5xl font-cinzel font-bold text-primary mt-3">
             Como <span className="text-[#2566af]">Funciona</span>
           </h2>
         </motion.div>
