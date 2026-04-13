@@ -34,11 +34,11 @@ const ComoFunciona = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="font-cinzel text-sm text-[#dde400] tracking-widest uppercase font-semibold">
+          <span className="font-cinzel text-sm text-[#2566af] tracking-widest uppercase font-semibold">
             Simples e Rápido
           </span>
           <h2 className="text-4xl md:text-5xl font-cinzel font-bold text-primary mt-3">
-            Como <span className="text-[#dde400]">Funciona</span>
+            Como <span className="text-[#2566af]">Funciona</span>
           </h2>
         </motion.div>
 
