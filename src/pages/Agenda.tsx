@@ -467,7 +467,7 @@ export const Agenda = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate("/planos")}
-              className="text-[#2566af] hover:text-blue-700 hover:bg-blue-50 hidden sm:inline-flex"
+              className="text-[#dde400] hover:text-blue-700 hover:bg-blue-50 hidden sm:inline-flex"
             >
               <Crown className="h-4 w-4 mr-1.5" />
               Planos
@@ -874,7 +874,7 @@ export const Agenda = () => {
                 <span className="font-bold">{appointmentAction?.date.split('-').reverse().join('/')}</span> às <span className="font-bold">{appointmentAction?.time?.substring(0, 5) || appointmentAction?.time}</span>?
                 {appointmentAction?.actionType === 'delete' && ' Esta ação não pode ser desfeita.'}
               </span>
-              <span className="block bg-blue-50 border border-blue-200 text-[#2566af] p-3 rounded-md text-sm font-medium mt-4">
+              <span className="block bg-blue-50 border border-blue-200 text-[#dde400] p-3 rounded-md text-sm font-medium mt-4">
                 Aviso: O prazo para cancelar ou remarcar sem custos é de no mínimo 24h de antecedência. Em caso de prazo inferior, será cobrada uma nova consulta.
               </span>
             </AlertDialogDescription>

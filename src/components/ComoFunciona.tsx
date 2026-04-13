@@ -34,11 +34,11 @@ const ComoFunciona = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="font-cinzel text-sm text-[#2566af] tracking-widest uppercase font-semibold">
+          <span className="font-cinzel text-sm text-[#dde400] tracking-widest uppercase font-semibold">
             Simples e Rápido
           </span>
           <h2 className="text-4xl md:text-5xl font-cinzel font-bold text-primary mt-3">
-            Como <span className="text-[#2566af]">Funciona</span>
+            Como <span className="text-[#dde400]">Funciona</span>
           </h2>
         </motion.div>
 
@@ -55,7 +55,7 @@ const ComoFunciona = () => {
               <div className="w-16 h-16 mx-auto mb-6 bg-[#dde400] rounded-full flex items-center justify-center shadow-gold transition-all duration-300 group-hover:!bg-none group-hover:!bg-royal group-hover:scale-110">
                 <step.icon className="w-7 h-7 text-[#092952] transition-colors duration-300 group-hover:!text-white" />
               </div>
-              <h3 className="font-cinzel text-lg font-bold text-primary mb-3 transition-colors duration-300 group-hover:text-[#2566af]">
+              <h3 className="font-cinzel text-lg font-bold text-primary mb-3 transition-colors duration-300 group-hover:text-[#dde400]">
                 {step.title}
               </h3>
               <p className="text-muted-foreground font-body leading-relaxed text-sm whitespace-pre-line">

@@ -14,11 +14,11 @@ const QuemSomos = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <span className="font-cinzel text-sm text-[#2566af] tracking-widest uppercase font-semibold">
+            <span className="font-cinzel text-sm text-[#dde400] tracking-widest uppercase font-semibold">
               Sobre a RoyalMed Health
             </span>
-            <h2 className="text-4xl md:text-5xl font-cinzel font-bold text-[#2566af] mt-3 mb-8">
-              Quem <span className="text-[#2566af]">Somos</span>
+            <h2 className="text-4xl md:text-5xl font-cinzel font-bold text-[#dde400] mt-3 mb-8">
+              Quem <span className="text-[#dde400]">Somos</span>
             </h2>
             <p className="text-[#e9e6c9] font-body text-lg leading-relaxed mb-6">
               A RoyalMed Health é um clube de benefícios em saúde que oferece acesso direto a médicos clínicos gerais
@@ -37,9 +37,9 @@ const QuemSomos = () => {
               ].map((text) => (
                 <div key={text} className="flex items-center gap-4 text-[#e9e6c9] group transition-all duration-300">
                   <div className="w-8 h-8 rounded-full border border-gold/20 flex items-center justify-center transition-all duration-300 group-hover:!bg-royal group-hover:border-royal group-hover:scale-110 shadow-sm group-hover:shadow-gold/20">
-                    <Check className="w-5 h-5 text-[#2566af] transition-colors duration-300 group-hover:!text-white" />
+                    <Check className="w-5 h-5 text-[#dde400] transition-colors duration-300 group-hover:!text-white" />
                   </div>
-                  <span className="font-body font-medium transition-colors duration-300 group-hover:text-[#2566af] cursor-default">
+                  <span className="font-body font-medium transition-colors duration-300 group-hover:text-[#dde400] cursor-default">
                     {text}
                   </span>
                 </div>
@@ -85,7 +85,7 @@ const QuemSomos = () => {
                   <item.icon className="w-5 h-5 text-[#092952] transition-colors duration-300 group-hover:!text-white" />
                 </div>
                 <div>
-                  <h3 className="font-cinzel text-[#2566af] font-semibold mb-1 transition-colors duration-300 group-hover:text-[#2566af]">{item.title}</h3>
+                  <h3 className="font-cinzel text-[#dde400] font-semibold mb-1 transition-colors duration-300 group-hover:text-[#dde400]">{item.title}</h3>
                   <p className="text-[#e9e6c9] font-body text-sm leading-relaxed">{item.desc}</p>
                 </div>
               </motion.div>

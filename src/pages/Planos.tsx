@@ -114,7 +114,7 @@ export const Planos = () => {
       <main className="container mx-auto max-w-5xl px-4 py-12">
         {/* Hero */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-[#dde400]/10 text-[#2566af] px-4 py-2 rounded-full text-sm font-semibold mb-6">
+          <div className="inline-flex items-center gap-2 bg-[#dde400]/10 text-[#dde400] px-4 py-2 rounded-full text-sm font-semibold mb-6">
             <Crown className="h-4 w-4" />
             Planos RoyalMed Health
           </div>
@@ -140,7 +140,7 @@ export const Planos = () => {
                   variant="outline"
                   className={`font-bold ${
                     dependentsCount > 3
-                      ? "text-[#2566af] border-[#dde400]/30 bg-[#dde400]/10"
+                      ? "text-[#dde400] border-[#dde400]/30 bg-[#dde400]/10"
                       : "text-green-600 border-green-300 bg-green-50"
                   }`}
                 >
@@ -161,7 +161,7 @@ export const Planos = () => {
                 <span>10</span>
               </div>
               {dependentsCount > 3 && (
-                <p className="text-xs text-[#2566af] mt-3 bg-[#dde400]/10 rounded-lg px-3 py-2">
+                <p className="text-xs text-[#dde400] mt-3 bg-[#dde400]/10 rounded-lg px-3 py-2">
                   ⚠️ A partir do 4º dependente, cada um custa{" "}
                   <strong>{formatCurrency(2490)}/mês</strong> adicional.
                 </p>
@@ -237,7 +237,7 @@ export const Planos = () => {
                 <CardTitle className="text-2xl font-cinzel text-slate-800">Anual</CardTitle>
                 <CardDescription>
                   Economize{" "}
-                  <span className="text-[#2566af] font-bold">{discount}%</span>{" "}
+                  <span className="text-[#dde400] font-bold">{discount}%</span>{" "}
                   com o plano anual
                 </CardDescription>
               </CardHeader>
@@ -269,14 +269,14 @@ export const Planos = () => {
                   {features.map((f, i) => (
                     <div key={i} className="flex items-center gap-3 text-sm text-slate-700">
                       <div className="h-6 w-6 rounded-full bg-[#dde400]/10 flex items-center justify-center flex-shrink-0">
-                        <Check className="h-3.5 w-3.5 text-[#2566af]" />
+                        <Check className="h-3.5 w-3.5 text-[#dde400]" />
                       </div>
                       {f.text}
                     </div>
                   ))}
                   <div className="flex items-center gap-3 text-sm text-slate-700">
-                    <div className="h-6 w-6 rounded-full bg-[#2566af]/10 flex items-center justify-center flex-shrink-0">
-                      <Check className="h-3.5 w-3.5 text-[#2566af]" />
+                    <div className="h-6 w-6 rounded-full bg-[#dde400]/10 flex items-center justify-center flex-shrink-0">
+                      <Check className="h-3.5 w-3.5 text-[#dde400]" />
                     </div>
                     Consulta avulsa: {formatCurrency(yearlyPlan.consultation_price_cents)}
                   </div>
