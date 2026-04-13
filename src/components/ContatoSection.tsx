@@ -22,11 +22,11 @@ const ContatoSection = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="font-cinzel text-sm text-[#dde400] tracking-widest uppercase font-semibold">
+          <span className="font-cinzel text-sm text-[#2566af] tracking-widest uppercase font-semibold">
             Fale Conosco
           </span>
           <h2 className="text-4xl md:text-5xl font-cinzel font-bold text-primary mt-3">
-            Entre em <span className="text-[#dde400]">Contato</span>
+            Entre em <span className="text-[#2566af]">Contato</span>
           </h2>
         </motion.div>
 
