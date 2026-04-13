@@ -28,10 +28,10 @@ const Footer = () => {
 
           <a 
             href="mailto:contato@royalmedhealth.com.br" 
-            className="flex items-center gap-3 text-slate-400 font-light hover:text-white transition-colors"
+            className="flex items-center gap-3 text-[#2566af] font-medium hover:brightness-125 transition-all"
           >
-            <div className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center">
-              <Mail className="h-4 w-4" />
+            <div className="h-8 w-8 rounded-full bg-[#2566af]/10 flex items-center justify-center">
+              <Mail className="h-4 w-4 text-[#2566af]" />
             </div>
             <span>contato@royalmedhealth.com.br</span>
           </a>
