@@ -239,7 +239,7 @@ export const Agenda = () => {
       const whatsappMessage = window.encodeURIComponent(
         `Olá, sou ${patientName}. Confirmo meu agendamento para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.`
       );
-      const whatsappUrl = `https://wa.me/5535991823126?text=${whatsappMessage}`;
+      const whatsappUrl = `https://wa.me/5567991747844?text=${whatsappMessage}`;
 
       toast.success(
         <div className="flex flex-col gap-2">
