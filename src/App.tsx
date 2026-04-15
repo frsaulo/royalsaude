@@ -15,6 +15,8 @@ import { MinhaAssinatura } from "./components/MinhaAssinatura";
 import { AdminLogin } from "./pages/AdminLogin";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { PoliticaPrivacidade } from "./pages/PoliticaPrivacidade";
+import { ContratoAdesao } from "./pages/ContratoAdesao";
+import { PoliticaCancelamento } from "./pages/PoliticaCancelamento";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +71,8 @@ const App = () => (
 
             {/* Páginas Públicas */}
             <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+            <Route path="/contrato-adesao" element={<ContratoAdesao />} />
+            <Route path="/politica-cancelamento" element={<PoliticaCancelamento />} />
 
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
