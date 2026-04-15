@@ -43,6 +43,7 @@ const Footer = () => {
           Dr Felipe Flores C. Neves{"\n"}
           CRM-MS 15.973{"\n\n\n\n"}
           CNPJ: 65.818.151/0001-05{"\n"}
+          <a href="/politica-privacidade" className="hover:underline text-[#2566af] font-semibold">Política de Privacidade e LGPD</a>{"\n"}
           Todos os direitos reservados{"\n"}
           © {new Date().getFullYear()} RoyalMed Health Clube de Benefícios Ltda
         </p>

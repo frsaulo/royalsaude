@@ -14,6 +14,7 @@ import { Checkout } from "./components/Checkout";
 import { MinhaAssinatura } from "./components/MinhaAssinatura";
 import { AdminLogin } from "./pages/AdminLogin";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import { PoliticaPrivacidade } from "./pages/PoliticaPrivacidade";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,9 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+
+            {/* Páginas Públicas */}
+            <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
 
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
