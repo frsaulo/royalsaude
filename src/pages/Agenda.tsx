@@ -36,6 +36,7 @@ import {
 
 const MORNING_SLOTS = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"];
 const AFTERNOON_SLOTS = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"];
+const EVENING_SLOTS = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"];
 const TIMEZONE = "America/Sao_Paulo";
 
 type Dependent = {
@@ -576,6 +577,13 @@ export const Agenda = () => {
                             </h4>
                             {renderTimeSlots(AFTERNOON_SLOTS, isTimeBooked, selectedTime, setSelectedTime)}
                           </div>
+                          <div>
+                            <h4 className="flex items-center gap-2 font-bold text-[10px] text-slate-400 tracking-wider mb-3">
+                              <span className="w-8 h-[1px] bg-slate-200"></span>
+                              PERÍODO NOTURNO
+                            </h4>
+                            {renderTimeSlots(EVENING_SLOTS, isTimeBooked, selectedTime, setSelectedTime)}
+                          </div>
                         </div>
                       )}
                     </CardContent>
@@ -935,6 +943,10 @@ export const Agenda = () => {
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-2">TARDE</p>
                       {renderTimeSlots(AFTERNOON_SLOTS, isEditTimeBooked, editTime, setEditTime)}
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-2">NOITE</p>
+                      {renderTimeSlots(EVENING_SLOTS, isEditTimeBooked, editTime, setEditTime)}
                     </div>
                   </div>
                 )}
