@@ -14,7 +14,7 @@ const Index = () => {
       {/* Planos Section via Iframe */}
       <section id="planos" className="w-full bg-slate-50">
         <iframe 
-          src="https://royalsaude.vercel.app/planos" 
+          src="/planos" 
           className="w-full min-h-[900px] border-none"
           title="Planos RoyalMed Health"
         />

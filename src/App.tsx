@@ -45,14 +45,6 @@ const App = () => (
               } 
             />
             <Route 
-              path="/planos" 
-              element={
-                <ProtectedRoute>
-                  <Planos />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
               path="/checkout" 
               element={
                 <ProtectedRoute>
@@ -70,6 +62,7 @@ const App = () => (
             />
 
             {/* Páginas Públicas */}
+            <Route path="/planos" element={<Planos />} />
             <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/contrato-adesao" element={<ContratoAdesao />} />
             <Route path="/politica-cancelamento" element={<PoliticaCancelamento />} />
