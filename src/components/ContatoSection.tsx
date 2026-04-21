@@ -47,7 +47,7 @@ const ContatoSection = () => {
             {
               icon: WhatsappIcon,
               title: "WhatsApp",
-              info: "Clique para iniciar uma conversa",
+              info: "Dúvidas? Fale com nosso suporte.",
               href: "https://wa.me/67991747844",
             },
           ].map((item, i) => (

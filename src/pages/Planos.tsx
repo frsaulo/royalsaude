@@ -120,14 +120,13 @@ export const Planos = () => {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-[#dde400]/10 text-[#dde400] px-4 py-2 rounded-full text-sm font-semibold mb-6">
             <Crown className="h-4 w-4" />
-            Planos RoyalMed Health
+            Dúvidas? Fale com nosso suporte.
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-cinzel mb-4">
-            Escolha o plano ideal para você
+            Informações sobre os planos e pacotes.
           </h1>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Acesso completo a consultas, telemedicina e acompanhamento de saúde
-            para você e sua família.
+            Abaixo você encontrará detalhes sobre as opções de planos e pacotes disponíveis para você e sua família.
           </p>
         </div>
 
