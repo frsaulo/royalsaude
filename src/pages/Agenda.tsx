@@ -133,6 +133,7 @@ export const Agenda = () => {
   const [newDependent, setNewDependent] = useState<Dependent>(createEmptyDependent());
   const [deleteDepIndex, setDeleteDepIndex] = useState<number | null>(null);
   const [accountType, setAccountType] = useState<string>("");
+  const [profilePhone, setProfilePhone] = useState<string>("");
 
   // Calculate current time in Brasilia
   const nowInSP = toZonedTime(new Date(), TIMEZONE);
@@ -158,13 +159,14 @@ export const Agenda = () => {
     setLoadingDependents(true);
     const { data, error } = await supabase
       .from('profiles')
-      .select('dependents, account_type')
+      .select('dependents, account_type, phone, full_name')
       .eq('id', user.id)
       .single();
 
     if (!error && data) {
       setDependents(normalizeDependents(data.dependents));
       setAccountType(data.account_type || user.user_metadata?.account_type || "");
+      if (data.phone) setProfilePhone(data.phone);
     }
     setLoadingDependents(false);
   }, [user]);
@@ -312,13 +314,15 @@ export const Agenda = () => {
         setBookedSlots(bookedSlots.filter(t => t !== appointmentAction.time));
       }
 
-      if (app?.phone && app.phone !== 'Não informado') {
+      const notifyPhone = profilePhone || app?.phone || '';
+      const notifyName  = app?.patient_name || user?.user_metadata?.full_name || 'Paciente';
+      if (notifyPhone.replace(/\D/g, '').length >= 8) {
         supabase.functions
           .invoke('notify-whatsapp', {
             body: {
               action: appointmentAction.actionType === 'delete' ? 'cancel' : 'reschedule',
-              phone: app.phone,
-              patientName: app.patient_name,
+              phone: notifyPhone,
+              patientName: notifyName,
               date: appointmentAction.date,
               time: appointmentAction.time,
             },
@@ -371,14 +375,15 @@ export const Agenda = () => {
       toast.success("Agendamento atualizado com sucesso!");
 
       // Notifica paciente via WhatsApp sobre o reagendamento
-      const phone = editingAppointment.phone || '';
-      if (phone && phone.replace(/\D/g, '').length >= 8) {
+      const phone = profilePhone || editingAppointment.phone || '';
+      const patientName = editingAppointment.patient_name || user?.user_metadata?.full_name || 'Paciente';
+      if (phone.replace(/\D/g, '').length >= 8) {
         supabase.functions
           .invoke('notify-whatsapp', {
             body: {
               action: 'reschedule_new',
               phone,
-              patientName: editingAppointment.patient_name,
+              patientName,
               oldDate: editingAppointment.date,
               oldTime: editingAppointment.time?.substring(0, 5),
               date: dateStr,
