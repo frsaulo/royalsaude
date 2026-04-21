@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "../components/ui/dialog";
 
 const relationshipLabelMap: Record<string, string> = {
@@ -411,10 +412,10 @@ export const AdminDashboard = () => {
                                {app.specialty || "Geral"}
                              </CardDescription>
                            )}
-                           <CardDescription className="font-medium text-blue-600 mt-1 flex items-center gap-1.5">
-                               <CalendarIcon className="w-4 h-4" />
-                               {format(parseISO(app.date), "dd 'de' MMMM, yyyy", { locale: ptBR })} às {app.time?.substring(0, 5) || app.time}
-                           </CardDescription>
+                            <CardDescription className="font-medium text-blue-600 mt-1 flex items-center gap-1.5">
+                                <CalendarIcon className="w-4 h-4" />
+                                {app.date ? format(parseISO(app.date), "dd 'de' MMMM, yyyy", { locale: ptBR }) : 'Data não definida'} às {app.time?.substring(0, 5) || app.time}
+                            </CardDescription>
                         </div>
 
                         {app.type === 'blocked' ? (
