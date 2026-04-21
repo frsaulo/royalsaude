@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Trash2, Users, Search, Calendar as CalendarIcon, Phone, MapPin, MonitorPlay, Loader2, LogOut, Mail, Clock, RefreshCw, ShieldAlert } from "lucide-react";
+import { Trash2, Users, Search, Calendar as CalendarIcon, Phone, MapPin, MonitorPlay, Loader2, LogOut, Mail, Clock, RefreshCw, ShieldAlert, Lock, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
@@ -59,6 +59,12 @@ export const AdminDashboard = () => {
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
   const [isRescheduling, setIsRescheduling] = useState(false);
+
+  // States for Block Slot
+  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
+  const [blockDate, setBlockDate] = useState("");
+  const [blockTime, setBlockTime] = useState("");
+  const [isBlocking, setIsBlocking] = useState(false);
 
   const navigate = useNavigate();
 
@@ -183,6 +189,45 @@ export const AdminDashboard = () => {
     }
   };
 
+  const handleBlockSlot = async () => {
+    if (!blockDate || !blockTime) {
+      toast.error("Selecione data e horário para bloquear.");
+      return;
+    }
+
+    setIsBlocking(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Sessão expirada.");
+
+      const { error } = await supabase
+        .from('appointments')
+        .insert([{
+          user_id: session.user.id,
+          date: blockDate,
+          time: blockTime,
+          type: 'blocked',
+          patient_name: 'HORÁRIO BLOQUEADO',
+          phone: '(Admin)'
+        }]);
+
+      if (error) {
+        if (error.code === '23505') throw new Error("Este horário já está ocupado por um agendamento.");
+        throw error;
+      }
+
+      toast.success("Horário bloqueado com sucesso!");
+      setIsBlockModalOpen(false);
+      setBlockDate("");
+      setBlockTime("");
+      fetchAppointments();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao bloquear horário.");
+    } finally {
+      setIsBlocking(false);
+    }
+  };
+
   // Filtrar baseados no text search (Nome do paciente, telefone ou CPF ou Email)
   const filteredAppointments = appointments.filter(app => {
     const term = searchTerm.toLowerCase();
@@ -238,6 +283,31 @@ export const AdminDashboard = () => {
         </div>
       </header>
 
+      {/* Action Bar for Admin */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-4 w-full sm:w-auto">
+            <Button 
+              onClick={() => setIsBlockModalOpen(true)}
+              className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto"
+            >
+              <Lock className="w-4 h-4 mr-2" />
+              Bloquear Horário
+            </Button>
+          </div>
+          
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Buscar paciente, CPF, telefone ou data..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
       <main className="max-w-7xl mx-auto p-4 sm:p-6 py-8">
         
         {/* Painel TÃ­tulo e Stats */}
@@ -245,21 +315,11 @@ export const AdminDashboard = () => {
             <div>
                <h2 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
                  <Users className="w-8 h-8 text-blue-600" />
-                 Todos os Agendamentos
+                 Gestão da Agenda
                </h2>
                <p className="text-slate-500 mt-1">
-                 Você está visualizando todo o banco de dados. Tenha cuidado ao deletar registros de pacientes.
+                 Visualize agendamentos e bloqueie horários indisponíveis para o público.
                </p>
-            </div>
-            
-            <div className="relative w-full md:w-96">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="Buscar paciente, CPF, telefone ou data..."
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
             </div>
         </div>
 
@@ -281,9 +341,16 @@ export const AdminDashboard = () => {
                   
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
-                        <div>
+                         <div>
                            <CardTitle className="text-lg font-bold text-slate-800">
-                             {app.patient_name !== 'Paciente Cadastrado' ? app.patient_name : (app.profiles?.full_name || 'Paciente Cadastrado')}
+                             {app.type === 'blocked' ? (
+                               <div className="flex items-center gap-2 text-red-600">
+                                 <Lock className="w-5 h-5" />
+                                 <span>HORÁRIO BLOQUEADO</span>
+                               </div>
+                             ) : (
+                               app.patient_name !== 'Paciente Cadastrado' ? app.patient_name : (app.profiles?.full_name || 'Paciente Cadastrado')
+                             )}
                            </CardTitle>
                            <CardDescription className="font-medium text-blue-600 mt-1 flex items-center gap-1.5">
                                <CalendarIcon className="w-4 h-4" />
@@ -291,7 +358,11 @@ export const AdminDashboard = () => {
                            </CardDescription>
                         </div>
 
-                        {app.type === 'telemedicina' ? (
+                        {app.type === 'blocked' ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 font-bold">
+                            BLOQUEIO
+                          </span>
+                        ) : app.type === 'telemedicina' ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                             <MonitorPlay className="w-3.5 h-3.5" /> Telemedicina
                           </span>
@@ -357,46 +428,54 @@ export const AdminDashboard = () => {
                         </div>
                      </div>
 
-                     <div className="flex justify-between items-center pt-2 gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200 flex-1"
-                          onClick={() => {
-                            setRescheduleData({
-                              id: app.id,
-                              date: app.date,
-                              time: app.time?.substring(0, 5) || app.time,
-                              patientName: app.patient_name !== 'Paciente Cadastrado' ? app.patient_name : (app.profiles?.full_name || 'Paciente Cadastrado')
-                            });
-                          }}
-                        >
-                          <RefreshCw className="w-4 h-4 mr-2" /> Remarcar
-                        </Button>
+                      <div className="flex justify-between items-center pt-2 gap-2">
+                        {app.type !== 'blocked' && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200 flex-1"
+                            onClick={() => {
+                              setRescheduleData({
+                                id: app.id,
+                                date: app.date,
+                                time: app.time?.substring(0, 5) || app.time,
+                                patientName: app.patient_name !== 'Paciente Cadastrado' ? app.patient_name : (app.profiles?.full_name || 'Paciente Cadastrado')
+                              });
+                            }}
+                          >
+                            <RefreshCw className="w-4 h-4 mr-2" /> Remarcar
+                          </Button>
+                        )}
 
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50 border border-red-100 flex-1">
-                              <Trash2 className="w-4 h-4 mr-2" /> Excluir
+                              <Trash2 className="w-4 h-4 mr-2" /> {app.type === 'blocked' ? 'Desbloquear' : 'Excluir'}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Zona de Perigo!</AlertDialogTitle>
+                              <AlertDialogTitle>{app.type === 'blocked' ? 'Confirmar Desbloqueio' : 'Zona de Perigo!'}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Você está prestes a forçar o cancelamento da consulta de <strong>{app.patient_name}</strong> dia {format(parseISO(app.date), "dd/MM/yyyy")} às {app.time}.
-                                Esta ação não poderá ser desfeita. Tem certeza?
+                                {app.type === 'blocked' ? (
+                                  `Você está prestes a liberar o horário de ${format(parseISO(app.date), "dd/MM/yyyy")} às ${app.time}. Deseja continuar?`
+                                ) : (
+                                  <>
+                                    Você está prestes a forçar o cancelamento da consulta de <strong>{app.patient_name}</strong> dia {format(parseISO(app.date), "dd/MM/yyyy")} às {app.time}.
+                                    Esta ação não poderá ser desfeita. Tem certeza?
+                                  </>
+                                )}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Voltar atrás</AlertDialogCancel>
                               <AlertDialogAction onClick={() => handleDelete(app.id)} className="bg-red-600 hover:bg-red-700">
-                                Sim, excluir agora
+                                Sim, {app.type === 'blocked' ? 'desbloquear agora' : 'excluir agora'}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                     </div>
+                      </div>
                   </CardContent>
                 </Card>
                   );
@@ -471,6 +550,93 @@ export const AdminDashboard = () => {
              <Button onClick={handleReschedule} disabled={isRescheduling} className="bg-blue-600 hover:bg-blue-700">
                 {isRescheduling ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                 Confirmar Remarcação
+             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Block Slot Modal */}
+      <Dialog open={isBlockModalOpen} onOpenChange={(open) => {
+        if (!open) {
+          setIsBlockModalOpen(false);
+          setBlockDate("");
+          setBlockTime("");
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Lock className="w-5 h-5" />
+              Bloquear Horário
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-slate-500">
+              Selecione um horário para torná-lo indisponível para agendamento pelos usuários.
+            </p>
+            <div className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <CalendarIcon className="w-4 h-4 text-blue-600" /> Data do Bloqueio
+                </label>
+                <Input 
+                  type="date" 
+                  value={blockDate} 
+                  onChange={(e) => setBlockDate(e.target.value)}
+                  min={format(new Date(), 'yyyy-MM-dd')}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-blue-600" /> Horário
+                </label>
+                <select 
+                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={blockTime}
+                  onChange={(e) => setBlockTime(e.target.value)}
+                >
+                  <option value="" disabled>Selecione um horário</option>
+                  <optgroup label="Manhã">
+                    <option value="08:00">08:00</option>
+                    <option value="08:30">08:30</option>
+                    <option value="09:00">09:00</option>
+                    <option value="09:30">09:30</option>
+                    <option value="10:00">10:00</option>
+                    <option value="10:30">10:30</option>
+                    <option value="11:00">11:00</option>
+                    <option value="11:30">11:30</option>
+                  </optgroup>
+                  <optgroup label="Tarde">
+                    <option value="14:00">14:00</option>
+                    <option value="14:30">14:30</option>
+                    <option value="15:00">15:00</option>
+                    <option value="15:30">15:30</option>
+                    <option value="16:00">16:00</option>
+                    <option value="16:30">16:30</option>
+                    <option value="17:00">17:00</option>
+                    <option value="17:30">17:30</option>
+                  </optgroup>
+                  <optgroup label="Noite">
+                    <option value="18:00">18:00</option>
+                    <option value="18:30">18:30</option>
+                    <option value="19:00">19:00</option>
+                    <option value="19:30">19:30</option>
+                    <option value="20:00">20:00</option>
+                    <option value="20:30">20:30</option>
+                    <option value="21:00">21:00</option>
+                    <option value="21:30">21:30</option>
+                  </optgroup>
+                </select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+             <Button variant="outline" onClick={() => setIsBlockModalOpen(false)}>
+               Voltar
+             </Button>
+             <Button onClick={handleBlockSlot} disabled={isBlocking} className="bg-red-600 hover:bg-red-700 text-white">
+                {isBlocking ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lock className="w-4 h-4 mr-2" />}
+                Bloquear Agora
              </Button>
           </DialogFooter>
         </DialogContent>
