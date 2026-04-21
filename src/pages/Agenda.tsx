@@ -34,10 +34,31 @@ import {
   DialogTitle,
 } from "../components/ui/dialog";
 
-const MORNING_SLOTS = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"];
-const AFTERNOON_SLOTS = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"];
-const EVENING_SLOTS = ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30"];
 const TIMEZONE = "America/Sao_Paulo";
+
+const generateSlots = (startHour: number, endHour: number, intervalMinutes: number) => {
+  const slots = [];
+  for (let hour = startHour; hour < endHour; hour++) {
+    for (let minutes = 0; minutes < 60; minutes += intervalMinutes) {
+      const h = String(hour).padStart(2, '0');
+      const m = String(minutes).padStart(2, '0');
+      slots.push(`${h}:${m}`);
+    }
+  }
+  return slots;
+};
+
+const getSlotsForSpecialty = (spec: string) => {
+  let interval = 30;
+  if (spec === "Nutrição" || spec === "Psicologia") interval = 60;
+  if (spec === "Exame de Vista") interval = 20;
+  
+  return {
+    morning: generateSlots(8, 12, interval),
+    afternoon: generateSlots(14, 18, interval),
+    evening: generateSlots(18, 22, interval)
+  };
+};
 
 type Dependent = {
   relationship: string;
@@ -521,6 +542,35 @@ export const Agenda = () => {
 
           {/* ═══════════════════════════════ TAB 1: AGENDAR ═══════════════════════════════ */}
           <TabsContent value="agendar">
+            {/* Specialty Selection - Moved to Top */}
+            <div className="mb-8">
+              <Card className="shadow-lg border-none bg-white p-6">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-[#1E3A8A]/10 p-3 rounded-full">
+                      <Users className="h-6 w-6 text-[#1E3A8A]" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-800">Sua Especialidade</h3>
+                      <p className="text-sm text-slate-500">Selecione o serviço que deseja agendar</p>
+                    </div>
+                  </div>
+                  <select
+                    value={specialty}
+                    onChange={(e) => {
+                      setSpecialty(e.target.value);
+                      setSelectedTime(null); // Resetar horário ao mudar especialidade
+                    }}
+                    className="w-full md:w-80 text-base px-5 py-3 rounded-xl font-bold border-2 border-slate-100 text-[#1E3A8A] bg-slate-50 focus:border-[#1E3A8A] focus:bg-white focus:outline-none transition-all cursor-pointer shadow-sm"
+                  >
+                    {SPECIALTIES.map(spec => (
+                      <option key={spec} value={spec}>{spec}</option>
+                    ))}
+                  </select>
+                </div>
+              </Card>
+            </div>
+
             <div className="grid gap-8 md:grid-cols-12">
               <div className="md:col-span-8 flex flex-col gap-8">
                 <div className="grid md:grid-cols-2 gap-6">
@@ -575,21 +625,21 @@ export const Agenda = () => {
                               <span className="w-8 h-[1px] bg-slate-200"></span>
                               PERÍODO DA MANHÃ
                             </h4>
-                            {renderTimeSlots(MORNING_SLOTS, isTimeBooked, selectedTime, setSelectedTime)}
+                            {renderTimeSlots(getSlotsForSpecialty(specialty).morning, isTimeBooked, selectedTime, setSelectedTime)}
                           </div>
                           <div>
                             <h4 className="flex items-center gap-2 font-bold text-[10px] text-slate-400 tracking-wider mb-3">
                               <span className="w-8 h-[1px] bg-slate-200"></span>
                               PERÍODO DA TARDE
                             </h4>
-                            {renderTimeSlots(AFTERNOON_SLOTS, isTimeBooked, selectedTime, setSelectedTime)}
+                            {renderTimeSlots(getSlotsForSpecialty(specialty).afternoon, isTimeBooked, selectedTime, setSelectedTime)}
                           </div>
                           <div>
                             <h4 className="flex items-center gap-2 font-bold text-[10px] text-slate-400 tracking-wider mb-3">
                               <span className="w-8 h-[1px] bg-slate-200"></span>
                               PERÍODO NOTURNO
                             </h4>
-                            {renderTimeSlots(EVENING_SLOTS, isTimeBooked, selectedTime, setSelectedTime)}
+                            {renderTimeSlots(getSlotsForSpecialty(specialty).evening, isTimeBooked, selectedTime, setSelectedTime)}
                           </div>
                         </div>
                       )}
@@ -617,17 +667,6 @@ export const Agenda = () => {
                             </div>
                           </div>
                           <div className="flex flex-col gap-3 pt-2">
-                            <div className="flex justify-center md:justify-start gap-3">
-                              <select
-                                value={specialty}
-                                onChange={(e) => setSpecialty(e.target.value)}
-                                className="text-sm px-4 py-2 rounded-lg font-bold bg-white text-[#1E3A8A] shadow-lg focus:outline-none cursor-pointer"
-                              >
-                                {SPECIALTIES.map(spec => (
-                                  <option key={spec} value={spec}>{spec}</option>
-                                ))}
-                              </select>
-                            </div>
                             <div className="flex justify-center md:justify-start gap-3">
                               <button
                                 onClick={() => setAttendanceType('local')}
@@ -924,10 +963,26 @@ export const Agenda = () => {
               <Pencil className="h-5 w-5 text-[#1E3A8A]" />
               Editar Agendamento
             </DialogTitle>
-            <DialogDescription>Altere a data, horário ou tipo de atendimento.</DialogDescription>
+            <DialogDescription>Altere specialidade, data, horário ou tipo de atendimento.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
+            {/* Specialty */}
+            <div>
+              <Label className="text-sm font-semibold mb-2 block">Especialidade</Label>
+              <select
+                value={editSpecialty}
+                onChange={(e) => {
+                  setEditSpecialty(e.target.value);
+                  setEditTime(null); // Resetar horário ao mudar especialidade
+                }}
+                className="w-full text-sm px-4 py-3 rounded-lg font-semibold border-2 border-slate-200 text-slate-700 bg-white focus:border-[#1E3A8A] focus:outline-none transition-all cursor-pointer"
+              >
+                {SPECIALTIES.map(spec => (
+                  <option key={spec} value={spec}>{spec}</option>
+                ))}
+              </select>
+            </div>
             {/* Date picker */}
             <div>
               <Label className="text-sm font-semibold mb-2 block">Data</Label>
@@ -958,35 +1013,22 @@ export const Agenda = () => {
                   <div className="space-y-4">
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-2">MANHÃ</p>
-                      {renderTimeSlots(MORNING_SLOTS, isEditTimeBooked, editTime, setEditTime)}
+                      {renderTimeSlots(getSlotsForSpecialty(editSpecialty).morning, isEditTimeBooked, editTime, setEditTime)}
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-2">TARDE</p>
-                      {renderTimeSlots(AFTERNOON_SLOTS, isEditTimeBooked, editTime, setEditTime)}
+                      {renderTimeSlots(getSlotsForSpecialty(editSpecialty).afternoon, isEditTimeBooked, editTime, setEditTime)}
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-2">NOITE</p>
-                      {renderTimeSlots(EVENING_SLOTS, isEditTimeBooked, editTime, setEditTime)}
+                      {renderTimeSlots(getSlotsForSpecialty(editSpecialty).evening, isEditTimeBooked, editTime, setEditTime)}
                     </div>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Specialty */}
-            <div>
-              <Label className="text-sm font-semibold mb-2 block">Especialidade</Label>
-              <select
-                value={editSpecialty}
-                onChange={(e) => setEditSpecialty(e.target.value)}
-                className="w-full text-sm px-4 py-3 rounded-lg font-semibold border-2 border-slate-200 text-slate-700 bg-white focus:border-[#1E3A8A] focus:outline-none transition-all cursor-pointer"
-              >
-                <option value="Dentista">Dentista</option>
-                <option value="Psicologia">Psicologia</option>
-                <option value="Nutrição">Nutrição</option>
-                <option value="Exame de Vista">Exame de Vista</option>
-              </select>
-            </div>
+
 
             {/* Attendance type */}
             <div>
