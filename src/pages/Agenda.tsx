@@ -675,22 +675,7 @@ export const Agenda = () => {
                               {selectedTime}
                             </div>
                           </div>
-                          <div className="flex flex-col gap-3 pt-2">
-                            <div className="flex justify-center md:justify-start gap-3">
-                              <button
-                                onClick={() => setAttendanceType('local')}
-                                className={`text-xs px-4 py-2 rounded-lg font-bold transition-all ${attendanceType === 'local' ? 'bg-white text-[#1E3A8A] shadow-lg' : 'bg-white/10 hover:bg-white/20'}`}
-                              >
-                                Presencial
-                              </button>
-                              <button
-                                onClick={() => setAttendanceType('telemedicina')}
-                                className={`text-xs px-4 py-2 rounded-lg font-bold transition-all ${attendanceType === 'telemedicina' ? 'bg-white text-[#1E3A8A] shadow-lg' : 'bg-white/10 hover:bg-white/20'}`}
-                              >
-                                Telemedicina
-                              </button>
-                            </div>
-                          </div>
+
                         </div>
                         <div className="w-full md:w-auto">
                           <Button
@@ -1048,24 +1033,7 @@ export const Agenda = () => {
 
 
 
-            {/* Attendance type */}
-            <div>
-              <Label className="text-sm font-semibold mb-2 block">Tipo de Atendimento</Label>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setEditType('local')}
-                  className={`flex-1 text-sm px-4 py-3 rounded-lg font-semibold border-2 transition-all ${editType === 'local' ? 'border-[#1E3A8A] bg-[#1E3A8A]/5 text-[#1E3A8A]' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}
-                >
-                  🏥 Presencial
-                </button>
-                <button
-                  onClick={() => setEditType('telemedicina')}
-                  className={`flex-1 text-sm px-4 py-3 rounded-lg font-semibold border-2 transition-all ${editType === 'telemedicina' ? 'border-[#1E3A8A] bg-[#1E3A8A]/5 text-[#1E3A8A]' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}
-                >
-                  📱 Telemedicina
-                </button>
-              </div>
-            </div>
+
           </div>
 
           <DialogFooter>
