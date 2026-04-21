@@ -14,7 +14,7 @@ const HeroSection = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrent((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    }, 15000);
     return () => clearInterval(interval);
   }, []);
 
@@ -24,7 +24,7 @@ const HeroSection = () => {
       {slides.map((slide, i) => (
         <div
           key={i}
-          className="absolute inset-0 transition-opacity duration-1000"
+          className="absolute inset-0 transition-opacity duration-[3000ms]"
           style={{ 
             opacity: current === i ? 1 : 0,
             backgroundColor: slide.type === "clinica-propria" ? "#dde400" : "transparent"
@@ -52,7 +52,7 @@ const HeroSection = () => {
         
         {/* Original Content */}
         <div
-          className={`row-start-1 col-start-1 flex flex-col justify-center transition-all duration-700 max-w-2xl ${
+          className={`row-start-1 col-start-1 flex flex-col justify-center transition-all duration-[2000ms] max-w-2xl ${
             slides[current].type === "original"
               ? "opacity-100 translate-x-0 z-20 pointer-events-auto"
               : "opacity-0 -translate-x-10 z-0 pointer-events-none"
@@ -103,7 +103,7 @@ const HeroSection = () => {
 
         {/* Telemedicina Content */}
         <div
-          className={`row-start-1 col-start-1 flex flex-col justify-center transition-all duration-700 max-w-2xl ${
+          className={`row-start-1 col-start-1 flex flex-col justify-center transition-all duration-[2000ms] max-w-2xl ${
             slides[current].type === "telemedicina"
               ? "opacity-100 translate-x-0 z-20 pointer-events-auto"
               : "opacity-0 translate-x-10 z-0 pointer-events-none"
@@ -146,7 +146,7 @@ const HeroSection = () => {
 
         {/* Clinica Propria Content */}
         <div
-          className={`row-start-1 col-start-1 flex flex-col justify-center transition-all duration-700 w-full ${
+          className={`row-start-1 col-start-1 flex flex-col justify-center transition-all duration-[2000ms] w-full ${
             slides[current].type === "clinica-propria"
               ? "opacity-100 z-20 pointer-events-auto"
               : "opacity-0 z-0 pointer-events-none"
