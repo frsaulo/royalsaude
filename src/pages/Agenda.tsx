@@ -369,6 +369,26 @@ export const Agenda = () => {
       }
     } else {
       toast.success("Agendamento atualizado com sucesso!");
+
+      // Notifica paciente via WhatsApp sobre o reagendamento
+      const phone = editingAppointment.phone || '';
+      if (phone && phone.replace(/\D/g, '').length >= 8) {
+        supabase.functions
+          .invoke('notify-whatsapp', {
+            body: {
+              action: 'reschedule_new',
+              phone,
+              patientName: editingAppointment.patient_name,
+              oldDate: editingAppointment.date,
+              oldTime: editingAppointment.time?.substring(0, 5),
+              date: dateStr,
+              time: editTime,
+              specialty: editSpecialty,
+            },
+          })
+          .catch(() => {});
+      }
+
       setEditingAppointment(null);
       fetchMyAppointments();
     }
