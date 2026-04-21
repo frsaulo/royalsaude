@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 
 const slides = [
   { img: "/tata.jpg", type: "telemedicina" },
+  { img: "", type: "clinica-propria" },
   { img: familiaImg, type: "original" },
   { img: familia2Img, type: "original" },
   { img: familia3Img, type: "original" },
@@ -28,13 +29,21 @@ const HeroSection = () => {
         <div
           key={i}
           className="absolute inset-0 transition-opacity duration-1000"
-          style={{ opacity: current === i ? 1 : 0 }}
+          style={{ 
+            opacity: current === i ? 1 : 0,
+            backgroundColor: slide.type === "clinica-propria" ? "#dde400" : "transparent"
+          }}
         >
-          <img
-            src={slide.img}
-            alt="RoyalMed Health"
-            className="w-full h-full object-cover object-top"
-          />
+          {slide.type === "clinica-propria" && (
+            <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/pinstriped-suit.png')]" />
+          )}
+          {slide.img && (
+            <img
+              src={slide.img}
+              alt="RoyalMed Health"
+              className="w-full h-full object-cover object-top"
+            />
+          )}
           {/* Apply overlay only to the original images */}
           {slide.type === "original" && (
             <div className="absolute inset-0 bg-gradient-to-r from-primary/80 via-primary/70 to-primary/40" />
@@ -134,6 +143,70 @@ const HeroSection = () => {
               </p>
               <p className="text-lg md:text-xl text-[#dde400] font-body font-medium">
                 Ligue para 4004-4935 (agendamento disponível 24h, 7 dias por semana)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Clinica Propria Content */}
+        <div
+          className={`row-start-1 col-start-1 flex flex-col justify-center transition-all duration-700 w-full ${
+            slides[current].type === "clinica-propria"
+              ? "opacity-100 z-20 pointer-events-auto"
+              : "opacity-0 z-0 pointer-events-none"
+          }`}
+        >
+          <div className="relative w-full max-w-5xl mx-auto h-full flex flex-col justify-between py-10">
+            {/* Top Row: Title and Header Badge */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 mt-10 md:mt-12">
+              <div className="text-[#092952]">
+                <h1 className="text-4xl md:text-6xl font-bold font-royalmed leading-tight">
+                  Clínica própria <br />
+                  <span className="font-light italic">em Campo Grande</span>
+                </h1>
+                <p className="text-xl md:text-2xl font-bold mt-2">
+                  Rua Pedro Celestino, 2395
+                </p>
+              </div>
+
+              <div className="bg-[#f0f2b6] px-6 py-3 rounded-full border border-[#092952]/10 shadow-sm self-start md:self-auto">
+                <span className="text-[#092952] text-lg md:text-xl font-bold">
+                  Atendimento em até 1 dia
+                </span>
+              </div>
+            </div>
+
+            {/* Middle: Blue Service Box */}
+            <div className="bg-[#0066ff] text-white p-8 md:p-12 md:pr-24 w-full md:w-fit rounded-tr-[40px] rounded-bl-[120px] rounded-tl-[40px] shadow-2xl relative overflow-hidden">
+              <p className="text-lg md:text-xl font-light mb-8 opacity-90 italic">
+                Um espaço moderno, confortável e acolhedor, com:
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4">
+                {[
+                  "Clínico geral",
+                  "Oftalmologista",
+                  "Psicólogo",
+                  "Dentista",
+                  "Nutricionista"
+                ].map((servico) => (
+                  <div key={servico} className="flex items-center gap-3">
+                    <span className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></span>
+                    <span className="text-xl md:text-2xl font-bold tracking-tight">
+                      {servico}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bottom: Footer Text */}
+            <div className="text-right mt-12">
+              <p className="text-[#092952] text-lg md:text-xl font-medium">
+                Aqui, você não é só mais um número.
+              </p>
+              <p className="text-[#092952] text-2xl md:text-4xl font-bold italic translate-y-[-2px]">
+                Você é atendido com respeito e atenção.
               </p>
             </div>
           </div>
