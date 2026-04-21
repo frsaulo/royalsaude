@@ -1,15 +1,11 @@
 import { motion } from "framer-motion";
 import familiaImg from "@/assets/familia.jpg";
-import familia2Img from "@/assets/familia2.jpg";
-import familia3Img from "@/assets/familia3.jpg";
 import { useState, useEffect } from "react";
 
 const slides = [
   { img: "/tata.jpg", type: "telemedicina" },
   { img: "", type: "clinica-propria" },
   { img: familiaImg, type: "original" },
-  { img: familia2Img, type: "original" },
-  { img: familia3Img, type: "original" },
 ];
 
 const HeroSection = () => {
