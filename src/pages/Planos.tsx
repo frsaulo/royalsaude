@@ -123,10 +123,13 @@ export const Planos = () => {
             Planos RoyalMed Health
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-cinzel mb-4">
-            Informações sobre os planos e pacotes.
+            Planos
           </h1>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-8">
-            Dúvidas? Fale com nosso suporte.
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-2">
+            Informações sobre planos e pacotes
+          </p>
+          <p className="text-lg text-slate-800 font-semibold max-w-2xl mx-auto mb-8">
+            (67) 9142-7016
           </p>
         </div>
 
