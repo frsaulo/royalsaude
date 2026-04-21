@@ -41,7 +41,7 @@ const ContatoSection = () => {
             {
               icon: MapPin,
               title: "Endereço",
-              info: "Rua Pedro Celestino, 2395\nCampo Grande - MS, CEP: 79002-372",
+              info: "Rua Pedro Celestino, 2395\nCampo Grande - MS\nCEP: 79002-372",
               href: "https://www.google.com/maps/place/R.+Pedro+Celestino,+2395+-+Centro,+Campo+Grande+-+MS,+79002-372",
             },
             {
