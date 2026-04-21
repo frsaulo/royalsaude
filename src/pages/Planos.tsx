@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useSubscription } from "../hooks/useSubscription";
 import {
@@ -33,6 +33,8 @@ export const Planos = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { hasSubscription, isActive } = useSubscription();
+  const [searchParams] = useSearchParams();
+  const isEmbed = searchParams.get("embed") === "true";
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [dependentsCount, setDependentsCount] = useState(0);
@@ -97,19 +99,21 @@ export const Planos = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-[#dde400]/5">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-10">
-        <div className="container mx-auto max-w-6xl px-4 h-16 flex items-center justify-between">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors"
-          >
-            <ChevronLeft className="h-5 w-5" />
-            <span className="text-sm font-medium">Voltar</span>
-          </button>
-          <div className="font-bold text-[#1E3A8A] text-xl font-royalmed">RoyalMed Health</div>
-          <div className="w-20" />
-        </div>
-      </header>
+      {!isEmbed && (
+        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-10">
+          <div className="container mx-auto max-w-6xl px-4 h-16 flex items-center justify-between">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors"
+            >
+              <ChevronLeft className="h-5 w-5" />
+              <span className="text-sm font-medium">Voltar</span>
+            </button>
+            <div className="font-bold text-[#1E3A8A] text-xl font-royalmed">RoyalMed Health</div>
+            <div className="w-20" />
+          </div>
+        </header>
+      )}
 
       <main className="container mx-auto max-w-5xl px-4 py-12">
         {/* Hero */}
