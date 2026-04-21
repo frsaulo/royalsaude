@@ -41,8 +41,8 @@ const ContatoSection = () => {
             {
               icon: MapPin,
               title: "Endereço",
-              info: "R. Dr. Eduardo Machado Metelo, 46 - Chácara Cachoeira, Campo Grande - MS, CEP: 79040-830",
-              href: "https://maps.google.com/?q=R+Dr+Eduardo+Machado+Metelo+46+Chacara+Cachoeira+Campo+Grande+MS",
+              info: "Rua Pedro Celestino, 2395, Campo Grande - MS, CEP: 79002-372",
+              href: "https://www.google.com/maps/place/R.+Pedro+Celestino,+2395+-+Centro,+Campo+Grande+-+MS,+79002-372",
             },
             {
               icon: WhatsappIcon,
