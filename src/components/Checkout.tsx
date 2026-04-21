@@ -6,16 +6,14 @@ import {
   formatCurrency,
   calculateMonthlyWithDependents,
   calculateTotalWithDependents,
-  createSubscription,
-  createPayment,
   type Plan,
   type PaymentMethod,
 } from "../lib/pagbank";
+import { supabase } from "../lib/supabase";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import {
   ChevronLeft,
@@ -27,8 +25,46 @@ import {
   Check,
   Copy,
   Crown,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+
+// Tipos do SDK PagBank injetado via script
+declare global {
+  interface Window {
+    PagSeguro: {
+      encryptCard: (params: {
+        publicKey: string;
+        holder: string;
+        number: string;
+        expMonth: string;
+        expYear: string;
+        securityCode: string;
+      }) => { encryptedCard: string; hasErrors: boolean; errors: any[] };
+    };
+  }
+}
+
+const PAGBANK_PUBLIC_KEY = import.meta.env.VITE_PAGBANK_PUBLIC_KEY ?? "";
+
+function formatCpf(value: string) {
+  const d = value.replace(/\D/g, "").slice(0, 11);
+  return d
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+}
+
+function formatCardNumber(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 16);
+  return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+}
+
+function formatExpiry(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 4);
+  if (digits.length > 2) return digits.slice(0, 2) + "/" + digits.slice(2);
+  return digits;
+}
 
 export const Checkout = () => {
   const { user } = useAuth();
@@ -37,11 +73,11 @@ export const Checkout = () => {
   const { planId, dependentsCount = 0 } = (location.state as any) || {};
 
   const [plan, setPlan] = useState<Plan | null>(null);
-  const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [sdkReady, setSdkReady] = useState(false);
 
   // Customer info
   const [customerName, setCustomerName] = useState("");
@@ -56,15 +92,32 @@ export const Checkout = () => {
   // Payment data from API
   const [paymentData, setPaymentData] = useState<any>(null);
 
+  // Carregar SDK PagBank
   useEffect(() => {
-    if (!planId) {
-      navigate("/planos");
-      return;
+    const existingScript = document.getElementById("pagbank-sdk");
+    if (existingScript) { setSdkReady(true); return; }
+
+    const script = document.createElement("script");
+    script.id = "pagbank-sdk";
+    script.src = "https://assets.pagseguro.com.br/checkout-sdk/js/directpayment.min.js";
+    script.async = true;
+    script.onload = () => setSdkReady(true);
+    script.onerror = () => console.warn("SDK PagBank não carregou");
+    document.head.appendChild(script);
+  }, []);
+
+  // Pré-preencher nome do usuário
+  useEffect(() => {
+    if (user?.user_metadata?.full_name) {
+      setCustomerName(user.user_metadata.full_name);
     }
+  }, [user]);
+
+  useEffect(() => {
+    if (!planId) { navigate("/planos"); return; }
     const load = async () => {
       try {
         const data = await fetchPlans();
-        setPlans(data);
         const selected = data.find((p) => p.id === planId);
         if (selected) setPlan(selected);
         else navigate("/planos");
@@ -77,11 +130,38 @@ export const Checkout = () => {
     load();
   }, [planId, navigate]);
 
+  const encryptCard = (): string | null => {
+    if (!sdkReady || !window.PagSeguro) {
+      toast.error("SDK de pagamento não carregado. Aguarde e tente novamente.");
+      return null;
+    }
+    if (!PAGBANK_PUBLIC_KEY) {
+      toast.error("Chave pública PagBank não configurada.");
+      return null;
+    }
+    const [expMonth, expYear] = cardExpiry.split("/");
+    const result = window.PagSeguro.encryptCard({
+      publicKey: PAGBANK_PUBLIC_KEY,
+      holder: cardName,
+      number: cardNumber.replace(/\D/g, ""),
+      expMonth: expMonth ?? "",
+      expYear: expYear ? `20${expYear}` : "",
+      securityCode: cardCvv,
+    });
+    if (result.hasErrors) {
+      console.error("Erros no cartão:", result.errors);
+      toast.error("Dados do cartão inválidos. Verifique e tente novamente.");
+      return null;
+    }
+    return result.encryptedCard;
+  };
+
   const handleSubmit = async () => {
     if (!user || !plan) return;
 
-    if (!customerTaxId || customerTaxId.replace(/\D/g, "").length !== 11) {
-      toast.error("CPF válido é obrigatório.");
+    const cpfDigits = customerTaxId.replace(/\D/g, "");
+    if (cpfDigits.length !== 11) {
+      toast.error("CPF inválido. Digite os 11 dígitos.");
       return;
     }
 
@@ -95,42 +175,45 @@ export const Checkout = () => {
     setProcessing(true);
 
     try {
-      // Determinar installments se for cartão (fixo em 1 por enquanto na função, mas o componente permite flexibilidade futura)
-      
-      const response = await createSubscription({
-        planId: plan.id,
-        paymentMethod,
-        extraDependentsCount: Math.max(0, dependentsCount - plan.free_dependents),
-        customer: {
-          name: customerName || user.user_metadata?.full_name || user.email?.split("@")[0] || "Cliente",
-          email: user.email!,
-          tax_id: customerTaxId,
-        },
-        card: paymentMethod === "CREDIT_CARD" ? {
-          encrypted: "MOCK_ENCRYPTED_CARD", // Em produção, usar o SDK do PagBank para criptografar
+      let cardPayload: any = undefined;
+
+      if (paymentMethod === "CREDIT_CARD") {
+        const encrypted = encryptCard();
+        if (!encrypted) { setProcessing(false); return; }
+        cardPayload = {
+          encrypted,
+          security_code: cardCvv,
           holder_name: cardName,
-        } : undefined,
+        };
+      }
+
+      const extraDependents = Math.max(0, dependentsCount - plan.free_dependents);
+
+      const { data, error } = await supabase.functions.invoke("pagbank-create-subscription", {
+        body: {
+          plan_id: plan.id,
+          payment_method: paymentMethod,
+          extra_dependents: extraDependents,
+          customer: {
+            name: customerName || user.user_metadata?.full_name || user.email?.split("@")[0] || "Cliente",
+            email: user.email!,
+            tax_id: cpfDigits,
+          },
+          card: cardPayload,
+        },
       });
 
-      setPaymentData(response);
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error ?? "Erro ao processar pagamento.");
+
+      setPaymentData(data);
       setPaymentSuccess(true);
-      toast.success("Assinatura processada!");
+      toast.success("Pedido recebido com sucesso!");
     } catch (err: any) {
-      toast.error("Erro ao processar: " + (err.message || "tente novamente"));
+      toast.error("Erro: " + (err.message || "tente novamente."));
     } finally {
       setProcessing(false);
     }
-  };
-
-  const formatCardNumber = (value: string) => {
-    const digits = value.replace(/\D/g, "").slice(0, 16);
-    return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
-  };
-
-  const formatExpiry = (value: string) => {
-    const digits = value.replace(/\D/g, "").slice(0, 4);
-    if (digits.length > 2) return digits.slice(0, 2) + "/" + digits.slice(2);
-    return digits;
   };
 
   if (loading) {
@@ -141,6 +224,7 @@ export const Checkout = () => {
     );
   }
 
+  // ─── TELA DE SUCESSO ──────────────────────────────────────────────────────
   if (paymentSuccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-green-50/20 to-emerald-50/30 flex items-center justify-center p-4">
@@ -154,25 +238,20 @@ export const Checkout = () => {
               <p className="text-slate-600 mt-2">
                 Sua adesão ao plano <strong>{plan?.name}</strong> está sendo processada.
               </p>
-              
+
+              {/* PIX QR Code */}
               {paymentMethod === "PIX" && paymentData?.pix && (
                 <div className="mt-6 p-6 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center gap-4">
                   <p className="text-sm font-bold text-[#1E3A8A] uppercase tracking-wider">Escaneie o QR Code PIX</p>
-                  <div className="bg-white p-4 rounded-xl shadow-md">
-                    <img 
-                      src={paymentData.pix.qr_code_image} 
-                      alt="QR Code PIX" 
-                      className="h-48 w-48"
-                    />
-                  </div>
+                  {paymentData.pix.qr_code_image && (
+                    <div className="bg-white p-4 rounded-xl shadow-md">
+                      <img src={paymentData.pix.qr_code_image} alt="QR Code PIX" className="h-48 w-48" />
+                    </div>
+                  )}
                   <div className="w-full space-y-2">
                     <p className="text-xs text-slate-500 text-center font-medium">Copia e Cola:</p>
                     <div className="flex gap-2">
-                      <Input 
-                        readOnly 
-                        value={paymentData.pix.qr_code} 
-                        className="text-xs font-mono bg-white h-10"
-                      />
+                      <Input readOnly value={paymentData.pix.qr_code ?? ""} className="text-xs font-mono bg-white h-10" />
                       <Button size="icon" variant="outline" onClick={() => {
                         navigator.clipboard.writeText(paymentData.pix.qr_code);
                         toast.success("Código PIX copiado!");
@@ -181,56 +260,57 @@ export const Checkout = () => {
                       </Button>
                     </div>
                   </div>
+                  <p className="text-xs text-slate-400">⏱ QR Code válido por 30 minutos</p>
                 </div>
               )}
 
+              {/* Boleto */}
               {paymentMethod === "BOLETO" && paymentData?.boleto && (
                 <div className="mt-6 p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
                   <p className="text-sm font-bold text-[#1E3A8A] text-center uppercase tracking-wider">Boleto Gerado</p>
                   <div className="flex flex-col gap-3">
-                    <Button className="w-full bg-[#1E3A8A]" asChild>
-                      <a href={paymentData.boleto.pdf_link} target="_blank" rel="noopener noreferrer">
-                        <FileText className="h-4 w-4 mr-2" />
-                        Baixar PDF do Boleto
-                      </a>
-                    </Button>
-                    <div className="space-y-1">
-                      <p className="text-xs text-slate-500 font-medium">Código de Barras:</p>
-                      <div className="flex gap-2">
-                        <Input 
-                          readOnly 
-                          value={paymentData.boleto.barcode} 
-                          className="text-xs font-mono h-10 bg-white"
-                        />
-                        <Button size="icon" variant="outline" onClick={() => {
-                          navigator.clipboard.writeText(paymentData.boleto.barcode);
-                          toast.success("Código de barras copiado!");
-                        }}>
-                          <Copy className="h-4 w-4" />
-                        </Button>
+                    {paymentData.boleto.pdf_link && (
+                      <Button className="w-full bg-[#1E3A8A]" asChild>
+                        <a href={paymentData.boleto.pdf_link} target="_blank" rel="noopener noreferrer">
+                          <FileText className="h-4 w-4 mr-2" />
+                          Baixar PDF do Boleto
+                        </a>
+                      </Button>
+                    )}
+                    {paymentData.boleto.formatted_barcode && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-slate-500 font-medium">Linha Digitável:</p>
+                        <div className="flex gap-2">
+                          <Input readOnly value={paymentData.boleto.formatted_barcode} className="text-xs font-mono h-10 bg-white" />
+                          <Button size="icon" variant="outline" onClick={() => {
+                            navigator.clipboard.writeText(paymentData.boleto.formatted_barcode);
+                            toast.success("Código copiado!");
+                          }}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                   <p className="text-[10px] text-slate-400 text-center">
-                    A compensação do boleto pode levar até 3 dias úteis.
+                    Vencimento: {paymentData.boleto.due_date} · Compensação em até 3 dias úteis.
                   </p>
                 </div>
               )}
 
+              {/* Cartão aprovado */}
               {paymentMethod === "CREDIT_CARD" && (
                 <div className="mt-6 p-4 bg-green-50 rounded-xl flex items-center gap-3">
-                  <Check className="h-5 w-5 text-green-600" />
-                  <p className="text-sm text-green-800">
-                    Sua assinatura será ativada assim que a operadora confirmar a transação.
+                  <Check className="h-5 w-5 text-green-600 shrink-0" />
+                  <p className="text-sm text-green-800 text-left">
+                    Assinatura ativada! A cobrança recorrente será feita automaticamente pelo PagBank.
                   </p>
                 </div>
               )}
             </div>
+
             <div className="flex flex-col gap-3">
-              <Button
-                className="w-full bg-[#1E3A8A] hover:bg-[#1E3A8A]/90"
-                onClick={() => navigate("/minha-assinatura")}
-              >
+              <Button className="w-full bg-[#1E3A8A] hover:bg-[#1E3A8A]/90" onClick={() => navigate("/minha-assinatura")}>
                 Ver Minha Assinatura
               </Button>
               <Button variant="outline" onClick={() => navigate("/agenda")}>
@@ -251,73 +331,67 @@ export const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-50">
-      {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-10">
         <div className="container mx-auto max-w-5xl px-4 h-16 flex items-center justify-between">
-          <button
-            onClick={() => navigate("/planos")}
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors"
-          >
+          <button onClick={() => navigate("/planos")} className="flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors">
             <ChevronLeft className="h-5 w-5" />
             <span className="text-sm font-medium">Voltar aos Planos</span>
           </button>
           <div className="flex items-center gap-2 text-slate-500 text-sm">
             <Lock className="h-4 w-4" />
-            Pagamento Seguro
+            Pagamento Seguro · PagBank
           </div>
         </div>
       </header>
 
       <main className="container mx-auto max-w-4xl px-4 py-8">
         <div className="grid md:grid-cols-5 gap-8">
-          {/* Payment Form */}
+          {/* Form */}
           <div className="md:col-span-3 space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 font-cinzel">Checkout</h1>
-              <p className="text-slate-600 mt-1">Finalize sua adesão com segurança</p>
+              <h1 className="text-2xl font-bold text-slate-900 font-cinzel">Finalizar Assinatura</h1>
+              <p className="text-slate-600 mt-1">Processamento seguro via PagBank</p>
             </div>
 
+            {/* Dados do titular */}
             <Card className="border-none shadow-md overflow-hidden bg-white">
               <CardContent className="p-6 space-y-4">
+                <h2 className="font-semibold text-slate-800">Dados do Titular</h2>
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="custName">Nome Completo</Label>
-                    <Input 
-                      id="custName" 
-                      placeholder="Identificação do titular" 
+                    <Input
+                      id="custName"
+                      placeholder="Nome do titular"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="taxId">CPF (obrigatório)</Label>
-                    <Input 
-                      id="taxId" 
-                      placeholder="000.000.000-00" 
+                    <Label htmlFor="taxId">CPF <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="taxId"
+                      placeholder="000.000.000-00"
                       value={customerTaxId}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "").slice(0, 11);
-                        setCustomerTaxId(val);
-                      }}
+                      onChange={(e) => setCustomerTaxId(formatCpf(e.target.value))}
+                      maxLength={14}
                     />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Método de pagamento */}
             <Tabs value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
               <TabsList className="grid w-full grid-cols-3 h-12 bg-white border shadow-sm">
                 <TabsTrigger value="PIX" className="flex items-center gap-2 data-[state=active]:bg-[#1E3A8A] data-[state=active]:text-white font-semibold">
-                  <QrCode className="h-4 w-4" />
-                  PIX
+                  <QrCode className="h-4 w-4" />PIX
                 </TabsTrigger>
                 <TabsTrigger value="BOLETO" className="flex items-center gap-2 data-[state=active]:bg-[#1E3A8A] data-[state=active]:text-white font-semibold">
-                  <FileText className="h-4 w-4" />
-                  Boleto
+                  <FileText className="h-4 w-4" />Boleto
                 </TabsTrigger>
                 <TabsTrigger value="CREDIT_CARD" className="flex items-center gap-2 data-[state=active]:bg-[#1E3A8A] data-[state=active]:text-white font-semibold">
-                  <CreditCard className="h-4 w-4" />
-                  Cartão
+                  <CreditCard className="h-4 w-4" />Cartão
                 </TabsTrigger>
               </TabsList>
 
@@ -329,19 +403,19 @@ export const Checkout = () => {
                       <QrCode className="h-8 w-8 text-green-600" />
                       <div>
                         <p className="font-semibold text-green-800">Pagamento Instantâneo</p>
-                        <p className="text-sm text-green-600">Confirmado em segundos</p>
+                        <p className="text-sm text-green-600">QR Code gerado na hora · Confirmado em segundos</p>
                       </div>
                     </div>
                     <div className="text-center py-6">
                       <div className="inline-flex items-center justify-center h-48 w-48 bg-slate-100 rounded-2xl border-2 border-dashed border-slate-300">
                         <div className="text-center">
                           <QrCode className="h-16 w-16 text-slate-400 mx-auto mb-2" />
-                          <p className="text-xs text-slate-500">QR Code será gerado após confirmar</p>
+                          <p className="text-xs text-slate-500">QR Code gerado após confirmar</p>
                         </div>
                       </div>
                     </div>
                     <p className="text-xs text-slate-500 text-center">
-                      * O QR Code PIX será gerado via PagBank após confirmação.
+                      ⚠️ Para plano com PIX, a assinatura fica ativa após confirmação do pagamento.
                     </p>
                   </CardContent>
                 </Card>
@@ -355,25 +429,18 @@ export const Checkout = () => {
                       <FileText className="h-8 w-8 text-blue-600" />
                       <div>
                         <p className="font-semibold text-blue-800">Boleto Bancário</p>
-                        <p className="text-sm text-blue-600">Aprovação em até 3 dias úteis</p>
+                        <p className="text-sm text-blue-600">Prazo de 3 dias úteis · Vencimento em 3 dias</p>
                       </div>
                     </div>
-                    <div className="text-center py-6">
-                      <div className="inline-flex items-center justify-center h-24 w-full bg-slate-100 rounded-xl border-2 border-dashed border-slate-300">
-                        <div className="flex items-center gap-3">
-                          <Copy className="h-5 w-5 text-slate-400" />
-                          <p className="text-sm text-slate-500">Código de barras será gerado após confirmar</p>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                      <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+                      <p className="text-xs text-amber-700">A assinatura só é ativada após confirmação do pagamento (1–3 dias úteis).</p>
                     </div>
-                    <p className="text-xs text-slate-500 text-center">
-                      * Boleto será gerado via PagBank e enviado por email.
-                    </p>
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              {/* Credit Card */}
+              {/* Cartão */}
               <TabsContent value="CREDIT_CARD">
                 <Card className="border-none shadow-lg">
                   <CardContent className="p-6 space-y-4">
@@ -381,7 +448,7 @@ export const Checkout = () => {
                       <CreditCard className="h-8 w-8 text-indigo-600" />
                       <div>
                         <p className="font-semibold text-indigo-800">Cartão de Crédito</p>
-                        <p className="text-sm text-indigo-600">Cobrança recorrente automática</p>
+                        <p className="text-sm text-indigo-600">Cobrança recorrente automática · Ativação imediata</p>
                       </div>
                     </div>
                     <div className="space-y-4">
@@ -393,14 +460,14 @@ export const Checkout = () => {
                           value={cardNumber}
                           onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                           maxLength={19}
-                          className="mt-1.5"
+                          className="mt-1.5 font-mono"
                         />
                       </div>
                       <div>
                         <Label htmlFor="cardName">Nome no Cartão</Label>
                         <Input
                           id="cardName"
-                          placeholder="Nome como está no cartão"
+                          placeholder="NOME COMO ESTÁ NO CARTÃO"
                           value={cardName}
                           onChange={(e) => setCardName(e.target.value.toUpperCase())}
                           className="mt-1.5"
@@ -431,6 +498,12 @@ export const Checkout = () => {
                           />
                         </div>
                       </div>
+                      {!sdkReady && (
+                        <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                          <Loader2 className="h-4 w-4 text-amber-600 animate-spin shrink-0" />
+                          <p className="text-xs text-amber-700">Carregando módulo de segurança do cartão…</p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -440,23 +513,21 @@ export const Checkout = () => {
             <Button
               className="w-full h-14 text-lg font-bold bg-gradient-to-r from-[#1E3A8A] to-[#2563eb] hover:from-[#1E3A8A]/90 hover:to-[#2563eb]/90 shadow-lg rounded-xl"
               onClick={handleSubmit}
-              disabled={processing}
+              disabled={processing || (paymentMethod === "CREDIT_CARD" && !sdkReady)}
             >
               {processing ? (
-                <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  Processando...
-                </>
+                <><Loader2 className="h-5 w-5 mr-2 animate-spin" />Processando…</>
               ) : (
-                <>
-                  <Lock className="h-4 w-4 mr-2" />
-                  Confirmar Pagamento — {formatCurrency(totalAmount)}
-                </>
+                <><Lock className="h-4 w-4 mr-2" />Confirmar Pagamento — {formatCurrency(totalAmount)}</>
               )}
             </Button>
+
+            <p className="text-center text-xs text-slate-400">
+              🔒 Dados protegidos com criptografia PCI DSS · Processado por PagBank
+            </p>
           </div>
 
-          {/* Order Summary */}
+          {/* Resumo */}
           <div className="md:col-span-2">
             <Card className="border-none shadow-lg sticky top-24">
               <CardHeader>
@@ -473,9 +544,7 @@ export const Checkout = () => {
                   </div>
                   {extraDeps > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">
-                        {extraDeps} dependente(s) extra(s)
-                      </span>
+                      <span className="text-slate-600">{extraDeps} dependente(s) extra(s)</span>
                       <span className="font-semibold">
                         {plan.interval_type === "YEARLY"
                           ? formatCurrency(extraDeps * plan.extra_dependent_price_cents * 12)
@@ -486,13 +555,9 @@ export const Checkout = () => {
                   <div className="border-t pt-3 flex justify-between">
                     <span className="font-bold text-slate-800">Total</span>
                     <div className="text-right">
-                      <span className="font-bold text-lg text-[#1E3A8A]">
-                        {formatCurrency(totalAmount)}
-                      </span>
+                      <span className="font-bold text-lg text-[#1E3A8A]">{formatCurrency(totalAmount)}</span>
                       {plan.interval_type === "YEARLY" && (
-                        <p className="text-xs text-slate-500">
-                          ≈ {formatCurrency(monthlyAmount)}/mês
-                        </p>
+                        <p className="text-xs text-slate-500">≈ {formatCurrency(monthlyAmount)}/mês</p>
                       )}
                     </div>
                   </div>
@@ -500,22 +565,18 @@ export const Checkout = () => {
 
                 <div className="bg-slate-50 rounded-xl p-3 space-y-2">
                   <div className="flex items-center gap-2 text-xs text-slate-600">
-                    <Check className="h-3 w-3 text-green-500" />
-                    Cancelamento a qualquer momento
+                    <Check className="h-3 w-3 text-green-500" />Cancelamento a qualquer momento
                   </div>
                   <div className="flex items-center gap-2 text-xs text-slate-600">
-                    <Check className="h-3 w-3 text-green-500" />
-                    {plan.free_dependents} dependentes inclusos
+                    <Check className="h-3 w-3 text-green-500" />{plan.free_dependents} dependentes inclusos
                   </div>
                   <div className="flex items-center gap-2 text-xs text-slate-600">
-                    <Check className="h-3 w-3 text-green-500" />
-                    Consultas por {formatCurrency(plan.consultation_price_cents)}
+                    <Check className="h-3 w-3 text-green-500" />Consultas por {formatCurrency(plan.consultation_price_cents)}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 text-xs text-slate-500 pt-2">
-                  <Lock className="h-3 w-3" />
-                  Seus dados estão protegidos
+                  <Lock className="h-3 w-3" />Seus dados estão protegidos
                 </div>
               </CardContent>
             </Card>
