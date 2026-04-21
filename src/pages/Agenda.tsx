@@ -584,6 +584,7 @@ export const Agenda = () => {
                     </CardHeader>
                     <CardContent className="flex justify-center pt-0">
                       <Calendar
+                        key={specialty}
                         mode="single"
                         selected={date}
                         onSelect={setDate}
@@ -593,7 +594,7 @@ export const Agenda = () => {
                           const isSaturday = d.getDay() === 6;
                           
                           if (isSunday) return true;
-                          if (isSaturday && specialty !== "Dentista") return true;
+                          if (isSaturday) return specialty !== "Dentista";
                           
                           return dStr < todayStringSP;
                         }}
@@ -996,6 +997,7 @@ export const Agenda = () => {
               <Label className="text-sm font-semibold mb-2 block">Data</Label>
               <div className="flex justify-center">
                 <Calendar
+                  key={editSpecialty}
                   mode="single"
                   selected={editDate}
                   onSelect={setEditDate}
@@ -1005,7 +1007,7 @@ export const Agenda = () => {
                     const isSaturday = d.getDay() === 6;
                     
                     if (isSunday) return true;
-                    if (isSaturday && editSpecialty !== "Dentista") return true;
+                    if (isSaturday) return editSpecialty !== "Dentista";
                     
                     return dStr < todayStringSP;
                   }}
