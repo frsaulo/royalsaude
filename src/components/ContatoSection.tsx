@@ -41,7 +41,7 @@ const ContatoSection = () => {
             {
               icon: MapPin,
               title: "Endereço",
-              info: "Rua Pedro Celestino, 2395, Campo Grande - MS, CEP: 79002-372",
+              info: "Rua Pedro Celestino, 2395\nCampo Grande - MS, CEP: 79002-372",
               href: "https://www.google.com/maps/place/R.+Pedro+Celestino,+2395+-+Centro,+Campo+Grande+-+MS,+79002-372",
             },
             {
@@ -66,7 +66,7 @@ const ContatoSection = () => {
                 <item.icon className="w-6 h-6 text-[#092952] transition-colors duration-300 group-hover:!text-white" />
               </div>
               <h3 className="font-cinzel text-lg font-bold text-primary mb-2 transition-colors duration-300 group-hover:text-[#dde400]">{item.title}</h3>
-              <p className="text-muted-foreground font-body text-sm leading-relaxed">{item.info}</p>
+              <p className="text-muted-foreground font-body text-sm leading-relaxed whitespace-pre-line">{item.info}</p>
             </motion.a>
           ))}
         </div>
