@@ -68,7 +68,7 @@ export const AdminDashboard = () => {
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const [isBlockingGlobal, setIsBlockingGlobal] = useState(false);
 
-  const SPECIALTIES = ["Dentista", "Psicologia", "Nutrição", "Exame de Vista"];
+  const SPECIALTIES = ["Médicos", "Dentista", "Psicologia", "Nutrição", "Exame de Vista"];
 
   const getSlotsForSpecialty = (spec: string) => {
     const morning = [];
