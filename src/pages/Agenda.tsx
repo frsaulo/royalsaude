@@ -589,7 +589,13 @@ export const Agenda = () => {
                         onSelect={setDate}
                         disabled={(d) => {
                           const dStr = format(d, 'yyyy-MM-dd');
-                          return dStr < todayStringSP || d.getDay() === 0 || d.getDay() === 6;
+                          const isSunday = d.getDay() === 0;
+                          const isSaturday = d.getDay() === 6;
+                          
+                          if (isSunday) return true;
+                          if (isSaturday && specialty !== "Dentista") return true;
+                          
+                          return dStr < todayStringSP;
                         }}
                         locale={ptBR}
                         className="p-0 pointer-events-auto"
@@ -634,13 +640,15 @@ export const Agenda = () => {
                             </h4>
                             {renderTimeSlots(getSlotsForSpecialty(specialty).afternoon, isTimeBooked, selectedTime, setSelectedTime)}
                           </div>
-                          <div>
-                            <h4 className="flex items-center gap-2 font-bold text-[10px] text-slate-400 tracking-wider mb-3">
-                              <span className="w-8 h-[1px] bg-slate-200"></span>
-                              PERÍODO NOTURNO
-                            </h4>
-                            {renderTimeSlots(getSlotsForSpecialty(specialty).evening, isTimeBooked, selectedTime, setSelectedTime)}
-                          </div>
+                          {date?.getDay() !== 6 && (
+                            <div>
+                              <h4 className="flex items-center gap-2 font-bold text-[10px] text-slate-400 tracking-wider mb-3">
+                                <span className="w-8 h-[1px] bg-slate-200"></span>
+                                PERÍODO NOTURNO
+                              </h4>
+                              {renderTimeSlots(getSlotsForSpecialty(specialty).evening, isTimeBooked, selectedTime, setSelectedTime)}
+                            </div>
+                          )}
                         </div>
                       )}
                     </CardContent>
@@ -993,7 +1001,13 @@ export const Agenda = () => {
                   onSelect={setEditDate}
                   disabled={(d) => {
                     const dStr = format(d, 'yyyy-MM-dd');
-                    return dStr < todayStringSP || d.getDay() === 0 || d.getDay() === 6;
+                    const isSunday = d.getDay() === 0;
+                    const isSaturday = d.getDay() === 6;
+                    
+                    if (isSunday) return true;
+                    if (isSaturday && editSpecialty !== "Dentista") return true;
+                    
+                    return dStr < todayStringSP;
                   }}
                   locale={ptBR}
                   className="p-0 pointer-events-auto"
@@ -1019,10 +1033,12 @@ export const Agenda = () => {
                       <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-2">TARDE</p>
                       {renderTimeSlots(getSlotsForSpecialty(editSpecialty).afternoon, isEditTimeBooked, editTime, setEditTime)}
                     </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-2">NOITE</p>
-                      {renderTimeSlots(getSlotsForSpecialty(editSpecialty).evening, isEditTimeBooked, editTime, setEditTime)}
-                    </div>
+                    {editDate?.getDay() !== 6 && (
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-2">NOITE</p>
+                        {renderTimeSlots(getSlotsForSpecialty(editSpecialty).evening, isEditTimeBooked, editTime, setEditTime)}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
