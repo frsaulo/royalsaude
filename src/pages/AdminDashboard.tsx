@@ -352,6 +352,11 @@ export const AdminDashboard = () => {
                                app.patient_name !== 'Paciente Cadastrado' ? app.patient_name : (app.profiles?.full_name || 'Paciente Cadastrado')
                              )}
                            </CardTitle>
+                           {app.type !== 'blocked' && (
+                             <CardDescription className="font-bold text-[#1E3A8A] mt-1 text-sm">
+                               {app.specialty || "Geral"}
+                             </CardDescription>
+                           )}
                            <CardDescription className="font-medium text-blue-600 mt-1 flex items-center gap-1.5">
                                <CalendarIcon className="w-4 h-4" />
                                {format(parseISO(app.date), "dd 'de' MMMM, yyyy", { locale: ptBR })} às {app.time?.substring(0, 5) || app.time}

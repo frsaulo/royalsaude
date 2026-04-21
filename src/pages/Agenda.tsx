@@ -83,6 +83,7 @@ export const Agenda = () => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [attendanceType, setAttendanceType] = useState<string>("local");
+  const [specialty, setSpecialty] = useState<string>("Dentista");
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [loadingHours, setLoadingHours] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,8 +96,11 @@ export const Agenda = () => {
   const [editDate, setEditDate] = useState<Date | undefined>(undefined);
   const [editTime, setEditTime] = useState<string | null>(null);
   const [editType, setEditType] = useState<string>("local");
+  const [editSpecialty, setEditSpecialty] = useState<string>("Dentista");
   const [editBookedSlots, setEditBookedSlots] = useState<string[]>([]);
   const [loadingEditSlots, setLoadingEditSlots] = useState(false);
+
+  const SPECIALTIES = ["Dentista", "Psicologia", "Nutrição", "Exame de Vista"];
 
   // Dependents state
   const [dependents, setDependents] = useState<Dependent[]>([]);
@@ -226,6 +230,7 @@ export const Agenda = () => {
         date: dateStr,
         time: selectedTime,
         type: attendanceType,
+        specialty: specialty,
         patient_name: patientName,
         phone: patientPhone,
       }]);
@@ -238,7 +243,7 @@ export const Agenda = () => {
       }
     } else {
       const whatsappMessage = window.encodeURIComponent(
-        `Olá, sou ${patientName}. Confirmo meu agendamento para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.`
+        `Olá, sou ${patientName}. Confirmo meu agendamento de ${specialty} para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.`
       );
       const whatsappUrl = `https://wa.me/5567991747844?text=${whatsappMessage}`;
 
@@ -313,6 +318,7 @@ export const Agenda = () => {
     setEditDate(new Date(year, month - 1, day));
     setEditTime(app.time?.substring(0, 5) || app.time);
     setEditType(app.type || "local");
+    setEditSpecialty(app.specialty || "Dentista");
   };
 
   const handleSaveAppointment = async () => {
@@ -330,6 +336,7 @@ export const Agenda = () => {
         date: dateStr,
         time: editTime,
         type: editType,
+        specialty: editSpecialty,
       })
       .eq('id', editingAppointment.id);
 
@@ -609,19 +616,32 @@ export const Agenda = () => {
                               {selectedTime}
                             </div>
                           </div>
-                          <div className="flex justify-center md:justify-start gap-3 pt-2">
-                            <button
-                              onClick={() => setAttendanceType('local')}
-                              className={`text-xs px-4 py-2 rounded-lg font-bold transition-all ${attendanceType === 'local' ? 'bg-white text-[#1E3A8A] shadow-lg' : 'bg-white/10 hover:bg-white/20'}`}
-                            >
-                              Presencial
-                            </button>
-                            <button
-                              onClick={() => setAttendanceType('telemedicina')}
-                              className={`text-xs px-4 py-2 rounded-lg font-bold transition-all ${attendanceType === 'telemedicina' ? 'bg-white text-[#1E3A8A] shadow-lg' : 'bg-white/10 hover:bg-white/20'}`}
-                            >
-                              Telemedicina
-                            </button>
+                          <div className="flex flex-col gap-3 pt-2">
+                            <div className="flex justify-center md:justify-start gap-3">
+                              <select
+                                value={specialty}
+                                onChange={(e) => setSpecialty(e.target.value)}
+                                className="text-sm px-4 py-2 rounded-lg font-bold bg-white text-[#1E3A8A] shadow-lg focus:outline-none cursor-pointer"
+                              >
+                                {SPECIALTIES.map(spec => (
+                                  <option key={spec} value={spec}>{spec}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="flex justify-center md:justify-start gap-3">
+                              <button
+                                onClick={() => setAttendanceType('local')}
+                                className={`text-xs px-4 py-2 rounded-lg font-bold transition-all ${attendanceType === 'local' ? 'bg-white text-[#1E3A8A] shadow-lg' : 'bg-white/10 hover:bg-white/20'}`}
+                              >
+                                Presencial
+                              </button>
+                              <button
+                                onClick={() => setAttendanceType('telemedicina')}
+                                className={`text-xs px-4 py-2 rounded-lg font-bold transition-all ${attendanceType === 'telemedicina' ? 'bg-white text-[#1E3A8A] shadow-lg' : 'bg-white/10 hover:bg-white/20'}`}
+                              >
+                                Telemedicina
+                              </button>
+                            </div>
                           </div>
                         </div>
                         <div className="w-full md:w-auto">
@@ -726,7 +746,7 @@ export const Agenda = () => {
                             <div>
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="font-semibold text-slate-800">
-                                  {format(new Date(app.date + 'T12:00:00'), "EEEE", { locale: ptBR })}
+                                  {app.specialty || "Geral"} - {format(new Date(app.date + 'T12:00:00'), "EEEE", { locale: ptBR })}
                                 </span>
                                 <span className="text-[#1E3A8A] font-bold">{app.time?.substring(0, 5)}</span>
                               </div>
@@ -952,6 +972,21 @@ export const Agenda = () => {
                 )}
               </div>
             )}
+
+            {/* Specialty */}
+            <div>
+              <Label className="text-sm font-semibold mb-2 block">Especialidade</Label>
+              <select
+                value={editSpecialty}
+                onChange={(e) => setEditSpecialty(e.target.value)}
+                className="w-full text-sm px-4 py-3 rounded-lg font-semibold border-2 border-slate-200 text-slate-700 bg-white focus:border-[#1E3A8A] focus:outline-none transition-all cursor-pointer"
+              >
+                <option value="Dentista">Dentista</option>
+                <option value="Psicologia">Psicologia</option>
+                <option value="Nutrição">Nutrição</option>
+                <option value="Exame de Vista">Exame de Vista</option>
+              </select>
+            </div>
 
             {/* Attendance type */}
             <div>
