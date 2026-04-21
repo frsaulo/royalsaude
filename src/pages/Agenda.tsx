@@ -823,7 +823,7 @@ export const Agenda = () => {
                                 onClick={() => openEditAppointment(app)}
                               >
                                 <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                                Editar
+                                Remarcar
                               </Button>
                               <Button
                                 variant="outline"
@@ -915,7 +915,7 @@ export const Agenda = () => {
                             disabled={savingDependents}
                           >
                             <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                            Editar
+                            Remarcar
                           </Button>
                           <Button
                             variant="outline"
@@ -975,7 +975,7 @@ export const Agenda = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Pencil className="h-5 w-5 text-[#1E3A8A]" />
-              Editar Agendamento
+              Remarcar Agendamento
             </DialogTitle>
             <DialogDescription>Altere specialidade, data, horário ou tipo de atendimento.</DialogDescription>
           </DialogHeader>
