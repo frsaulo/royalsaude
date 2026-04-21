@@ -125,8 +125,8 @@ export const Planos = () => {
           <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-cinzel mb-4">
             Informações sobre os planos e pacotes.
           </h1>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Abaixo você encontrará detalhes sobre as opções de planos e pacotes disponíveis para você e sua família.
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-8">
+            Encontre o plano ideal para você e sua família. Nossos pacotes oferecem acesso completo a consultas presenciais e telemedicina 24h, garantindo cuidado e tranquilidade em todos os momentos.
           </p>
         </div>
 
