@@ -35,7 +35,7 @@ const ContatoSection = () => {
             {
               icon: Phone,
               title: "Telefone comercial",
-              info: "(67) 9142-7016",
+              info: "Dúvidas? Fale com nosso suporte.",
               href: "https://wa.me/556791427016",
             },
             {
