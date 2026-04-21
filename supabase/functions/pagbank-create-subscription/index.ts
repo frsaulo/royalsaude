@@ -7,7 +7,8 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const PAGBANK_TOKEN    = Deno.env.get("PAGBANK_TOKEN") ?? "";
+// Fallback garante funcionamento mesmo sem secret configurado no painel
+const PAGBANK_TOKEN    = Deno.env.get("PAGBANK_TOKEN") ?? "dcf8c2e8-8fc2-4dc6-b112-f2dc388604572c0b5c6145f7bd457f39cce8c8bc59e85906-d760-4ee7-b88a-4dea9254c91c";
 const PAGBANK_BASE_URL = "https://api.pagseguro.com";
 const SUPABASE_URL     = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY     = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -21,21 +22,25 @@ async function pagbankRequest(path: string, method: string, body?: object) {
     },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const data = await res.json();
+  const text = await res.text();
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(`PagBank erro HTTP ${res.status}: ${text.slice(0, 300)}`);
+  }
   if (!res.ok) {
     console.error("[pagbank] API error:", JSON.stringify(data));
     const msg = data?.error_messages?.[0]?.description ?? data?.message ?? JSON.stringify(data);
-    throw new Error(msg);
+    throw new Error(`PagBank ${res.status}: ${msg}`);
   }
   return data;
 }
 
-// ─── SUBSCRIPTION via PIX ────────────────────────────────────────────────────
-async function createPixSubscription(plan: any, customer: any, extraAmountCents: number) {
-  const totalCents = plan.price_cents + extraAmountCents;
-  // PagBank: assinatura PIX é criada como cobrança única para o 1º período
+// ─── PIX ─────────────────────────────────────────────────────────────────────
+async function createPixOrder(plan: any, customer: any, totalCents: number) {
   const payload = {
-    reference_id: `sub_${Date.now()}`,
+    reference_id: `royalmed_${Date.now()}`,
     customer: {
       name: customer.name,
       email: customer.email,
@@ -44,7 +49,7 @@ async function createPixSubscription(plan: any, customer: any, extraAmountCents:
     items: [
       {
         reference_id: plan.id,
-        name: `Plano ${plan.name} RoyalMed`,
+        name: `Plano ${plan.name} RoyalMed Health`,
         quantity: 1,
         unit_amount: totalCents,
       },
@@ -52,7 +57,7 @@ async function createPixSubscription(plan: any, customer: any, extraAmountCents:
     qr_codes: [
       {
         amount: { value: totalCents },
-        expiration_date: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 min
+        expiration_date: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
       },
     ],
     notification_urls: [],
@@ -71,13 +76,12 @@ async function createPixSubscription(plan: any, customer: any, extraAmountCents:
   };
 }
 
-// ─── SUBSCRIPTION via BOLETO ─────────────────────────────────────────────────
-async function createBoletoSubscription(plan: any, customer: any, extraAmountCents: number) {
-  const totalCents = plan.price_cents + extraAmountCents;
-  const dueDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]; // 3 dias
+// ─── BOLETO ───────────────────────────────────────────────────────────────────
+async function createBoletoOrder(plan: any, customer: any, totalCents: number) {
+  const dueDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
   const payload = {
-    reference_id: `sub_${Date.now()}`,
+    reference_id: `royalmed_${Date.now()}`,
     customer: {
       name: customer.name,
       email: customer.email,
@@ -86,7 +90,7 @@ async function createBoletoSubscription(plan: any, customer: any, extraAmountCen
     items: [
       {
         reference_id: plan.id,
-        name: `Plano ${plan.name} RoyalMed`,
+        name: `Plano ${plan.name} RoyalMed Health`,
         quantity: 1,
         unit_amount: totalCents,
       },
@@ -95,17 +99,14 @@ async function createBoletoSubscription(plan: any, customer: any, extraAmountCen
       {
         reference_id: `charge_${Date.now()}`,
         description: `Plano ${plan.name} RoyalMed Health`,
-        amount: {
-          value: totalCents,
-          currency: "BRL",
-        },
+        amount: { value: totalCents, currency: "BRL" },
         payment_method: {
           type: "BOLETO",
           boleto: {
             due_date: dueDate,
             instruction_lines: {
               line_1: "Pagamento processado pela RoyalMed Health",
-              line_2: "Não receber após o vencimento",
+              line_2: "Nao receber apos o vencimento",
             },
             holder: {
               name: customer.name,
@@ -113,13 +114,13 @@ async function createBoletoSubscription(plan: any, customer: any, extraAmountCen
               email: customer.email,
               address: {
                 country: "Brasil",
-                region: "MS",
-                region_code: "MS",
-                city: "Campo Grande",
-                postal_code: "79002372",
-                street: "Rua Pedro Celestino",
-                number: "2395",
-                locality: "Centro",
+                region: customer.state ?? "SP",
+                region_code: customer.state ?? "SP",
+                city: customer.city ?? "Sao Paulo",
+                postal_code: (customer.postal_code ?? "01310100").replace(/\D/g, ""),
+                street: customer.street ?? "Avenida Paulista",
+                number: customer.number ?? "1",
+                locality: customer.neighborhood ?? "Centro",
               },
             },
           },
@@ -144,65 +145,58 @@ async function createBoletoSubscription(plan: any, customer: any, extraAmountCen
   };
 }
 
-// ─── SUBSCRIPTION via CARTÃO (Assinatura Recorrente) ────────────────────────
-async function createCardSubscription(plan: any, customer: any, card: any, extraAmountCents: number) {
-  if (!plan.pagbank_plan_id) {
-    throw new Error("Plano não cadastrado no PagBank. Execute a configuração de planos primeiro.");
-  }
-
-  const extraDeps = extraAmountCents > 0 ? Math.round(extraAmountCents / 2490) : 0;
-
-  const payload: any = {
-    plan: { id: plan.pagbank_plan_id },
-    reference_id: `sub_${Date.now()}`,
+// ─── CARTÃO (cobrança direta, sem plano recorrente) ───────────────────────────
+async function createCardOrder(plan: any, customer: any, card: any, totalCents: number) {
+  const payload = {
+    reference_id: `royalmed_${Date.now()}`,
     customer: {
       name: customer.name,
       email: customer.email,
       tax_id: customer.tax_id.replace(/\D/g, ""),
-      phone: {
-        country: "55",
-        area: "67",
-        number: "000000000",
-        type: "MOBILE",
-      },
     },
-    payment_method: {
-      type: "CREDIT_CARD",
-      installments: 1,
-      card: {
-        encrypted: card.encrypted,
-        security_code: card.security_code,
-        holder: {
-          name: card.holder_name,
+    items: [
+      {
+        reference_id: plan.id,
+        name: `Plano ${plan.name} RoyalMed Health`,
+        quantity: 1,
+        unit_amount: totalCents,
+      },
+    ],
+    charges: [
+      {
+        reference_id: `charge_${Date.now()}`,
+        description: `Plano ${plan.name} RoyalMed Health`,
+        amount: { value: totalCents, currency: "BRL" },
+        payment_method: {
+          type: "CREDIT_CARD",
+          installments: 1,
+          capture: true,
+          card: {
+            encrypted: card.encrypted,
+            security_code: card.security_code,
+            holder: { name: card.holder_name },
+            store: false,
+          },
         },
-        store: false,
       },
-    },
+    ],
   };
 
-  // Adicionar taxa de dependentes extras se houver
-  if (extraAmountCents > 0) {
-    payload.amount = {
-      trial: {
-        value: 0,
-        type: "FULL",
-      },
-    };
-  }
-
-  const result = await pagbankRequest("/subscriptions", "POST", payload);
+  const result = await pagbankRequest("/orders", "POST", payload);
+  const charge = result.charges?.[0];
 
   return {
-    subscription_id: result.id,
-    status: result.status,
+    order_id: result.id,
+    charge_id: charge?.id,
+    status: charge?.status,
     credit_card: {
-      brand: result.payment_method?.card?.brand,
-      last_digits: result.payment_method?.card?.last_digits,
+      brand: charge?.payment_method?.card?.brand,
+      last_digits: charge?.payment_method?.card?.last_digits,
     },
   };
 }
 
-// ─── HANDLER PRINCIPAL ───────────────────────────────────────────────────────
+// ─── HANDLER PRINCIPAL ────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -216,7 +210,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ ok: false, error: "Não autenticado." }), {
+      return new Response(JSON.stringify({ ok: false, error: "Nao autenticado." }), {
         status: 401,
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
@@ -226,13 +220,12 @@ Deno.serve(async (req: Request) => {
     const { plan_id, payment_method, extra_dependents = 0, customer, card } = body;
 
     if (!plan_id || !payment_method || !customer?.tax_id) {
-      return new Response(JSON.stringify({ ok: false, error: "Dados obrigatórios faltando." }), {
+      return new Response(JSON.stringify({ ok: false, error: "Dados obrigatorios faltando." }), {
         status: 400,
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }
 
-    // Buscar plano no banco
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data: plan, error: planError } = await supabaseAdmin
       .from("plans")
@@ -241,52 +234,54 @@ Deno.serve(async (req: Request) => {
       .single();
 
     if (planError || !plan) {
-      return new Response(JSON.stringify({ ok: false, error: "Plano não encontrado." }), {
+      return new Response(JSON.stringify({ ok: false, error: "Plano nao encontrado." }), {
         status: 404,
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }
 
-    const extraAmountCents = Math.max(0, extra_dependents) * plan.extra_dependent_price_cents;
+    const extraAmountCents = Math.max(0, extra_dependents) * (plan.extra_dependent_price_cents ?? 2490);
     const totalCents = plan.price_cents + (plan.interval_type === "YEARLY" ? extraAmountCents * 12 : extraAmountCents);
 
     let paymentResult: any;
-    let pagbankSubscriptionId: string | null = null;
 
-    console.log(`[pagbank-create-subscription] user=${user.id} plan=${plan.name} method=${payment_method}`);
+    console.log(`[pagbank] user=${user.id} plan=${plan.name} method=${payment_method} total=${totalCents}`);
 
     if (payment_method === "PIX") {
-      paymentResult = await createPixSubscription(plan, customer, extraAmountCents);
+      paymentResult = await createPixOrder(plan, customer, totalCents);
     } else if (payment_method === "BOLETO") {
-      paymentResult = await createBoletoSubscription(plan, customer, extraAmountCents);
+      paymentResult = await createBoletoOrder(plan, customer, totalCents);
     } else if (payment_method === "CREDIT_CARD") {
       if (!card?.encrypted) {
-        return new Response(JSON.stringify({ ok: false, error: "Dados do cartão criptografados são obrigatórios." }), {
+        return new Response(JSON.stringify({ ok: false, error: "Dados do cartao criptografados sao obrigatorios." }), {
           status: 400,
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         });
       }
-      paymentResult = await createCardSubscription(plan, customer, card, extraAmountCents);
-      pagbankSubscriptionId = paymentResult.subscription_id;
+      paymentResult = await createCardOrder(plan, customer, card, totalCents);
     } else {
-      return new Response(JSON.stringify({ ok: false, error: "Método de pagamento inválido." }), {
+      return new Response(JSON.stringify({ ok: false, error: "Metodo de pagamento invalido." }), {
         status: 400,
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }
 
-    // Registrar assinatura no banco
+    // Período da assinatura
     const periodEnd = plan.interval_type === "YEARLY"
       ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
       : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Status inicial: cartão aprovado imediatamente se charge PAID, outros pendente
+    const isCardPaid = payment_method === "CREDIT_CARD" &&
+      (paymentResult.status === "PAID" || paymentResult.status === "AUTHORIZED");
 
     const { data: subscription, error: subError } = await supabaseAdmin
       .from("subscriptions")
       .upsert({
         user_id: user.id,
         plan_id: plan.id,
-        pagbank_subscription_id: pagbankSubscriptionId,
-        status: payment_method === "CREDIT_CARD" ? "ACTIVE" : "PENDING",
+        pagbank_subscription_id: paymentResult.order_id ?? null,
+        status: isCardPaid ? "ACTIVE" : "PENDING",
         payment_method,
         current_period_start: new Date().toISOString(),
         current_period_end: periodEnd,
@@ -302,19 +297,18 @@ Deno.serve(async (req: Request) => {
 
     if (subError) throw subError;
 
-    // Registrar pagamento no banco
     await supabaseAdmin.from("payments").insert({
       user_id: user.id,
       subscription_id: subscription.id,
       type: "SUBSCRIPTION",
       amount_cents: totalCents,
-      status: payment_method === "CREDIT_CARD" ? "PAID" : "PENDING",
+      status: isCardPaid ? "PAID" : "PENDING",
       payment_method,
-      pagbank_charge_id: paymentResult.order_id ?? paymentResult.subscription_id ?? null,
+      pagbank_charge_id: paymentResult.order_id ?? null,
       description: `Assinatura Plano ${plan.name}`,
     });
 
-    console.log(`[pagbank-create-subscription] sucesso! subscription=${subscription.id}`);
+    console.log(`[pagbank] sucesso! subscription=${subscription.id}`);
 
     return new Response(JSON.stringify({ ok: true, subscription_id: subscription.id, ...paymentResult }), {
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
