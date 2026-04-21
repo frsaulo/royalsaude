@@ -34,9 +34,9 @@ const ContatoSection = () => {
           {[
             {
               icon: Phone,
-              title: "Telefone",
-              info: "(67) 9291-6792",
-              href: "https://wa.me/5567992916792",
+              title: "Telefone comercial",
+              info: "(67) 9142-7016",
+              href: "https://wa.me/556791427016",
             },
             {
               icon: MapPin,
