@@ -60,11 +60,47 @@ export const AdminDashboard = () => {
   const [newTime, setNewTime] = useState("");
   const [isRescheduling, setIsRescheduling] = useState(false);
 
-  // States for Block Slot
-  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
-  const [blockDate, setBlockDate] = useState("");
-  const [blockTime, setBlockTime] = useState("");
-  const [isBlocking, setIsBlocking] = useState(false);
+  // States for Global Agenda / Master Block
+  const [isGlobalModalOpen, setIsGlobalModalOpen] = useState(false);
+  const [globalSpecialty, setGlobalSpecialty] = useState("Dentista");
+  const [globalDate, setGlobalDate] = useState("");
+  const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
+  const [isBlockingGlobal, setIsBlockingGlobal] = useState(false);
+
+  const SPECIALTIES = ["Dentista", "Psicologia", "Nutrição", "Exame de Vista"];
+
+  const getSlotsForSpecialty = (spec: string) => {
+    const morning = [];
+    const afternoon = [];
+    const evening = [];
+
+    let interval = 30; // padrão
+    if (spec === "Exame de Vista") interval = 20;
+    if (spec === "Nutrição" || spec === "Psicologia") interval = 60;
+
+    // Manhã (08:00 - 12:00)
+    for (let h = 8; h < 12; h++) {
+      for (let m = 0; m < 60; m += interval) {
+        morning.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+      }
+    }
+
+    // Tarde (14:00 - 18:00)
+    for (let h = 14; h < 18; h++) {
+      for (let m = 0; m < 60; m += interval) {
+        afternoon.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+      }
+    }
+
+    // Noite (18:00 - 22:00)
+    for (let h = 18; h < 22; h++) {
+      for (let m = 0; m < 60; m += interval) {
+        evening.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+      }
+    }
+
+    return { morning, afternoon, evening };
+  };
 
   const navigate = useNavigate();
 
@@ -189,42 +225,60 @@ export const AdminDashboard = () => {
     }
   };
 
-  const handleBlockSlot = async () => {
-    if (!blockDate || !blockTime) {
-      toast.error("Selecione data e horário para bloquear.");
+  const handleGlobalBlock = async () => {
+    if (!globalDate || selectedSlots.length === 0) {
+      toast.error("Selecione a data e ao menos um horário para bloquear.");
       return;
     }
 
-    setIsBlocking(true);
+    setIsBlockingGlobal(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Sessão expirada.");
 
+      const inserts = selectedSlots.map(time => ({
+        user_id: session.user.id,
+        date: globalDate,
+        time: time,
+        specialty: globalSpecialty,
+        type: 'blocked',
+        patient_name: 'HORÁRIO BLOQUEADO',
+        phone: '(Admin)'
+      }));
+
       const { error } = await supabase
         .from('appointments')
-        .insert([{
-          user_id: session.user.id,
-          date: blockDate,
-          time: blockTime,
-          type: 'blocked',
-          patient_name: 'HORÁRIO BLOQUEADO',
-          phone: '(Admin)'
-        }]);
+        .insert(inserts);
 
       if (error) {
-        if (error.code === '23505') throw new Error("Este horário já está ocupado por um agendamento.");
+        if (error.code === '23505') throw new Error("Um ou mais horários selecionados já possuem agendamento ou bloqueio.");
         throw error;
       }
 
-      toast.success("Horário bloqueado com sucesso!");
-      setIsBlockModalOpen(false);
-      setBlockDate("");
-      setBlockTime("");
+      toast.success(`${selectedSlots.length} horários bloqueados com sucesso!`);
+      setIsGlobalModalOpen(false);
+      setGlobalDate("");
+      setSelectedSlots([]);
       fetchAppointments();
     } catch (err: any) {
-      toast.error(err.message || "Erro ao bloquear horário.");
+      toast.error(err.message || "Erro ao bloquear horários.");
     } finally {
-      setIsBlocking(false);
+      setIsBlockingGlobal(false);
+    }
+  };
+
+  const toggleSlot = (time: string) => {
+    setSelectedSlots(prev => 
+      prev.includes(time) ? prev.filter(t => t !== time) : [...prev, time]
+    );
+  };
+
+  const selectPeriod = (period: 'morning' | 'afternoon' | 'evening' | 'all') => {
+    const slots = getSlotsForSpecialty(globalSpecialty);
+    if (period === 'all') {
+      setSelectedSlots([...slots.morning, ...slots.afternoon, ...slots.evening]);
+    } else {
+      setSelectedSlots(slots[period]);
     }
   };
 
@@ -288,11 +342,11 @@ export const AdminDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4 w-full sm:w-auto">
             <Button 
-              onClick={() => setIsBlockModalOpen(true)}
-              className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto"
+              onClick={() => setIsGlobalModalOpen(true)}
+              className="bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white w-full sm:w-auto"
             >
-              <Lock className="w-4 h-4 mr-2" />
-              Bloquear Horário
+              <CalendarIcon className="w-4 h-4 mr-2" />
+              Agenda Global
             </Button>
           </div>
           
@@ -346,7 +400,7 @@ export const AdminDashboard = () => {
                              {app.type === 'blocked' ? (
                                <div className="flex items-center gap-2 text-red-600">
                                  <Lock className="w-5 h-5" />
-                                 <span>HORÁRIO BLOQUEADO</span>
+                                 <span>BLOQUEIO: {app.specialty || 'GERAL'}</span>
                                </div>
                              ) : (
                                app.patient_name !== 'Paciente Cadastrado' ? app.patient_name : (app.profiles?.full_name || 'Paciente Cadastrado')
@@ -560,88 +614,105 @@ export const AdminDashboard = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Block Slot Modal */}
-      <Dialog open={isBlockModalOpen} onOpenChange={(open) => {
+      {/* Global Agenda / bulk Block Modal */}
+      <Dialog open={isGlobalModalOpen} onOpenChange={(open) => {
         if (!open) {
-          setIsBlockModalOpen(false);
-          setBlockDate("");
-          setBlockTime("");
+          setIsGlobalModalOpen(false);
+          setGlobalDate("");
+          setSelectedSlots([]);
         }
       }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
-              <Lock className="w-5 h-5" />
-              Bloquear Horário
+            <DialogTitle className="flex items-center gap-2 text-[#1E3A8A]">
+              <CalendarIcon className="w-5 h-5" />
+              Agenda Global - Bloqueio por Especialidade
             </DialogTitle>
+            <DialogDescription>
+              Selecione profissionais e períodos que não terão atendimento.
+            </DialogDescription>
           </DialogHeader>
-          <div className="py-4 space-y-4">
-            <p className="text-sm text-slate-500">
-              Selecione um horário para torná-lo indisponível para agendamento pelos usuários.
-            </p>
-            <div className="space-y-4 pt-2">
+          
+          <div className="py-4 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                  <CalendarIcon className="w-4 h-4 text-blue-600" /> Data do Bloqueio
-                </label>
+                <label className="text-sm font-medium text-slate-700">Especialidade</label>
+                <select 
+                  className="w-full h-10 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                  value={globalSpecialty}
+                  onChange={(e) => {
+                    setGlobalSpecialty(e.target.value);
+                    setSelectedSlots([]); // Reset selection when specialty changes
+                  }}
+                >
+                  {SPECIALTIES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">Data do Bloqueio</label>
                 <Input 
                   type="date" 
-                  value={blockDate} 
-                  onChange={(e) => setBlockDate(e.target.value)}
+                  value={globalDate} 
+                  onChange={(e) => setGlobalDate(e.target.value)}
                   min={format(new Date(), 'yyyy-MM-dd')}
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-blue-600" /> Horário
-                </label>
-                <select 
-                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={blockTime}
-                  onChange={(e) => setBlockTime(e.target.value)}
-                >
-                  <option value="" disabled>Selecione um horário</option>
-                  <optgroup label="Manhã">
-                    <option value="08:00">08:00</option>
-                    <option value="08:30">08:30</option>
-                    <option value="09:00">09:00</option>
-                    <option value="09:30">09:30</option>
-                    <option value="10:00">10:00</option>
-                    <option value="10:30">10:30</option>
-                    <option value="11:00">11:00</option>
-                    <option value="11:30">11:30</option>
-                  </optgroup>
-                  <optgroup label="Tarde">
-                    <option value="14:00">14:00</option>
-                    <option value="14:30">14:30</option>
-                    <option value="15:00">15:00</option>
-                    <option value="15:30">15:30</option>
-                    <option value="16:00">16:00</option>
-                    <option value="16:30">16:30</option>
-                    <option value="17:00">17:00</option>
-                    <option value="17:30">17:30</option>
-                  </optgroup>
-                  <optgroup label="Noite">
-                    <option value="18:00">18:00</option>
-                    <option value="18:30">18:30</option>
-                    <option value="19:00">19:00</option>
-                    <option value="19:30">19:30</option>
-                    <option value="20:00">20:00</option>
-                    <option value="20:30">20:30</option>
-                    <option value="21:00">21:00</option>
-                    <option value="21:30">21:30</option>
-                  </optgroup>
-                </select>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-slate-700">Atalhos de Período</label>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" onClick={() => selectPeriod('morning')}>Manhã</Button>
+                <Button size="sm" variant="outline" onClick={() => selectPeriod('afternoon')}>Tarde</Button>
+                <Button size="sm" variant="outline" onClick={() => selectPeriod('evening')}>Noite</Button>
+                <Button size="sm" variant="outline" onClick={() => selectPeriod('all')}>Dia Todo</Button>
+                <Button size="sm" variant="ghost" onClick={() => setSelectedSlots([])} className="text-red-500 hover:text-red-600">Limpar</Button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <label className="text-sm font-medium text-slate-700">Selecione os Horários Específicos</label>
+              <div className="grid grid-cols-1 space-y-4">
+                {['morning', 'afternoon', 'evening'].map(period => {
+                  const slots = getSlotsForSpecialty(globalSpecialty)[period as 'morning'|'afternoon'|'evening'];
+                  if (slots.length === 0) return null;
+                  
+                  return (
+                    <div key={period} className="space-y-2">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{period === 'morning' ? 'Manhã' : period === 'afternoon' ? 'Tarde' : 'Noite'}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {slots.map(time => (
+                          <button
+                            key={time}
+                            onClick={() => toggleSlot(time)}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all border ${
+                              selectedSlots.includes(time) 
+                                ? 'bg-red-600 border-red-600 text-white shadow-sm' 
+                                : 'bg-white border-slate-200 text-slate-600 hover:border-red-300'
+                            }`}
+                          >
+                            {time}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
-          <DialogFooter>
-             <Button variant="outline" onClick={() => setIsBlockModalOpen(false)}>
+
+          <DialogFooter className="bg-slate-50 -mx-6 -mb-6 p-6 mt-4">
+             <Button variant="ghost" onClick={() => setIsGlobalModalOpen(false)}>
                Voltar
              </Button>
-             <Button onClick={handleBlockSlot} disabled={isBlocking} className="bg-red-600 hover:bg-red-700 text-white">
-                {isBlocking ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lock className="w-4 h-4 mr-2" />}
-                Bloquear Agora
+             <Button 
+               onClick={handleGlobalBlock} 
+               disabled={isBlockingGlobal || selectedSlots.length === 0} 
+               className="bg-red-600 hover:bg-red-700 text-white min-w-[150px]"
+             >
+                {isBlockingGlobal ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lock className="w-4 h-4 mr-2" />}
+                Bloquear {selectedSlots.length} Horários
              </Button>
           </DialogFooter>
         </DialogContent>
