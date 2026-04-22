@@ -47,8 +47,8 @@ async function createV2Checkout(params: {
   const res = await fetch(PAGSEGURO_API_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-      "Accept": "application/vnd.pagseguro.com.br.v3+xml;charset=ISO-8859-1",
+      "Content-Type": "application/x-www-form-urlencoded; charset=ISO-8859-1",
+      "Accept": "application/xml",
     },
     body: body.toString(),
   });
@@ -78,18 +78,45 @@ Deno.serve(async (req: Request) => {
   try {
     // ── Autenticação do usuário ──────────────────────────────────────────────
     const authHeader = req.headers.get("Authorization") ?? "";
-    if (!authHeader) throw new Error("Não autenticado.");
+    console.log("[pagbank-save-order] Authorization Header:", authHeader ? "Presente (Bearer ...)" : "AUSENTE");
 
-    const supaUser = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user }, error: authErr } = await supaUser.auth.getUser();
-    if (authErr || !user) throw new Error("Sessão inválida.");
+    if (!authHeader) {
+      console.error("[pagbank-save-order] Erro: Header Authorization não enviado.");
+      return new Response(JSON.stringify({ ok: false, error: "Token de autorização ausente." }), {
+        status: 401,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
 
+    // Usamos o service_role para criar o cliente e validar o JWT do usuário explicitamente.
+    // Isso é mais robusto em Edge Functions para evitar falhas de contexto.
     const admin = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const jwt = authHeader.split(" ").pop() ?? "";
+    
+    console.log("[pagbank-save-order] Validando JWT...");
+    const { data: { user }, error: authErr } = await admin.auth.getUser(jwt);
+    
+    if (authErr || !user) {
+      console.error("[pagbank-save-order] FALHA NA AUTENTICAÇÃO:");
+      console.error(" - Erro:", authErr?.message);
+      console.error(" - JWT:", jwt.substring(0, 20) + "...");
+      
+      return new Response(JSON.stringify({ 
+        ok: false, 
+        error: "Sessão inválida ou e-mail não confirmado.",
+        details: authErr?.message,
+        suggestion: "Tente sair e entrar novamente na sua conta. Se o problema persistir, verifique se a confirmação de e-mail está desativada no Supabase."
+      }), {
+        status: 401,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log(`[pagbank-save-order] Usuário autenticado: ${user.id} (${user.email})`);
+
     const { plan_id, total_cents, extra_dependents = 0, customer, origin_url } = await req.json();
 
-    if (!plan_id || !total_cents || !customer?.email) throw new Error("Dados incompletos.");
+    if (!plan_id || !total_cents || !customer?.email) throw new Error("Dados incompletos (plan_id, total_cents ou email).");
     if (!PAGBANK_EMAIL || !PAGBANK_TOKEN) throw new Error("Credenciais PagBank não configuradas no servidor.");
 
     // ── Busca plano ──────────────────────────────────────────────────────────

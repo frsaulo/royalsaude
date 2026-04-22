@@ -158,22 +158,12 @@ export const createSubscription = async (params: {
     security_code?: string;
   };
 }): Promise<any> => {
-  // Usa fetch direto para ter controle total sobre o response body,
-  // incluindo mensagens de erro detalhadas retornadas pela edge function.
-  const { data: sessionData } = await supabase.auth.getSession();
-  const token = sessionData?.session?.access_token;
-
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-  const res = await fetch(`${supabaseUrl}/functions/v1/pagbank-save-order`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "apikey": supabaseAnonKey,
-      "Authorization": `Bearer ${token ?? supabaseAnonKey}`,
-    },
-    body: JSON.stringify({
+  console.log("[PagBank] Iniciando processamento de assinatura...");
+  
+  console.log("[PagBank] Chamando Edge Function 'pagbank-save-order'...");
+  
+  const { data, error } = await supabase.functions.invoke("pagbank-save-order", {
+    body: {
       plan_id:          params.planId,
       payment_method:   params.paymentMethod,
       extra_dependents: params.extraDependentsCount,
@@ -181,17 +171,29 @@ export const createSubscription = async (params: {
       customer:         params.customer,
       card:             params.card,
       origin_url:       window.location.origin,
-    }),
+    },
   });
 
-  const json = await res.json();
+  if (error) {
+    console.error("[PagBank] ERRO NA CHAMADA:", error);
+    
+    // Tratamento específico para o erro de rede/CORS
+    if (error.message?.includes("fetch")) {
+      throw new Error("❌ ERRO DE REDE: Não foi possível conectar ao servidor do Supabase. Verifique se o seu Adblock está bloqueando o domínio 'bxkwonqrflctvbjskhmj.supabase.co'.");
+    }
 
-  // Propaga a mensagem de erro detalhada do servidor (ex: erro do PagSeguro)
-  if (!res.ok || !json?.ok) {
-    throw new Error(json?.error ?? `Erro ${res.status} ao processar pagamento.`);
+    if (error.message?.includes("401") || (error as any).status === 401) {
+      throw new Error("⚠️ SESSÃO EXPIRADA: Por favor, saia (Logout) e entre novamente na sua conta.");
+    }
+    
+    throw new Error(error.message || "Erro desconhecido no servidor.");
   }
 
-  return json;
+  if (!data?.ok) {
+    throw new Error(data?.error || "Ocorreu um erro ao processar seu pagamento.");
+  }
+
+  return data;
 };
 
 
