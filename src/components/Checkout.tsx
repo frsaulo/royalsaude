@@ -176,60 +176,29 @@ export const Checkout = () => {
     try {
       const extraDependents = Math.max(0, dependentsCount - plan.free_dependents);
       const totalCents = calculateTotalWithDependents(plan, dependentsCount);
-      const refId = `royalmed_${user.id}_${Date.now()}`;
 
-      // Salva assinatura como PENDING diretamente no banco (sem chamar API PagBank)
-      const periodEnd = plan.interval_type === "YEARLY"
-        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      // Invoca a Edge Function proxy que cria o Checkout no PagBank e salva no banco
+      const response = await createSubscription({
+        planId: plan.id,
+        paymentMethod: paymentMethod, // Apesar de ser Hosted Checkout, passamos para registro
+        extraDependentsCount: extraDependents,
+        totalCents: totalCents,
+        customer: {
+          name: customerName,
+          email: user.email || "",
+          tax_id: cpfDigits,
+        },
+      });
 
-      const { data: sub, error: subErr } = await supabase.from("subscriptions").upsert({
-        user_id:                 user.id,
-        plan_id:                 plan.id,
-        pagbank_subscription_id: refId,
-        status:                  "PENDING",
-        payment_method:          null,
-        current_period_start:    new Date().toISOString(),
-        current_period_end:      periodEnd,
-        extra_dependents_count:  extraDependents,
-        monthly_total_cents:     totalCents,
-        updated_at:              new Date().toISOString(),
-      }, { onConflict: "user_id" }).select().single();
-
-      if (subErr) throw new Error("Erro ao registrar pedido: " + subErr.message);
-
-      if (sub) {
-        await supabase.from("payments").insert({
-          user_id:           user.id,
-          subscription_id:   sub.id,
-          type:              "SUBSCRIPTION",
-          amount_cents:      totalCents,
-          status:            "PENDING",
-          payment_method:    null,
-          pagbank_charge_id: refId,
-          description:       `Assinatura Plano ${plan.name}`,
-        });
-      }
-
-      // Links de pagamento criados no painel do PagBank (Link de Pagamento)
-      // ATENÇÃO: substitua LINK_MENSAL e LINK_ANUAL pelos códigos reais
-      const PAGBANK_LINKS: Record<string, string> = {
-        "eb626bd1-89d1-4900-855e-6b967aa74d37": "https://pag.ae/81HWCZXnM", // Plano Mensal
-        "adb5469f-2ff6-414d-87d4-fb450563f1d2": "https://pag.ae/81HWE8wVs", // Plano Anual
-      };
-
-      const paymentUrl = PAGBANK_LINKS[plan.id];
-
-      if (!paymentUrl || paymentUrl.includes("LINK_")) {
-        // Links ainda não configurados — redireciona para área da assinatura
-        toast.success("Pedido registrado! Entre em contato para concluir o pagamento.");
-        setTimeout(() => navigate("/minha-assinatura"), 2000);
-        return;
+      if (!response?.ok || !response?.payment_url) {
+        throw new Error(response?.error || "Não foi possível gerar o link de pagamento.");
       }
 
       toast.success("Redirecionando para o PagBank…");
-      window.location.href = paymentUrl;
+      // Redireciona o usuário para o Checkout Hospedado gerado pela Edge Function
+      window.location.href = response.payment_url;
     } catch (err: any) {
+      console.error(err);
       toast.error("Erro: " + (err.message || "tente novamente."));
       setProcessing(false);
     }
@@ -470,59 +439,9 @@ export const Checkout = () => {
                         <p className="text-sm text-indigo-600">Cobrança recorrente automática · Ativação imediata</p>
                       </div>
                     </div>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="cardNumber">Número do Cartão</Label>
-                        <Input
-                          id="cardNumber"
-                          placeholder="0000 0000 0000 0000"
-                          value={cardNumber}
-                          onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                          maxLength={19}
-                          className="mt-1.5 font-mono"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="cardName">Nome no Cartão</Label>
-                        <Input
-                          id="cardName"
-                          placeholder="NOME COMO ESTÁ NO CARTÃO"
-                          value={cardName}
-                          onChange={(e) => setCardName(e.target.value.toUpperCase())}
-                          className="mt-1.5"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="cardExpiry">Validade</Label>
-                          <Input
-                            id="cardExpiry"
-                            placeholder="MM/AA"
-                            value={cardExpiry}
-                            onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
-                            maxLength={5}
-                            className="mt-1.5"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="cardCvv">CVV</Label>
-                          <Input
-                            id="cardCvv"
-                            placeholder="123"
-                            value={cardCvv}
-                            onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                            maxLength={4}
-                            type="password"
-                            className="mt-1.5"
-                          />
-                        </div>
-                      </div>
-                      {!sdkReady && (
-                        <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                          <Loader2 className="h-4 w-4 text-amber-600 animate-spin shrink-0" />
-                          <p className="text-xs text-amber-700">Carregando módulo de segurança do cartão…</p>
-                        </div>
-                      )}
+                    <div className="flex items-center gap-2 p-3 bg-indigo-50/50 rounded-lg border border-indigo-100">
+                      <Lock className="h-4 w-4 text-indigo-500 shrink-0" />
+                      <p className="text-xs text-indigo-700">Para sua segurança, os dados do cartão serão solicitados diretamente no ambiente criptografado do PagBank na próxima etapa.</p>
                     </div>
                   </CardContent>
                 </Card>
