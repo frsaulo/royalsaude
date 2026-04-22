@@ -176,28 +176,59 @@ export const Checkout = () => {
     try {
       const extraDependents = Math.max(0, dependentsCount - plan.free_dependents);
       const totalCents = calculateTotalWithDependents(plan, dependentsCount);
+      const refId = `royalmed_${user.id}_${Date.now()}`;
 
-      // Chama a Edge Function que cria o checkout hospedado no PagBank
-      const { data, error } = await supabase.functions.invoke("pagbank-save-order", {
-        body: {
-          plan_id:           plan.id,
-          total_cents:       totalCents,
-          extra_dependents:  extraDependents,
-          origin_url:        window.location.origin,
-          customer: {
-            name:   customerName || user.user_metadata?.full_name || "Cliente",
-            email:  user.email!,
-            tax_id: cpfDigits,
-          },
-        },
-      });
+      // Salva assinatura como PENDING diretamente no banco (sem chamar API PagBank)
+      const periodEnd = plan.interval_type === "YEARLY"
+        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-      if (error) throw new Error(error.message);
-      if (!data?.ok) throw new Error(data?.error ?? "Erro ao criar sessão de pagamento.");
+      const { data: sub, error: subErr } = await supabase.from("subscriptions").upsert({
+        user_id:                 user.id,
+        plan_id:                 plan.id,
+        pagbank_subscription_id: refId,
+        status:                  "PENDING",
+        payment_method:          null,
+        current_period_start:    new Date().toISOString(),
+        current_period_end:      periodEnd,
+        extra_dependents_count:  extraDependents,
+        monthly_total_cents:     totalCents,
+        updated_at:              new Date().toISOString(),
+      }, { onConflict: "user_id" }).select().single();
 
-      // Redireciona para a página segura do PagBank
+      if (subErr) throw new Error("Erro ao registrar pedido: " + subErr.message);
+
+      if (sub) {
+        await supabase.from("payments").insert({
+          user_id:           user.id,
+          subscription_id:   sub.id,
+          type:              "SUBSCRIPTION",
+          amount_cents:      totalCents,
+          status:            "PENDING",
+          payment_method:    null,
+          pagbank_charge_id: refId,
+          description:       `Assinatura Plano ${plan.name}`,
+        });
+      }
+
+      // Links de pagamento criados no painel do PagBank (Link de Pagamento)
+      // ATENÇÃO: substitua LINK_MENSAL e LINK_ANUAL pelos códigos reais
+      const PAGBANK_LINKS: Record<string, string> = {
+        "eb626bd1-89d1-4900-855e-6b967aa74d37": "https://pagseguro.uol.com.br/c/LINK_MENSAL",
+        "adb5469f-2ff6-414d-87d4-fb450563f1d2": "https://pagseguro.uol.com.br/c/LINK_ANUAL",
+      };
+
+      const paymentUrl = PAGBANK_LINKS[plan.id];
+
+      if (!paymentUrl || paymentUrl.includes("LINK_")) {
+        // Links ainda não configurados — redireciona para área da assinatura
+        toast.success("Pedido registrado! Entre em contato para concluir o pagamento.");
+        setTimeout(() => navigate("/minha-assinatura"), 2000);
+        return;
+      }
+
       toast.success("Redirecionando para o PagBank…");
-      window.location.href = data.payment_url;
+      window.location.href = `${paymentUrl}?ref=${refId}`;
     } catch (err: any) {
       toast.error("Erro: " + (err.message || "tente novamente."));
       setProcessing(false);
