@@ -214,8 +214,8 @@ export const Checkout = () => {
       // Links de pagamento criados no painel do PagBank (Link de Pagamento)
       // ATENÇÃO: substitua LINK_MENSAL e LINK_ANUAL pelos códigos reais
       const PAGBANK_LINKS: Record<string, string> = {
-        "eb626bd1-89d1-4900-855e-6b967aa74d37": "https://pagseguro.uol.com.br/c/LINK_MENSAL",
-        "adb5469f-2ff6-414d-87d4-fb450563f1d2": "https://pagseguro.uol.com.br/c/LINK_ANUAL",
+        "eb626bd1-89d1-4900-855e-6b967aa74d37": "https://pag.ae/81HWCZXnM", // Plano Mensal
+        "adb5469f-2ff6-414d-87d4-fb450563f1d2": "https://pag.ae/81HWE8wVs", // Plano Anual
       };
 
       const paymentUrl = PAGBANK_LINKS[plan.id];
