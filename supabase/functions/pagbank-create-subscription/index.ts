@@ -7,7 +7,7 @@ const CORS_HEADERS = {
 };
 
 const PAGBANK_TOKEN    = Deno.env.get("PAGBANK_TOKEN");
-const PAGBANK_BASE_URL = "https://api.pagseguro.com";
+const PAGBANK_BASE_URL = Deno.env.get("PAGBANK_API_URL") || "https://sandbox.api.pagseguro.com";
 const SUPABASE_URL     = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY     = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
@@ -286,6 +286,7 @@ Deno.serve(async (req: Request) => {
       console.error("[supabase] Erro ao salvar subscription:", subError);
       throw new Error("Falha ao salvar assinatura no banco de dados.");
     }
+
 
     await supabaseAdmin.from("payments").insert({
       user_id: user.id,
