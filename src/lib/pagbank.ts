@@ -160,8 +160,16 @@ export const createSubscription = async (params: {
 }): Promise<any> => {
   console.log("[PagBank] Iniciando processamento de assinatura...");
   
-  console.log("[PagBank] Chamando Edge Function 'pagbank-save-order'...");
+  const session = await supabase.auth.getSession();
+  const token = session.data.session?.access_token;
   
+  console.log("[PagBank] Verificando sessão:", session.data.session ? "Ativa" : "Inexistente");
+  if (!session.data.session) {
+    console.warn("[PagBank] ATENÇÃO: Nenhuma sessão encontrada. A chamada irá falhar com 401.");
+  } else {
+    console.log("[PagBank] Token presente (tamanho):", token?.length);
+  }
+
   const { data, error } = await supabase.functions.invoke("pagbank-save-order", {
     body: {
       plan_id:          params.planId,
@@ -175,21 +183,20 @@ export const createSubscription = async (params: {
   });
 
   if (error) {
-    console.error("[PagBank] ERRO NA CHAMADA:", error);
+    console.error("[PagBank] ERRO NA CHAMADA DA FUNCTION:", error);
     
-    // Tratamento específico para o erro de rede/CORS
-    if (error.message?.includes("fetch")) {
-      throw new Error("❌ ERRO DE REDE: Não foi possível conectar ao servidor do Supabase. Verifique se o seu Adblock está bloqueando o domínio 'bxkwonqrflctvbjskhmj.supabase.co'.");
-    }
-
-    if (error.message?.includes("401") || (error as any).status === 401) {
-      throw new Error("⚠️ SESSÃO EXPIRADA: Por favor, saia (Logout) e entre novamente na sua conta.");
+    // Tentar extrair o status do erro
+    const status = (error as any).status || (error as any).context?.status;
+    
+    if (status === 401) {
+      throw new Error("⚠️ ERRO DE SESSÃO (401): Sua conta ainda não está validada. Verifique se confirmou o e-mail ou tente sair e entrar novamente.");
     }
     
-    throw new Error(error.message || "Erro desconhecido no servidor.");
+    throw new Error(error.message || "Erro ao processar pagamento.");
   }
 
   if (!data?.ok) {
+    console.error("[PagBank] Resposta da Function com erro:", data);
     throw new Error(data?.error || "Ocorreu um erro ao processar seu pagamento.");
   }
 

@@ -27,6 +27,12 @@ async function createV2Checkout(params: {
 }): Promise<string> {
   const amount = (params.amountCents / 100).toFixed(2);
 
+  // Validação básica de nome (PagSeguro v2 exige nome e sobrenome)
+  let name = params.senderName.trim();
+  if (!name.includes(" ")) {
+    name = `${name} Cliente`; // Adiciona um sobrenome genérico se faltar
+  }
+
   const body = new URLSearchParams({
     email:            PAGBANK_EMAIL,
     token:            PAGBANK_TOKEN,
@@ -37,13 +43,15 @@ async function createV2Checkout(params: {
     itemQuantity1:    "1",
     reference:        params.reference,
     senderEmail:      params.senderEmail,
-    senderName:       params.senderName,
+    senderName:       name,
     redirectURL:      params.redirectUrl,
     notificationURL:  params.notificationUrl,
   });
 
   console.log(`[pagbank-save-order] Chamando PagSeguro v2. Email: ${PAGBANK_EMAIL}, Amount: ${amount}`);
 
+  // Para garantir ISO-8859-1 em ambientes Deno, às vezes é necessário tratar o body manualmente
+  // mas o Header costuma ser suficiente se o texto for simples.
   const res = await fetch(PAGSEGURO_API_URL, {
     method: "POST",
     headers: {
@@ -80,6 +88,9 @@ Deno.serve(async (req: Request) => {
     const authHeader = req.headers.get("Authorization") ?? "";
     console.log("[pagbank-save-order] Authorization Header:", authHeader ? "Presente (Bearer ...)" : "AUSENTE");
 
+    console.log("[pagbank-save-order] URL:", SUPABASE_URL);
+    console.log("[pagbank-save-order] KEY length:", SUPABASE_KEY.length);
+    
     if (!authHeader) {
       console.error("[pagbank-save-order] Erro: Header Authorization não enviado.");
       return new Response(JSON.stringify({ ok: false, error: "Token de autorização ausente." }), {
@@ -88,45 +99,65 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Usamos o service_role para criar o cliente e validar o JWT do usuário explicitamente.
-    // Isso é mais robusto em Edge Functions para evitar falhas de contexto.
     const admin = createClient(SUPABASE_URL, SUPABASE_KEY);
     const jwt = authHeader.split(" ").pop() ?? "";
     
-    console.log("[pagbank-save-order] Validando JWT...");
+    console.log("[pagbank-save-order] Validando JWT. Tamanho:", jwt.length);
+    
+    // Tenta decodificar o JWT para ver informações básicas (sem validar assinatura ainda)
+    try {
+      const payloadBase64 = jwt.split(".")[1];
+      if (payloadBase64) {
+        const payload = JSON.parse(atob(payloadBase64));
+        console.log("[pagbank-save-order] JWT Payload - aud:", payload.aud, "role:", payload.role, "exp:", new Date(payload.exp * 1000).toISOString());
+      }
+    } catch (e) {
+      console.error("[pagbank-save-order] Erro ao decodificar payload do JWT:", e.message);
+    }
+
     const { data: { user }, error: authErr } = await admin.auth.getUser(jwt);
     
     if (authErr || !user) {
-      console.error("[pagbank-save-order] FALHA NA AUTENTICAÇÃO:");
-      console.error(" - Erro:", authErr?.message);
-      console.error(" - JWT:", jwt.substring(0, 20) + "...");
+      console.error("[pagbank-save-order] ERRO DE AUTENTICAÇÃO DETALHADO:");
+      console.error(" - Nome:", authErr?.name);
+      console.error(" - Mensagem:", authErr?.message);
+      console.error(" - Status:", (authErr as any)?.status);
       
       return new Response(JSON.stringify({ 
         ok: false, 
         error: "Sessão inválida ou e-mail não confirmado.",
-        details: authErr?.message,
-        suggestion: "Tente sair e entrar novamente na sua conta. Se o problema persistir, verifique se a confirmação de e-mail está desativada no Supabase."
+        details: authErr?.message || "User not found",
+        hint: "Verifique se o e-mail foi confirmado ou se o login expirou."
       }), {
         status: 401,
         headers: { ...CORS, "Content-Type": "application/json" },
       });
     }
 
+    // Verifica se o e-mail está confirmado para log
+    if (!user.email_confirmed_at) {
+      console.warn("[pagbank-save-order] AVISO: Usuário com e-mail não confirmado:", user.email);
+    }
+
+    console.log("[pagbank-save-order] Usuário OK:", user.id);
+
     console.log(`[pagbank-save-order] Usuário autenticado: ${user.id} (${user.email})`);
 
     const { plan_id, total_cents, extra_dependents = 0, customer, origin_url } = await req.json();
 
     if (!plan_id || !total_cents || !customer?.email) throw new Error("Dados incompletos (plan_id, total_cents ou email).");
-    if (!PAGBANK_EMAIL || !PAGBANK_TOKEN) throw new Error("Credenciais PagBank não configuradas no servidor.");
+
+    // Limpa o CPF/CNPJ para enviar apenas números
+    const cleanTaxId = customer.tax_id ? customer.tax_id.replace(/\D/g, "") : "";
+    
+    console.log(`[pagbank-save-order] Iniciando para user=${user.id}. CPF Limpo: ${cleanTaxId}`);
 
     // ── Busca plano ──────────────────────────────────────────────────────────
     const { data: plan, error: planErr } = await admin.from("plans").select("*").eq("id", plan_id).single();
-    if (planErr || !plan) throw new Error("Plano não encontrado.");
+    if (planErr || !plan) throw new Error(`Plano não encontrado: ${plan_id}`);
 
     const refId   = `royalmed_${user.id}_${Date.now()}`;
     const baseUrl = (origin_url && origin_url !== "null") ? origin_url : "https://royalsaude.com.br";
-
-    console.log(`[pagbank-save-order] Iniciando para user=${user.id} ref=${refId} baseUrl=${baseUrl}`);
 
     // ── Cria checkout v2 no PagSeguro ────────────────────────────────────────
     const checkoutCode = await createV2Checkout({
