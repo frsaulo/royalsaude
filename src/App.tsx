@@ -17,6 +17,7 @@ import { AdminDashboard } from "./pages/AdminDashboard";
 import { PoliticaPrivacidade } from "./pages/PoliticaPrivacidade";
 import { ContratoAdesao } from "./pages/ContratoAdesao";
 import { PoliticaCancelamento } from "./pages/PoliticaCancelamento";
+import { PagamentoConfirmado } from "./pages/PagamentoConfirmado";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ const App = () => (
             <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/contrato-adesao" element={<ContratoAdesao />} />
             <Route path="/politica-cancelamento" element={<PoliticaCancelamento />} />
+            <Route path="/pagamento-confirmado" element={<PagamentoConfirmado />} />
 
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />

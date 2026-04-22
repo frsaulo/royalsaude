@@ -165,53 +165,41 @@ export const Checkout = () => {
       toast.error("CPF inválido. Digite os 11 dígitos.");
       return;
     }
-
-    if (paymentMethod === "CREDIT_CARD") {
-      if (!cardNumber || !cardName || !cardExpiry || !cardCvv) {
-        toast.error("Preencha todos os dados do cartão.");
-        return;
-      }
+    if (!customerName.trim()) {
+      toast.error("Informe seu nome completo.");
+      return;
     }
 
     setProcessing(true);
+    toast.info("Preparando ambiente de pagamento seguro…");
 
     try {
-      let cardPayload: any = undefined;
-
-      if (paymentMethod === "CREDIT_CARD") {
-        const encrypted = encryptCard();
-        if (!encrypted) { setProcessing(false); return; }
-        cardPayload = {
-          encrypted,
-          security_code: cardCvv,
-          holder_name: cardName,
-        };
-      }
-
       const extraDependents = Math.max(0, dependentsCount - plan.free_dependents);
       const totalCents = calculateTotalWithDependents(plan, dependentsCount);
 
-      const result = await createSubscription({
-        planId: plan.id,
-        paymentMethod,
-        extraDependentsCount: extraDependents,
-        totalCents,
-        customer: {
-          name: customerName || user.user_metadata?.full_name || user.email?.split("@")[0] || "Cliente",
-          email: user.email!,
-          tax_id: cpfDigits,
+      // Chama a Edge Function que cria o checkout hospedado no PagBank
+      const { data, error } = await supabase.functions.invoke("pagbank-save-order", {
+        body: {
+          plan_id:           plan.id,
+          total_cents:       totalCents,
+          extra_dependents:  extraDependents,
+          origin_url:        window.location.origin,
+          customer: {
+            name:   customerName || user.user_metadata?.full_name || "Cliente",
+            email:  user.email!,
+            tax_id: cpfDigits,
+          },
         },
-        card: cardPayload,
       });
 
-      if (!result?.ok) throw new Error(result?.error ?? "Erro ao processar pagamento.");
+      if (error) throw new Error(error.message);
+      if (!data?.ok) throw new Error(data?.error ?? "Erro ao criar sessão de pagamento.");
 
-      setPaymentData(result);
-      setPaymentSuccess(true);
-      toast.success("Pedido recebido com sucesso!");
+      // Redireciona para a página segura do PagBank
+      toast.success("Redirecionando para o PagBank…");
+      window.location.href = data.payment_url;
     } catch (err: any) {
       toast.error("Erro: " + (err.message || "tente novamente."));
-    } finally {
       setProcessing(false);
     }
   };
@@ -513,17 +501,17 @@ export const Checkout = () => {
             <Button
               className="w-full h-14 text-lg font-bold bg-gradient-to-r from-[#1E3A8A] to-[#2563eb] hover:from-[#1E3A8A]/90 hover:to-[#2563eb]/90 shadow-lg rounded-xl"
               onClick={handleSubmit}
-              disabled={processing || (paymentMethod === "CREDIT_CARD" && !sdkReady)}
+              disabled={processing}
             >
               {processing ? (
-                <><Loader2 className="h-5 w-5 mr-2 animate-spin" />Processando…</>
+                <><Loader2 className="h-5 w-5 mr-2 animate-spin" />Preparando pagamento…</>
               ) : (
-                <><Lock className="h-4 w-4 mr-2" />Confirmar Pagamento — {formatCurrency(totalAmount)}</>
+                <><Lock className="h-4 w-4 mr-2" />Ir para Pagamento Seguro — {formatCurrency(totalAmount)}</>
               )}
             </Button>
 
             <p className="text-center text-xs text-slate-400">
-              🔒 Dados protegidos com criptografia PCI DSS · Processado por PagBank
+              🔒 Você será redirecionado para o ambiente seguro do PagBank para concluir o pagamento.
             </p>
           </div>
 
