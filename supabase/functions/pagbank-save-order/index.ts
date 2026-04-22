@@ -104,39 +104,54 @@ Deno.serve(async (req: Request) => {
     
     console.log("[pagbank-save-order] Validando JWT. Tamanho:", jwt.length);
     
-    // Tenta decodificar o JWT para ver informações básicas (sem validar assinatura ainda)
+    // Decodifica o payload do JWT para extrair o user ID (sub)
+    // Usamos getUserById com service role key para NÃO exigir e-mail confirmado
+    let userId: string | null = null;
     try {
       const payloadBase64 = jwt.split(".")[1];
       if (payloadBase64) {
         const payload = JSON.parse(atob(payloadBase64));
-        console.log("[pagbank-save-order] JWT Payload - aud:", payload.aud, "role:", payload.role, "exp:", new Date(payload.exp * 1000).toISOString());
+        userId = payload.sub ?? null;
+        console.log("[pagbank-save-order] JWT Payload - sub:", userId, "role:", payload.role, "exp:", new Date(payload.exp * 1000).toISOString());
+        
+        // Verifica se o token ainda é válido (não expirou)
+        if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+          console.error("[pagbank-save-order] JWT expirado em:", new Date(payload.exp * 1000).toISOString());
+          return new Response(JSON.stringify({ ok: false, error: "Sessão expirada. Faça login novamente." }), {
+            status: 401,
+            headers: { ...CORS, "Content-Type": "application/json" },
+          });
+        }
       }
     } catch (e) {
-      console.error("[pagbank-save-order] Erro ao decodificar payload do JWT:", e.message);
+      console.error("[pagbank-save-order] Erro ao decodificar JWT:", e.message);
     }
 
-    const { data: { user }, error: authErr } = await admin.auth.getUser(jwt);
+    if (!userId) {
+      console.error("[pagbank-save-order] Não foi possível extrair user ID do JWT.");
+      return new Response(JSON.stringify({ ok: false, error: "Token inválido." }), {
+        status: 401,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+
+    // Busca o usuário pelo ID usando service role (ignora status de confirmação de e-mail)
+    const { data: { user }, error: authErr } = await admin.auth.admin.getUserById(userId);
     
     if (authErr || !user) {
-      console.error("[pagbank-save-order] ERRO DE AUTENTICAÇÃO DETALHADO:");
-      console.error(" - Nome:", authErr?.name);
-      console.error(" - Mensagem:", authErr?.message);
-      console.error(" - Status:", (authErr as any)?.status);
-      
+      console.error("[pagbank-save-order] Usuário não encontrado:", authErr?.message);
       return new Response(JSON.stringify({ 
         ok: false, 
-        error: "Sessão inválida ou e-mail não confirmado.",
+        error: "Usuário não encontrado.",
         details: authErr?.message || "User not found",
-        hint: "Verifique se o e-mail foi confirmado ou se o login expirou."
       }), {
         status: 401,
         headers: { ...CORS, "Content-Type": "application/json" },
       });
     }
 
-    // Verifica se o e-mail está confirmado para log
     if (!user.email_confirmed_at) {
-      console.warn("[pagbank-save-order] AVISO: Usuário com e-mail não confirmado:", user.email);
+      console.warn("[pagbank-save-order] AVISO: Usuário com e-mail não confirmado:", user.email, "— permitindo checkout.");
     }
 
     console.log("[pagbank-save-order] Usuário OK:", user.id);
