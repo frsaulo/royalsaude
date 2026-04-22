@@ -228,7 +228,7 @@ export const Checkout = () => {
       }
 
       toast.success("Redirecionando para o PagBank…");
-      window.location.href = `${paymentUrl}?ref=${refId}`;
+      window.location.href = paymentUrl;
     } catch (err: any) {
       toast.error("Erro: " + (err.message || "tente novamente."));
       setProcessing(false);
