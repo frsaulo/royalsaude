@@ -6,25 +6,20 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Carregando secrets do ambiente
 const PAGBANK_TOKEN    = Deno.env.get("PAGBANK_TOKEN");
 const PAGBANK_BASE_URL = "https://api.pagseguro.com";
 const SUPABASE_URL     = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY     = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-console.log("[pagbank-create-subscription] Função inicializada");
+console.log("[pagbank-create-subscription] Função iniciada");
 
 async function pagbankRequest(path: string, method: string, body?: object) {
   if (!PAGBANK_TOKEN) {
-    const envKeys = Object.keys(Deno.env.toObject());
-    console.error("[pagbank-create-subscription] ERRO: PAGBANK_TOKEN não configurado nos Secrets do Supabase.");
-    console.log(`[pagbank-create-subscription] Available env keys: ${envKeys.join(", ")}`);
-    throw new Error(`PAGBANK_TOKEN não configurado. Chaves disponíveis: ${envKeys.join(", ")}`);
+    throw new Error("PAGBANK_TOKEN não configurado nos Secrets do Supabase.");
   }
 
-  console.log(`[pagbank-create-subscription] request: ${method} ${path}`);
-  const maskedToken = `${PAGBANK_TOKEN.substring(0, 4)}...${PAGBANK_TOKEN.substring(PAGBANK_TOKEN.length - 4)}`;
-  console.log(`[pagbank-create-subscription] token: ${maskedToken} (tamanho: ${PAGBANK_TOKEN.length})`);
+  const maskedToken = `${PAGBANK_TOKEN.substring(0, 5)}...${PAGBANK_TOKEN.substring(PAGBANK_TOKEN.length - 5)}`;
+  console.log(`[pagbankRequest] Rota: ${method} ${path} | Token: ${maskedToken} (Tamanho: ${PAGBANK_TOKEN.length})`);
 
   const res = await fetch(`${PAGBANK_BASE_URL}${path}`, {
     method,
@@ -42,16 +37,15 @@ async function pagbankRequest(path: string, method: string, body?: object) {
   try {
     data = JSON.parse(text);
   } catch {
-    console.error(`[pagbank-create-subscription] Resposta não é JSON (HTTP ${res.status}). Conteúdo:`);
-    console.log(text.slice(0, 1000));
-    throw new Error(`PagBank retornou resposta inválida (HTTP ${res.status}). Verifique os logs.`);
+    console.error(`[pagbankRequest] Resposta NÃO-JSON do PagBank (HTTP ${res.status}):`, text.slice(0, 500));
+    throw new Error(`PagBank bloqueou a requisição ou retornou formato inválido (HTTP ${res.status}). Detalhes no console do Supabase.`);
   }
 
   if (!res.ok) {
-    console.error(`[pagbank-create-subscription] API Error (${res.status}):`, JSON.stringify(data, null, 2));
-    const msg = data?.error_messages?.[0]?.description ?? data?.message ?? "Erro desconhecido no PagBank";
-    const code = data?.error_messages?.[0]?.code ?? "UNKNOWN";
-    throw new Error(`PagBank (${code}): ${msg}`);
+    console.error(`[pagbankRequest] Erro da API (${res.status}):`, JSON.stringify(data, null, 2));
+    const msg = data?.error_messages?.[0]?.description ?? data?.message ?? "Erro desconhecido retornado pelo PagBank";
+    const code = data?.error_messages?.[0]?.code ?? res.status;
+    throw new Error(`[PagBank Erro ${code}]: ${msg}`);
   }
 
   return data;
@@ -215,52 +209,29 @@ async function createCardOrder(plan: any, customer: any, card: any, totalCents: 
   };
 }
 
-// ─── HANDLER ────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
-  // CORS Preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
 
   try {
     const authHeader = req.headers.get("Authorization") ?? "";
-    
     if (!authHeader) {
-      return new Response(JSON.stringify({ ok: false, error: "Auth header missing" }), {
-        status: 401,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      });
+      throw new Error("Usuário não autenticado no Supabase (Auth header missing)");
     }
 
-    const supabaseClient = createClient(
-      SUPABASE_URL,
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const supabaseClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
+      global: { headers: { Authorization: authHeader } }
+    });
     
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-
     if (authError || !user) {
-      console.error("[pagbank-create-subscription] Auth error:", authError);
-      return new Response(JSON.stringify({ ok: false, error: "Nao autenticado" }), {
-        status: 401,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      });
+      throw new Error("Não foi possível autenticar o usuário na sessão.");
     }
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY);
-
     const body = await req.json();
     const { plan_id, payment_method, extra_dependents = 0, customer, card } = body;
-
-    console.log(`[pagbank] Iniciando processamento: user=${user.id} plan=${plan_id} method=${payment_method}`);
-
-    if (!plan_id || !payment_method || !customer?.tax_id) {
-      return new Response(JSON.stringify({ ok: false, error: "Dados obrigatorios faltando." }), {
-        status: 400,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      });
-    }
 
     const { data: plan, error: planError } = await supabaseAdmin
       .from("plans")
@@ -269,10 +240,7 @@ Deno.serve(async (req: Request) => {
       .single();
 
     if (planError || !plan) {
-      return new Response(JSON.stringify({ ok: false, error: "Plano nao encontrado." }), {
-        status: 404,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      });
+      throw new Error("Plano selecionado não foi encontrado no banco de dados.");
     }
 
     const extraAmountCents = Math.max(0, extra_dependents) * (plan.extra_dependent_price_cents ?? 2490);
@@ -285,21 +253,11 @@ Deno.serve(async (req: Request) => {
     } else if (payment_method === "BOLETO") {
       paymentResult = await createBoletoOrder(plan, customer, totalCents);
     } else if (payment_method === "CREDIT_CARD") {
-      if (!card?.encrypted) {
-        return new Response(JSON.stringify({ ok: false, error: "Dados do cartao ausentes." }), {
-          status: 400,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-        });
-      }
       paymentResult = await createCardOrder(plan, customer, card, totalCents);
     } else {
-      return new Response(JSON.stringify({ ok: false, error: "Metodo invalido." }), {
-        status: 400,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      });
+      throw new Error(`Método de pagamento inválido: ${payment_method}`);
     }
 
-    // Período
     const periodEnd = plan.interval_type === "YEARLY"
       ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
       : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -320,13 +278,14 @@ Deno.serve(async (req: Request) => {
         extra_dependents_count: extra_dependents,
         monthly_total_cents: totalCents,
         updated_at: new Date().toISOString(),
-      }, {
-        onConflict: "user_id",
-      })
+      }, { onConflict: "user_id" })
       .select()
       .single();
 
-    if (subError) throw subError;
+    if (subError) {
+      console.error("[supabase] Erro ao salvar subscription:", subError);
+      throw new Error("Falha ao salvar assinatura no banco de dados.");
+    }
 
     await supabaseAdmin.from("payments").insert({
       user_id: user.id,
@@ -343,9 +302,9 @@ Deno.serve(async (req: Request) => {
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   } catch (err: any) {
-    console.error("[pagbank-create-subscription] Erro critico:", err.message);
+    // Retornamos 400 Bad Request em vez de 500 para exibir o erro corretamente pro usuário
     return new Response(JSON.stringify({ ok: false, error: err.message }), {
-      status: 500,
+      status: 400,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }
