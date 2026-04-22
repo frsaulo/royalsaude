@@ -158,10 +158,22 @@ export const createSubscription = async (params: {
     security_code?: string;
   };
 }): Promise<any> => {
-  // Toda a lógica (API PagBank + banco) está na Edge Function proxy.
-  // Isso evita o erro de CORS ao chamar api.pagseguro.com diretamente do browser.
-  const { data, error } = await supabase.functions.invoke("pagbank-save-order", {
-    body: {
+  // Usa fetch direto para ter controle total sobre o response body,
+  // incluindo mensagens de erro detalhadas retornadas pela edge function.
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData?.session?.access_token;
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  const res = await fetch(`${supabaseUrl}/functions/v1/pagbank-save-order`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": supabaseAnonKey,
+      "Authorization": `Bearer ${token ?? supabaseAnonKey}`,
+    },
+    body: JSON.stringify({
       plan_id:          params.planId,
       payment_method:   params.paymentMethod,
       extra_dependents: params.extraDependentsCount,
@@ -169,11 +181,17 @@ export const createSubscription = async (params: {
       customer:         params.customer,
       card:             params.card,
       origin_url:       window.location.origin,
-    },
+    }),
   });
 
-  if (error) throw error;
-  return data;
+  const json = await res.json();
+
+  // Propaga a mensagem de erro detalhada do servidor (ex: erro do PagSeguro)
+  if (!res.ok || !json?.ok) {
+    throw new Error(json?.error ?? `Erro ${res.status} ao processar pagamento.`);
+  }
+
+  return json;
 };
 
 
