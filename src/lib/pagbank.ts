@@ -141,10 +141,32 @@ export const fetchUserPayments = async (userId: string): Promise<Payment[]> => {
   return data || [];
 };
 
+const PAGBANK_API_URL = "https://api.pagseguro.com";
+const PAGBANK_TOKEN   = import.meta.env.VITE_PAGBANK_TOKEN ?? "";
+
+async function pagbankFetch(path: string, body: object) {
+  const res = await fetch(`${PAGBANK_API_URL}${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${PAGBANK_TOKEN}`,
+      "Content-Type": "application/json;charset=UTF-8",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    const msg = data?.error_messages?.[0]?.description ?? data?.message ?? "Erro no PagBank";
+    throw new Error(msg);
+  }
+  return data;
+}
+
 export const createSubscription = async (params: {
   planId: string;
   paymentMethod: PaymentMethod;
   extraDependentsCount: number;
+  totalCents: number;
   customer: {
     name: string;
     email: string;
@@ -153,22 +175,117 @@ export const createSubscription = async (params: {
   card?: {
     encrypted: string;
     holder_name: string;
-    installments?: number;
+    security_code?: string;
   };
 }): Promise<any> => {
-  const { data, error } = await supabase.functions.invoke("pagbank-create-subscription", {
+  const cleanCpf = params.customer.tax_id.replace(/\D/g, "");
+  const refId = `royalmed_${Date.now()}`;
+
+  let pagbankResult: any;
+
+  // ── PIX ──────────────────────────────────────────────
+  if (params.paymentMethod === "PIX") {
+    const result = await pagbankFetch("/orders", {
+      reference_id: refId,
+      customer: { name: params.customer.name, email: params.customer.email, tax_id: cleanCpf },
+      items: [{ reference_id: params.planId, name: "Plano RoyalMed Health", quantity: 1, unit_amount: params.totalCents }],
+      qr_codes: [{ amount: { value: params.totalCents }, expiration_date: new Date(Date.now() + 30 * 60 * 1000).toISOString() }],
+    });
+    const qrCode = result.qr_codes?.[0];
+    pagbankResult = {
+      order_id: result.id,
+      pix: {
+        qr_code: qrCode?.text,
+        qr_code_image: qrCode?.links?.find((l: any) => l.media === "image/png")?.href,
+        expiration: qrCode?.expiration_date,
+      },
+    };
+
+  // ── BOLETO ──────────────────────────────────────────
+  } else if (params.paymentMethod === "BOLETO") {
+    const dueDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const result = await pagbankFetch("/orders", {
+      reference_id: refId,
+      customer: { name: params.customer.name, email: params.customer.email, tax_id: cleanCpf },
+      items: [{ reference_id: params.planId, name: "Plano RoyalMed Health", quantity: 1, unit_amount: params.totalCents }],
+      charges: [{
+        reference_id: `charge_${Date.now()}`,
+        description: "Assinatura RoyalMed Health",
+        amount: { value: params.totalCents, currency: "BRL" },
+        payment_method: {
+          type: "BOLETO",
+          boleto: {
+            due_date: dueDate,
+            instruction_lines: { line_1: "Pagamento processado pela RoyalMed Health", line_2: "Nao receber apos o vencimento" },
+            holder: { name: params.customer.name, tax_id: cleanCpf, email: params.customer.email,
+              address: { country: "Brasil", region: "SP", region_code: "SP", city: "Sao Paulo", postal_code: "01310100", street: "Avenida Paulista", number: "1", locality: "Centro" },
+            },
+          },
+        },
+      }],
+    });
+    const charge = result.charges?.[0];
+    const boleto = charge?.payment_method?.boleto;
+    pagbankResult = {
+      order_id: result.id,
+      charge_id: charge?.id,
+      boleto: {
+        barcode: boleto?.barcode,
+        formatted_barcode: boleto?.formatted_barcode,
+        due_date: boleto?.due_date,
+        pdf_link: charge?.links?.find((l: any) => l.media === "application/pdf")?.href,
+      },
+    };
+
+  // ── CARTÃO ──────────────────────────────────────────
+  } else if (params.paymentMethod === "CREDIT_CARD") {
+    const result = await pagbankFetch("/orders", {
+      reference_id: refId,
+      customer: { name: params.customer.name, email: params.customer.email, tax_id: cleanCpf },
+      items: [{ reference_id: params.planId, name: "Plano RoyalMed Health", quantity: 1, unit_amount: params.totalCents }],
+      charges: [{
+        reference_id: `charge_${Date.now()}`,
+        description: "Assinatura RoyalMed Health",
+        amount: { value: params.totalCents, currency: "BRL" },
+        payment_method: {
+          type: "CREDIT_CARD",
+          installments: 1,
+          capture: true,
+          card: {
+            encrypted: params.card!.encrypted,
+            security_code: params.card!.security_code,
+            holder: { name: params.card!.holder_name },
+            store: false,
+          },
+        },
+      }],
+    });
+    const charge = result.charges?.[0];
+    pagbankResult = {
+      order_id: result.id,
+      charge_id: charge?.id,
+      card_status: charge?.status,
+    };
+
+  } else {
+    throw new Error(`Método de pagamento inválido: ${params.paymentMethod}`);
+  }
+
+  // ── SALVAR NO SUPABASE via função leve (sem bloqueio) ──
+  const { data, error } = await supabase.functions.invoke("pagbank-save-order", {
     body: {
       plan_id: params.planId,
       payment_method: params.paymentMethod,
       extra_dependents: params.extraDependentsCount,
-      customer: params.customer,
-      card: params.card,
+      total_cents: params.totalCents,
+      ...pagbankResult,
     },
   });
 
   if (error) throw error;
   return data;
 };
+
 
 export const cancelSubscription = async (subscriptionId: string): Promise<void> => {
   const { error } = await supabase.functions.invoke("pagbank-manage-subscription", {

@@ -6,6 +6,7 @@ import {
   formatCurrency,
   calculateMonthlyWithDependents,
   calculateTotalWithDependents,
+  createSubscription,
   type Plan,
   type PaymentMethod,
 } from "../lib/pagbank";
@@ -188,25 +189,24 @@ export const Checkout = () => {
       }
 
       const extraDependents = Math.max(0, dependentsCount - plan.free_dependents);
+      const totalCents = calculateTotalWithDependents(plan, dependentsCount);
 
-      const { data, error } = await supabase.functions.invoke("pagbank-create-subscription", {
-        body: {
-          plan_id: plan.id,
-          payment_method: paymentMethod,
-          extra_dependents: extraDependents,
-          customer: {
-            name: customerName || user.user_metadata?.full_name || user.email?.split("@")[0] || "Cliente",
-            email: user.email!,
-            tax_id: cpfDigits,
-          },
-          card: cardPayload,
+      const result = await createSubscription({
+        planId: plan.id,
+        paymentMethod,
+        extraDependentsCount: extraDependents,
+        totalCents,
+        customer: {
+          name: customerName || user.user_metadata?.full_name || user.email?.split("@")[0] || "Cliente",
+          email: user.email!,
+          tax_id: cpfDigits,
         },
+        card: cardPayload,
       });
 
-      if (error) throw error;
-      if (!data?.ok) throw new Error(data?.error ?? "Erro ao processar pagamento.");
+      if (!result?.ok) throw new Error(result?.error ?? "Erro ao processar pagamento.");
 
-      setPaymentData(data);
+      setPaymentData(result);
       setPaymentSuccess(true);
       toast.success("Pedido recebido com sucesso!");
     } catch (err: any) {

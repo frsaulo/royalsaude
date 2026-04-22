@@ -7,7 +7,7 @@ const CORS_HEADERS = {
 };
 
 const PAGBANK_TOKEN    = Deno.env.get("PAGBANK_TOKEN");
-const PAGBANK_BASE_URL = Deno.env.get("PAGBANK_API_URL") || "https://sandbox.api.pagseguro.com";
+const PAGBANK_BASE_URL = Deno.env.get("PAGBANK_API_URL") || "https://api.pagseguro.com";
 const SUPABASE_URL     = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY     = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
@@ -27,28 +27,33 @@ async function pagbankRequest(path: string, method: string, body?: object) {
       "Authorization": `Bearer ${PAGBANK_TOKEN}`,
       "Content-Type": "application/json;charset=UTF-8",
       "Accept": "application/json",
-      "User-Agent": "RoyalMed-Integration/1.0",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     },
     body: body ? JSON.stringify(body) : undefined,
   });
 
   const text = await res.text();
-  let data: any;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    console.error(`[pagbankRequest] Resposta NÃO-JSON do PagBank (HTTP ${res.status}):`, text.slice(0, 500));
-    throw new Error(`PagBank bloqueou a requisição ou retornou formato inválido (HTTP ${res.status}). Detalhes no console do Supabase.`);
-  }
-
+  console.log(`[pagbankRequest] status: ${res.status}`);
+  
   if (!res.ok) {
-    console.error(`[pagbankRequest] Erro da API (${res.status}):`, JSON.stringify(data, null, 2));
-    const msg = data?.error_messages?.[0]?.description ?? data?.message ?? "Erro desconhecido retornado pelo PagBank";
-    const code = data?.error_messages?.[0]?.code ?? res.status;
+    console.error(`[pagbankRequest] API Error Body: ${text}`);
+    let errorData;
+    try {
+      errorData = JSON.parse(text);
+    } catch (_) {
+      errorData = { message: text };
+    }
+    const msg = errorData?.error_messages?.[0]?.description ?? errorData?.message ?? "Erro desconhecido no PagBank";
+    const code = errorData?.error_messages?.[0]?.code ?? res.status;
     throw new Error(`[PagBank Erro ${code}]: ${msg}`);
   }
 
-  return data;
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    console.error(`[pagbankRequest] Erro ao processar JSON de sucesso: ${text}`);
+    throw new Error(`PagBank retornou resposta inválida (HTTP ${res.status}).`);
+  }
 }
 
 // ─── PIX ─────────────────────────────────────────────────────────────────────

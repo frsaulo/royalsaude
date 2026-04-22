@@ -8,7 +8,7 @@ const CORS_HEADERS = {
 };
 
 const PAGBANK_TOKEN    = Deno.env.get("PAGBANK_TOKEN");
-const PAGBANK_BASE_URL = Deno.env.get("PAGBANK_API_URL") || "https://sandbox.api.pagseguro.com";
+const PAGBANK_BASE_URL = Deno.env.get("PAGBANK_API_URL") || "https://api.pagseguro.com";
 const SUPABASE_URL     = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY     = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
@@ -32,7 +32,7 @@ async function pagbankRequest(path: string, method: string, body?: object) {
       "Authorization": `Bearer ${PAGBANK_TOKEN}`,
       "Content-Type": "application/json;charset=UTF-8",
       "Accept": "application/json",
-      "User-Agent": "RoyalMed-Integration/1.0",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -40,23 +40,25 @@ async function pagbankRequest(path: string, method: string, body?: object) {
   const text = await res.text();
   console.log(`[pagbank-setup-plans] response status: ${res.status}`);
   
-  let data: any;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    console.error(`[pagbank-setup-plans] Resposta não é JSON (HTTP ${res.status}). Conteúdo:`);
-    console.log(text.slice(0, 1000)); // Loga os primeiros 1000 caracteres do HTML/Texto
-    throw new Error(`PagBank retornou resposta inválida (HTTP ${res.status}). Verifique os logs.`);
-  }
-
   if (!res.ok) {
-    console.error("[pagbank-setup-plans] API error body:", text);
-    const msg = data?.error_messages?.[0]?.description ?? data?.message ?? "Erro desconhecido no PagBank";
-    const code = data?.error_messages?.[0]?.code ?? "UNKNOWN";
+    console.error(`[pagbank-setup-plans] API Error Body: ${text}`);
+    let errorData;
+    try {
+      errorData = JSON.parse(text);
+    } catch (_) {
+      errorData = { message: text };
+    }
+    const msg = errorData?.error_messages?.[0]?.description ?? errorData?.message ?? "Erro desconhecido no PagBank";
+    const code = errorData?.error_messages?.[0]?.code ?? "UNKNOWN";
     throw new Error(`PagBank (${code}): ${msg}`);
   }
 
-  return data;
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    console.error(`[pagbank-setup-plans] Erro ao processar JSON de sucesso: ${text}`);
+    throw new Error(`PagBank retornou resposta inválida (HTTP ${res.status}).`);
+  }
 }
 
 Deno.serve(async (req: Request) => {
