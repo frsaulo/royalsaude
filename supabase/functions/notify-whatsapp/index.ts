@@ -1,5 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -7,10 +6,10 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ZAPI_INSTANCE        = Deno.env.get("ZAPI_INSTANCE")             ?? "3F0020F414F92196B127E629027F956B";
-const ZAPI_TOKEN           = Deno.env.get("ZAPI_TOKEN")                ?? "548ADF4DC416151D4D4FEC18";
-const ZAPI_CLIENT_TOKEN    = Deno.env.get("ZAPI_CLIENT_TOKEN")         ?? "F00f57dbdaae34b159817cf779e2a434cS";
-const SUPABASE_URL         = Deno.env.get("SUPABASE_URL")              ?? "https://bxkwonqrflctvbjskhmj.supabase.co";
+const ZAPI_INSTANCE        = Deno.env.get("ZAPI_INSTANCE");
+const ZAPI_TOKEN           = Deno.env.get("ZAPI_TOKEN");
+const ZAPI_CLIENT_TOKEN    = Deno.env.get("ZAPI_CLIENT_TOKEN");
+const SUPABASE_URL         = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 function formatPhone(phone: string): string {
@@ -20,6 +19,7 @@ function formatPhone(phone: string): string {
 }
 
 function formatDate(dateStr: string): string {
+  if (!dateStr) return "";
   const [year, month, day] = dateStr.split("-");
   return `${day}/${month}/${year}`;
 }
@@ -80,12 +80,16 @@ function buildRescheduleNewMessage(name: string, oldDate: string, oldTime: strin
 }
 
 async function sendWhatsApp(phone: string, message: string): Promise<{ ok: boolean; body?: any; error?: string }> {
+  if (!ZAPI_INSTANCE || !ZAPI_TOKEN) {
+    throw new Error("ZAPI configuration missing");
+  }
+
   const zapiUrl = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`;
   const res = await fetch(zapiUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "client-token": ZAPI_CLIENT_TOKEN,
+      "client-token": ZAPI_CLIENT_TOKEN ?? "",
     },
     body: JSON.stringify({ phone, message }),
   });
@@ -95,7 +99,6 @@ async function sendWhatsApp(phone: string, message: string): Promise<{ ok: boole
 }
 
 Deno.serve(async (req: Request) => {
-  // Responde preflight CORS
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
@@ -103,7 +106,6 @@ Deno.serve(async (req: Request) => {
   try {
     const payload = await req.json();
 
-    // ─── CHAMADA DIRETA (cancelamento / remarcação) ───────────────────────
     if (payload.action) {
       const { action, phone, patientName, date, time, oldDate, oldTime, specialty } = payload;
 
@@ -136,15 +138,13 @@ Deno.serve(async (req: Request) => {
 
       console.log(`[notify-whatsapp] action=${action} phone=${formattedPhone}`);
       const result = await sendWhatsApp(formattedPhone, message);
-      console.log(`[notify-whatsapp] z-api result:`, JSON.stringify(result));
-
+      
       return new Response(JSON.stringify({ ok: result.ok, phone: formattedPhone, ...result }), {
         status: result.ok ? 200 : 500,
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }
 
-    // ─── WEBHOOK DO TRIGGER (novo agendamento INSERT) ─────────────────────
     const { type, record } = payload;
 
     if (type !== "INSERT") {
@@ -172,7 +172,6 @@ Deno.serve(async (req: Request) => {
 
     const cleanDigits = patientPhone.replace(/\D/g, "");
     if (cleanDigits.length < 8) {
-      console.warn("[notify-whatsapp] telefone inválido:", patientPhone);
       return new Response(JSON.stringify({ ok: false, reason: "no_valid_phone" }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
@@ -184,9 +183,7 @@ Deno.serve(async (req: Request) => {
 
     const message = buildConfirmMessage(patientName, dateFormatted, timeFormatted, appointment.type ?? "");
 
-    console.log("[notify-whatsapp] enviando para:", formattedPhone);
     const result = await sendWhatsApp(formattedPhone, message);
-    console.log("[notify-whatsapp] z-api result:", JSON.stringify(result));
 
     return new Response(
       JSON.stringify({ ok: result.ok, phone: formattedPhone, ...result }),
@@ -194,10 +191,11 @@ Deno.serve(async (req: Request) => {
     );
 
   } catch (err: any) {
-    console.error("[notify-whatsapp] erro:", err);
+    console.error("[notify-whatsapp] Erro:", err.message);
     return new Response(
       JSON.stringify({ ok: false, error: err.message }),
       { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
     );
   }
 });
+

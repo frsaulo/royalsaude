@@ -7,12 +7,25 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const PAGBANK_TOKEN    = Deno.env.get("PAGBANK_TOKEN") ?? "";
+const PAGBANK_TOKEN    = Deno.env.get("PAGBANK_TOKEN");
 const PAGBANK_BASE_URL = "https://api.pagseguro.com";
 const SUPABASE_URL     = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY     = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 async function pagbankRequest(path: string, method: string, body?: object) {
+  if (!PAGBANK_TOKEN) {
+    const envKeys = Object.keys(Deno.env.toObject());
+    console.error("[pagbank-setup-plans] ERRO: PAGBANK_TOKEN não configurado nos Secrets do Supabase.");
+    console.log(`[pagbank-setup-plans] Available env keys: ${envKeys.join(", ")}`);
+    throw new Error(`PAGBANK_TOKEN não configurado. Chaves disponíveis: ${envKeys.join(", ")}`);
+  }
+
+  console.log(`[pagbank-setup-plans] request: ${method} ${path}`);
+  if (PAGBANK_TOKEN) {
+    const maskedToken = `${PAGBANK_TOKEN.substring(0, 4)}...${PAGBANK_TOKEN.substring(PAGBANK_TOKEN.length - 4)}`;
+    console.log(`[pagbank-setup-plans] token: ${maskedToken} (tamanho: ${PAGBANK_TOKEN.length})`);
+  }
+
   const res = await fetch(`${PAGBANK_BASE_URL}${path}`, {
     method,
     headers: {
@@ -21,11 +34,23 @@ async function pagbankRequest(path: string, method: string, body?: object) {
     },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const data = await res.json();
-  if (!res.ok) {
-    console.error("[pagbank-setup-plans] error:", JSON.stringify(data));
-    throw new Error(data?.error_messages?.[0]?.description ?? JSON.stringify(data));
+
+  const text = await res.text();
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    console.error(`[pagbank-setup-plans] Erro ao parsear resposta (HTTP ${res.status}):`, text);
+    throw new Error(`PagBank erro HTTP ${res.status}: ${text.slice(0, 300)}`);
   }
+
+  if (!res.ok) {
+    console.error("[pagbank-setup-plans] API error:", JSON.stringify(data, null, 2));
+    const msg = data?.error_messages?.[0]?.description ?? data?.message ?? "Erro desconhecido no PagBank";
+    const code = data?.error_messages?.[0]?.code ?? "UNKNOWN";
+    throw new Error(`PagBank (${code}): ${msg}`);
+  }
+
   return data;
 }
 
