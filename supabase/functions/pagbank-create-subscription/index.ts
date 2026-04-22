@@ -30,7 +30,9 @@ async function pagbankRequest(path: string, method: string, body?: object) {
     method,
     headers: {
       "Authorization": `Bearer ${PAGBANK_TOKEN}`,
-      "Content-Type": "application/json",
+      "Content-Type": "application/json;charset=UTF-8",
+      "Accept": "application/json",
+      "User-Agent": "RoyalMed-Integration/1.0",
     },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -40,8 +42,9 @@ async function pagbankRequest(path: string, method: string, body?: object) {
   try {
     data = JSON.parse(text);
   } catch {
-    console.error(`[pagbank-create-subscription] Erro ao parsear resposta (HTTP ${res.status}):`, text);
-    throw new Error(`PagBank erro HTTP ${res.status}: ${text.slice(0, 300)}`);
+    console.error(`[pagbank-create-subscription] Resposta não é JSON (HTTP ${res.status}). Conteúdo:`);
+    console.log(text.slice(0, 1000));
+    throw new Error(`PagBank retornou resposta inválida (HTTP ${res.status}). Verifique os logs.`);
   }
 
   if (!res.ok) {

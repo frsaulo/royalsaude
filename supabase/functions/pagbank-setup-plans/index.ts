@@ -30,22 +30,27 @@ async function pagbankRequest(path: string, method: string, body?: object) {
     method,
     headers: {
       "Authorization": `Bearer ${PAGBANK_TOKEN}`,
-      "Content-Type": "application/json",
+      "Content-Type": "application/json;charset=UTF-8",
+      "Accept": "application/json",
+      "User-Agent": "RoyalMed-Integration/1.0",
     },
     body: body ? JSON.stringify(body) : undefined,
   });
 
   const text = await res.text();
+  console.log(`[pagbank-setup-plans] response status: ${res.status}`);
+  
   let data: any;
   try {
     data = JSON.parse(text);
   } catch {
-    console.error(`[pagbank-setup-plans] Erro ao parsear resposta (HTTP ${res.status}):`, text);
-    throw new Error(`PagBank erro HTTP ${res.status}: ${text.slice(0, 300)}`);
+    console.error(`[pagbank-setup-plans] Resposta não é JSON (HTTP ${res.status}). Conteúdo:`);
+    console.log(text.slice(0, 1000)); // Loga os primeiros 1000 caracteres do HTML/Texto
+    throw new Error(`PagBank retornou resposta inválida (HTTP ${res.status}). Verifique os logs.`);
   }
 
   if (!res.ok) {
-    console.error("[pagbank-setup-plans] API error:", JSON.stringify(data, null, 2));
+    console.error("[pagbank-setup-plans] API error body:", text);
     const msg = data?.error_messages?.[0]?.description ?? data?.message ?? "Erro desconhecido no PagBank";
     const code = data?.error_messages?.[0]?.code ?? "UNKNOWN";
     throw new Error(`PagBank (${code}): ${msg}`);
