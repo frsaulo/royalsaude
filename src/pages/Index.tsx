@@ -15,7 +15,7 @@ const Index = () => {
       <section id="planos" className="w-full bg-slate-50">
         <iframe 
           src="/planos?embed=true&v=1.1" 
-          className="w-full min-h-[1300px] border-none overflow-hidden"
+          className="w-full min-h-[1550px] border-none overflow-hidden"
           title="Planos RoyalMed Health"
           scrolling="no"
         />

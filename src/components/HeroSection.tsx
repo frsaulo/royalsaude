@@ -111,33 +111,33 @@ const HeroSection = () => {
         >
           <div className="bg-[#092952]/80 backdrop-blur-md p-8 md:p-12 rounded-xl border border-[#2566af]/20 shadow-2xl">
             <h1 className="text-4xl md:text-6xl font-royalmed font-bold leading-tight mb-8 text-white">
-              Telemedicina <span className="text-[#2566af]">24h</span>
+              Telemedicina <span className="text-[#dde400]">24h</span>
             </h1>
 
             <ul className="text-xl md:text-2xl text-white font-body font-light space-y-5 mb-10">
               <li className="flex items-center gap-4">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#2566af]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#dde400]"></span>
                 25 especialidades disponíveis
               </li>
               <li className="flex items-center gap-4">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#2566af]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#dde400]"></span>
                 Atendimento 24h por dia
               </li>
               <li className="flex items-center gap-4">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#2566af]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#dde400]"></span>
                 7 dias por semana
               </li>
               <li className="flex items-center gap-4">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#2566af]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#dde400]"></span>
                 Cobertura em todo o Brasil
               </li>
             </ul>
 
             <div className="border-t border-white/20 pt-6 space-y-3">
-              <p className="text-2xl md:text-3xl text-[#2566af] font-body italic font-semibold">
+              <p className="text-2xl md:text-3xl text-[#dde400] font-body italic font-semibold">
                 Simples, rápido e sem burocracia.
               </p>
-              <p className="text-lg md:text-xl text-[#2566af] font-body font-medium">
+              <p className="text-lg md:text-xl text-[#dde400] font-body font-medium">
                 Ligue para 4004-4935 (agendamento disponível 24h, 7 dias por semana)
               </p>
             </div>

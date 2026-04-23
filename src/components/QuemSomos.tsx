@@ -89,7 +89,6 @@ const QuemSomos = () => {
                   <p className="text-[#e9e6c9] font-body text-sm leading-relaxed">{item.desc}</p>
                 </div>
               </motion.div>
-            ))}on.div>
             ))}
           </motion.div>
         </div>

@@ -97,7 +97,7 @@ export const Planos = () => {
   }
 
   return (
-    <div className={`${!isEmbed ? "min-h-screen" : ""} bg-gradient-to-br from-slate-50 via-blue-50/30 to-blue-100/10 overflow-x-hidden`}>
+    <div className={`${!isEmbed ? "min-h-screen" : ""} bg-gradient-to-br from-slate-50 via-blue-50/30 to-[#2566af]/5 overflow-x-hidden`}>
       {/* Header */}
       {!isEmbed && (
         <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-10">
