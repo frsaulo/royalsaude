@@ -36,6 +36,7 @@ function buildConfirmMessage(name: string, date: string, time: string, type: str
     (isTele
       ? `O link ser\u00e1 enviado 15 minutos antes da consulta.\n\n`
       : `*Endere\u00e7o:* Rua Pedro Celestino, 2395 - Centro, Campo Grande - MS, 79002-372\n\n`) +
+    `\u26A0\uFE0F *Aviso:* Sua consulta s\u00f3 ser\u00e1 confirmada ap\u00f3s a confirma\u00e7\u00e3o do pagamento.\n\n` +
     `\u26A0\uFE0F Cancelamentos devem ser feitos com pelo menos *24h de anteced\u00eancia*.\n\n` +
     `D\u00favidas? Fale conosco por aqui mesmo! \uD83D\uDE0A\n` +
     `*RoyalMed Health* \uD83D\uDC99`
@@ -73,6 +74,7 @@ function buildRescheduleNewMessage(name: string, oldDate: string, oldTime: strin
     `\uD83D\uDCC5 *Data:* ${newDate}\n` +
     `\u23F0 *Hor\u00e1rio:* ${newTime}\n` +
     `\uD83C\uDF1F *Especialidade:* ${specialty}\n\n` +
+    `\u26A0\uFE0F *Aviso:* Sua consulta s\u00f3 ser\u00e1 confirmada ap\u00f3s a confirma\u00e7\u00e3o do pagamento.\n\n` +
     `\u26A0\uFE0F Cancelamentos devem ser feitos com pelo menos *24h de anteced\u00eancia*.\n\n` +
     `D\u00favidas? Fale conosco por aqui mesmo! \uD83D\uDE0A\n` +
     `*RoyalMed Health* \uD83D\uDC99`

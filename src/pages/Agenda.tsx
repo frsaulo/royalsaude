@@ -266,7 +266,7 @@ export const Agenda = () => {
       }
     } else {
       const whatsappMessage = window.encodeURIComponent(
-        `Olá, sou ${patientName}. Confirmo meu agendamento de ${specialty} para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.`
+        `Olá, sou ${patientName}. Confirmo meu agendamento de ${specialty} para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.\n\n(Ciente de que a consulta só será confirmada após a confirmação do pagamento)`
       );
       const whatsappUrl = `https://wa.me/5567991747844?text=${whatsappMessage}`;
 
