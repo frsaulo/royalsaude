@@ -226,11 +226,13 @@ export const Planos = () => {
                 </div>
 
                 <Button
+                  asChild
                   className="w-full h-12 text-base font-semibold bg-slate-800 hover:bg-slate-900"
-                  onClick={() => window.location.href = "https://pag.ae/81J52rqHM"}
                 >
-                  Assinar Mensal
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <a href="https://pag.ae/81J52rqHM" target="_blank" rel="noopener noreferrer">
+                    Assinar Mensal
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </a>
                 </Button>
               </CardContent>
             </Card>
@@ -305,12 +307,14 @@ export const Planos = () => {
                 </div>
 
                 <Button
+                  asChild
                   className="w-full h-12 text-base font-semibold bg-[#dde400] hover:bg-[#c9d000] text-[#092952] shadow-lg shadow-[#dde400]/20"
-                  onClick={() => window.location.href = "https://pag.ae/81J51Yu7N"}
                 >
-                  <Crown className="h-4 w-4 mr-2" />
-                  Assinar Anual
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <a href="https://pag.ae/81J51Yu7N" target="_blank" rel="noopener noreferrer">
+                    <Crown className="h-4 w-4 mr-2" />
+                    Assinar Anual
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </a>
                 </Button>
               </CardContent>
             </Card>

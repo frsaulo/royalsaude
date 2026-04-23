@@ -6,9 +6,9 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ZAPI_INSTANCE        = Deno.env.get("ZAPI_INSTANCE");
-const ZAPI_TOKEN           = Deno.env.get("ZAPI_TOKEN");
-const ZAPI_CLIENT_TOKEN    = Deno.env.get("ZAPI_CLIENT_TOKEN");
+const ZAPI_INSTANCE        = Deno.env.get("ZAPI_INSTANCE") ?? "3F0020F414F92196B127E629027F956B";
+const ZAPI_TOKEN           = Deno.env.get("ZAPI_TOKEN") ?? "548ADF4DC416151D4D4FEC18";
+const ZAPI_CLIENT_TOKEN    = Deno.env.get("ZAPI_CLIENT_TOKEN") ?? "F00f57dbdaae34b159817cf779e2a434cS";
 const SUPABASE_URL         = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
@@ -37,6 +37,7 @@ function buildConfirmMessage(name: string, date: string, time: string, type: str
       ? `O link ser\u00e1 enviado 15 minutos antes da consulta.\n\n`
       : `*Endere\u00e7o:* Rua Pedro Celestino, 2395 - Centro, Campo Grande - MS, 79002-372\n\n`) +
     `\u26A0\uFE0F *Aviso:* Sua consulta s\u00f3 ser\u00e1 confirmada ap\u00f3s a confirma\u00e7\u00e3o do pagamento.\n\n` +
+    `\uD83D\uDCC3 *Link para Pagamento:* https://pag.ae/81J592y2N\n\n` +
     `\u26A0\uFE0F Cancelamentos devem ser feitos com pelo menos *24h de anteced\u00eancia*.\n\n` +
     `D\u00favidas? Fale conosco por aqui mesmo! \uD83D\uDE0A\n` +
     `*RoyalMed Health* \uD83D\uDC99`
@@ -75,6 +76,7 @@ function buildRescheduleNewMessage(name: string, oldDate: string, oldTime: strin
     `\u23F0 *Hor\u00e1rio:* ${newTime}\n` +
     `\uD83C\uDF1F *Especialidade:* ${specialty}\n\n` +
     `\u26A0\uFE0F *Aviso:* Sua consulta s\u00f3 ser\u00e1 confirmada ap\u00f3s a confirma\u00e7\u00e3o do pagamento.\n\n` +
+    `\uD83D\uDCC3 *Link para Pagamento:* https://pag.ae/81J592y2N\n\n` +
     `\u26A0\uFE0F Cancelamentos devem ser feitos com pelo menos *24h de anteced\u00eancia*.\n\n` +
     `D\u00favidas? Fale conosco por aqui mesmo! \uD83D\uDE0A\n` +
     `*RoyalMed Health* \uD83D\uDC99`

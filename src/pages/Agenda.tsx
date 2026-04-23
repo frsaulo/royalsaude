@@ -276,19 +276,23 @@ export const Agenda = () => {
           <p className="text-sm">Para finalizar, realize o pagamento da consulta no link abaixo.</p>
           <div className="flex flex-wrap gap-2 pt-1">
             <Button 
+              asChild
               size="sm" 
               className="bg-[#dde400] text-[#092952] hover:bg-[#c9d000] font-bold" 
-              onClick={() => window.open("https://pag.ae/81J592y2N", "_blank")}
             >
-              <CreditCard className="h-4 w-4 mr-2" /> Pagar Consulta
+              <a href="https://pag.ae/81J592y2N" target="_blank" rel="noopener noreferrer">
+                <CreditCard className="h-4 w-4 mr-2" /> Pagar Consulta
+              </a>
             </Button>
             <Button 
+              asChild
               size="sm" 
               variant="outline" 
               className="bg-green-600 text-white border-none hover:bg-green-700" 
-              onClick={() => window.open(whatsappUrl, '_blank')}
             >
-              <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp
+              </a>
             </Button>
           </div>
         </div>,
