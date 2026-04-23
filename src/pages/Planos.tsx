@@ -188,7 +188,7 @@ export const Planos = () => {
               <CardContent className="space-y-6">
                 <div>
                   <a 
-                    href="https://pag.ae/81J52rqHM" 
+                    href="https://pag.ae/81J52rqHM"
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="group/price transition-colors cursor-pointer inline-block"
@@ -227,7 +227,7 @@ export const Planos = () => {
 
                 <Button
                   className="w-full h-12 text-base font-semibold bg-slate-800 hover:bg-slate-900"
-                  onClick={() => window.open("https://pag.ae/81J52rqHM", "_blank")}
+                  onClick={() => window.location.href = "https://pag.ae/81J52rqHM"}
                 >
                   Assinar Mensal
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -258,7 +258,7 @@ export const Planos = () => {
               <CardContent className="space-y-6">
                 <div>
                   <a 
-                    href="https://pag.ae/81J51Yu7N" 
+                    href="https://pag.ae/81J51Yu7N"
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="group/price transition-colors cursor-pointer inline-block"
@@ -306,7 +306,7 @@ export const Planos = () => {
 
                 <Button
                   className="w-full h-12 text-base font-semibold bg-[#dde400] hover:bg-[#c9d000] text-[#092952] shadow-lg shadow-[#dde400]/20"
-                  onClick={() => window.open("https://pag.ae/81J51Yu7N", "_blank")}
+                  onClick={() => window.location.href = "https://pag.ae/81J51Yu7N"}
                 >
                   <Crown className="h-4 w-4 mr-2" />
                   Assinar Anual
