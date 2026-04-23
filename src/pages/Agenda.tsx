@@ -266,19 +266,39 @@ export const Agenda = () => {
       }
     } else {
       const whatsappMessage = window.encodeURIComponent(
-        `Olá, sou ${patientName}. Confirmo meu agendamento de ${specialty} para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.`
+        `Olá, sou ${patientName}. Confirmo meu agendamento de ${specialty} para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.`
       );
       const whatsappUrl = `https://wa.me/5567991747844?text=${whatsappMessage}`;
 
       toast.success(
         <div className="flex flex-col gap-2">
-          <span>Agendamento confirmado!</span>
-          <Button size="sm" variant="outline" className="bg-green-600 text-white border-none hover:bg-green-700" onClick={() => window.open(whatsappUrl, '_blank')}>
-            <MessageCircle className="h-4 w-4 mr-2" /> Confirmar no WhatsApp
-          </Button>
+          <span className="font-bold text-base">Agendamento confirmado!</span>
+          <p className="text-sm">Para finalizar, realize o pagamento da consulta no link abaixo.</p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button 
+              size="sm" 
+              className="bg-[#dde400] text-[#092952] hover:bg-[#c9d000] font-bold" 
+              onClick={() => window.open("https://pag.ae/81J592y2N", "_blank")}
+            >
+              <CreditCard className="h-4 w-4 mr-2" /> Pagar Consulta
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="bg-green-600 text-white border-none hover:bg-green-700" 
+              onClick={() => window.open(whatsappUrl, '_blank')}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp
+            </Button>
+          </div>
         </div>,
-        { duration: 8000 }
+        { duration: 15000 }
       );
+
+      // Solicitação automática de pagamento (abre em nova aba)
+      setTimeout(() => {
+        window.open("https://pag.ae/81J592y2N", "_blank");
+      }, 1000);
 
       setBookedSlots([...bookedSlots, selectedTime]);
       setSelectedTime(null);
