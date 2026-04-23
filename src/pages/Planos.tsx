@@ -97,7 +97,7 @@ export const Planos = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-[#dde400]/5">
+    <div className={`${!isEmbed ? "min-h-screen" : ""} bg-gradient-to-br from-slate-50 via-blue-50/30 to-[#dde400]/5 overflow-x-hidden`}>
       {/* Header */}
       {!isEmbed && (
         <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-10">
@@ -115,7 +115,7 @@ export const Planos = () => {
         </header>
       )}
 
-      <main className="container mx-auto max-w-5xl px-4 py-12">
+      <main className={`container mx-auto max-w-5xl px-4 ${isEmbed ? "py-4" : "py-12"}`}>
         {/* Hero */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-[#dde400]/10 text-[#dde400] px-4 py-2 rounded-full text-sm font-semibold mb-6">
@@ -322,7 +322,7 @@ export const Planos = () => {
         </div>
 
         {/* Consultation Info */}
-        <div className="max-w-4xl mx-auto mt-12">
+        <div className="max-w-4xl mx-auto mt-8">
           <Card className="border-none bg-[#1E3A8A]/5 shadow-none">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="h-12 w-12 rounded-xl bg-[#1E3A8A]/10 flex items-center justify-center flex-shrink-0">
