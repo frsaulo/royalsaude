@@ -341,8 +341,9 @@ export const Agenda = () => {
       const notifyPhone = profilePhone || app?.phone || '';
       const notifyName  = app?.patient_name || user?.user_metadata?.full_name || 'Paciente';
       if (notifyPhone.replace(/\D/g, '').length >= 8) {
-        supabase.functions
-          .invoke('notify-whatsapp', {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          await supabase.functions.invoke('notify-whatsapp', {
             body: {
               action: appointmentAction.actionType === 'delete' ? 'cancel' : 'reschedule',
               phone: notifyPhone,
@@ -350,8 +351,13 @@ export const Agenda = () => {
               date: appointmentAction.date,
               time: appointmentAction.time,
             },
-          })
-          .catch(() => {});
+            headers: {
+              Authorization: `Bearer ${session?.access_token}`
+            }
+          });
+        } catch (err) {
+          console.error("Erro ao enviar notificação WhatsApp:", err);
+        }
       }
     }
 
@@ -402,8 +408,9 @@ export const Agenda = () => {
       const phone = profilePhone || editingAppointment.phone || '';
       const patientName = editingAppointment.patient_name || user?.user_metadata?.full_name || 'Paciente';
       if (phone.replace(/\D/g, '').length >= 8) {
-        supabase.functions
-          .invoke('notify-whatsapp', {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          await supabase.functions.invoke('notify-whatsapp', {
             body: {
               action: 'reschedule_new',
               phone,
@@ -414,8 +421,13 @@ export const Agenda = () => {
               time: editTime,
               specialty: editSpecialty,
             },
-          })
-          .catch(() => {});
+            headers: {
+              Authorization: `Bearer ${session?.access_token}`
+            }
+          });
+        } catch (err) {
+          console.error("Erro ao enviar notificação WhatsApp (reagendamento):", err);
+        }
       }
 
       setEditingAppointment(null);
