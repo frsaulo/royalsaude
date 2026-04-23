@@ -27,7 +27,7 @@ const HeroSection = () => {
           className="absolute inset-0 transition-opacity duration-[3000ms]"
           style={{ 
             opacity: current === i ? 1 : 0,
-            backgroundColor: slide.type === "clinica-propria" ? "#dde400" : "transparent"
+            backgroundColor: slide.type === "clinica-propria" ? "#2566af" : "transparent"
           }}
         >
           {slide.type === "clinica-propria" && (
@@ -59,16 +59,16 @@ const HeroSection = () => {
           }`}
         >
           <div className="inline-block mb-6">
-            <span className="bg-[#dde400] px-4 py-2 rounded-sm text-[#092952] font-cinzel text-sm font-semibold tracking-widest uppercase">
+            <span className="bg-[#2566af] px-4 py-2 rounded-sm text-white font-cinzel text-sm font-semibold tracking-widest uppercase">
               Clube de Benefícios em Saúde
             </span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-royalmed font-bold leading-tight mb-2 text-[#dde400]">
+          <h1 className="text-5xl md:text-7xl font-royalmed font-bold leading-tight mb-2 text-[#2566af]">
             RoyalMed Health
           </h1>
 
-          <h2 className="text-2xl md:text-3xl font-cinzel mb-6 tracking-wide text-[#dde400]">
+          <h2 className="text-2xl md:text-3xl font-cinzel mb-6 tracking-wide text-[#2566af]">
             Cuidar de você não pode esperar!
           </h2>
 
@@ -77,7 +77,7 @@ const HeroSection = () => {
           </p>
           <p className="text-lg text-[#e9e6c9] font-body mb-8 max-w-lg whitespace-pre-line leading-relaxed">
             Acesso direto a médicos clínicos gerais {"\n"} Por apenas{" "}
-            <span className="text-[#dde400] font-bold text-2xl">R$99,90</span>{" "}
+            <span className="text-[#2566af] font-bold text-2xl">R$99,90</span>{" "}
             <span className="text-[#e9e6c9]">/mês*</span>
             <span className="block text-sm mt-2 opacity-90">
               *Ao assinar a mensalidade, você tem direito a consultas ILIMITADAS
@@ -88,7 +88,7 @@ const HeroSection = () => {
           <div className="flex flex-col sm:flex-row gap-4">
             <a
               href="/login"
-              className="bg-[#dde400] text-[#092952] font-cinzel font-semibold px-8 py-4 rounded-sm text-center shadow-gold transition-all hover:brightness-110 tracking-wide cursor-pointer w-fit"
+              className="bg-[#2566af] text-white font-cinzel font-semibold px-8 py-4 rounded-sm text-center shadow-gold transition-all hover:brightness-110 tracking-wide cursor-pointer w-fit"
             >
               Agende sua Consulta
             </a>
@@ -109,35 +109,35 @@ const HeroSection = () => {
               : "opacity-0 translate-x-10 z-0 pointer-events-none"
           }`}
         >
-          <div className="bg-[#092952]/80 backdrop-blur-md p-8 md:p-12 rounded-xl border border-[#dde400]/20 shadow-2xl">
+          <div className="bg-[#092952]/80 backdrop-blur-md p-8 md:p-12 rounded-xl border border-[#2566af]/20 shadow-2xl">
             <h1 className="text-4xl md:text-6xl font-royalmed font-bold leading-tight mb-8 text-white">
-              Telemedicina <span className="text-[#dde400]">24h</span>
+              Telemedicina <span className="text-[#2566af]">24h</span>
             </h1>
 
             <ul className="text-xl md:text-2xl text-white font-body font-light space-y-5 mb-10">
               <li className="flex items-center gap-4">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#dde400]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#2566af]"></span>
                 25 especialidades disponíveis
               </li>
               <li className="flex items-center gap-4">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#dde400]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#2566af]"></span>
                 Atendimento 24h por dia
               </li>
               <li className="flex items-center gap-4">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#dde400]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#2566af]"></span>
                 7 dias por semana
               </li>
               <li className="flex items-center gap-4">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#dde400]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#2566af]"></span>
                 Cobertura em todo o Brasil
               </li>
             </ul>
 
             <div className="border-t border-white/20 pt-6 space-y-3">
-              <p className="text-2xl md:text-3xl text-[#dde400] font-body italic font-semibold">
+              <p className="text-2xl md:text-3xl text-[#2566af] font-body italic font-semibold">
                 Simples, rápido e sem burocracia.
               </p>
-              <p className="text-lg md:text-xl text-[#dde400] font-body font-medium">
+              <p className="text-lg md:text-xl text-[#2566af] font-body font-medium">
                 Ligue para 4004-4935 (agendamento disponível 24h, 7 dias por semana)
               </p>
             </div>
@@ -165,8 +165,8 @@ const HeroSection = () => {
                 </p>
               </div>
 
-              <div className="bg-[#f0f2b6] px-6 py-3 rounded-full border border-[#092952]/10 shadow-sm self-start md:self-auto">
-                <span className="text-[#092952] text-lg md:text-xl font-bold">
+              <div className="bg-blue-50 px-6 py-3 rounded-full border border-blue-100 shadow-sm self-start md:self-auto">
+                <span className="text-[#2566af] text-lg md:text-xl font-bold">
                   Atendimento em até 1 dia
                 </span>
               </div>
@@ -216,14 +216,14 @@ const HeroSection = () => {
             key={`indicator-${i}`}
             onClick={() => setCurrent(i)}
             className={`w-3 h-3 rounded-full transition-all ${
-              current === i ? "bg-[#dde400] w-8" : "bg-white/40 hover:bg-white/60"
+              current === i ? "bg-[#2566af] w-8" : "bg-white/40 hover:bg-white/60"
             }`}
           />
         ))}
       </div>
 
       {/* Bottom decorative line */}
-      <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-[#dde400]" />
+      <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-[#2566af]" />
     </section>
   );
 };

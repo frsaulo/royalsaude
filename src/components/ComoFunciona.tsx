@@ -52,10 +52,10 @@ const ComoFunciona = () => {
               transition={{ delay: i * 0.15 }}
               className="bg-card rounded-lg p-8 shadow-royal text-center group hover:scale-105 transition-all duration-300"
             >
-              <div className="w-16 h-16 mx-auto mb-6 bg-[#dde400] rounded-full flex items-center justify-center shadow-gold transition-all duration-300 group-hover:!bg-none group-hover:!bg-royal group-hover:scale-110">
+              <div className="w-16 h-16 mx-auto mb-6 bg-[#2566af] rounded-full flex items-center justify-center shadow-gold transition-all duration-300 group-hover:!bg-none group-hover:!bg-royal group-hover:scale-110">
                 <step.icon className="w-7 h-7 text-[#092952] transition-colors duration-300 group-hover:!text-white" />
               </div>
-              <h3 className="font-cinzel text-lg font-bold text-primary mb-3 transition-colors duration-300 group-hover:text-[#dde400]">
+              <h3 className="font-cinzel text-lg font-bold text-primary mb-3 transition-colors duration-300 group-hover:text-[#2566af]">
                 {step.title}
               </h3>
               <p className="text-muted-foreground font-body leading-relaxed text-sm whitespace-pre-line">

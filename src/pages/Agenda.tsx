@@ -278,7 +278,7 @@ export const Agenda = () => {
             <Button 
               asChild
               size="sm" 
-              className="bg-[#dde400] text-[#092952] hover:bg-[#c9d000] font-bold" 
+              className="bg-[#2566af] text-white hover:bg-[#1e528d] font-bold" 
             >
               <a href="https://pag.ae/81J592y2N" target="_blank" rel="noopener noreferrer">
                 <CreditCard className="h-4 w-4 mr-2" /> Pagar Consulta
@@ -557,7 +557,7 @@ export const Agenda = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate("/planos")}
-              className="text-[#dde400] hover:text-blue-700 hover:bg-blue-50 hidden sm:inline-flex"
+              className="text-[#2566af] hover:text-blue-700 hover:bg-blue-50 hidden sm:inline-flex"
             >
               <Crown className="h-4 w-4 mr-1.5" />
               Planos

@@ -97,7 +97,7 @@ export const Planos = () => {
   }
 
   return (
-    <div className={`${!isEmbed ? "min-h-screen" : ""} bg-gradient-to-br from-slate-50 via-blue-50/30 to-[#dde400]/5 overflow-x-hidden`}>
+    <div className={`${!isEmbed ? "min-h-screen" : ""} bg-gradient-to-br from-slate-50 via-blue-50/30 to-blue-100/10 overflow-x-hidden`}>
       {/* Header */}
       {!isEmbed && (
         <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-10">
@@ -240,10 +240,10 @@ export const Planos = () => {
 
           {/* Yearly Plan */}
           {yearlyPlan && (
-            <Card className="relative border-2 border-[#dde400] shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-[#dde400]/5 overflow-hidden group">
+            <Card className="relative border-2 border-[#2566af] shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-blue-50/30 overflow-hidden group">
               {/* Best Value Badge */}
               <div className="absolute top-0 right-0">
-                <div className="bg-[#dde400] text-[#092952] text-xs font-bold px-4 py-1.5 rounded-bl-xl flex items-center gap-1">
+                <div className="bg-[#2566af] text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl flex items-center gap-1">
                   <Star className="h-3 w-3" />
                   MELHOR CUSTO
                 </div>
