@@ -18,6 +18,7 @@ import { PoliticaPrivacidade } from "./pages/PoliticaPrivacidade";
 import { ContratoAdesao } from "./pages/ContratoAdesao";
 import { PoliticaCancelamento } from "./pages/PoliticaCancelamento";
 import { PagamentoConfirmado } from "./pages/PagamentoConfirmado";
+import WhatsAppButton from "./components/WhatsAppButton";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,7 @@ const App = () => (
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <WhatsAppButton />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
