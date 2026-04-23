@@ -189,7 +189,7 @@ export const createSubscription = async (params: {
     const status = (error as any).status || (error as any).context?.status;
     
     if (status === 401) {
-      throw new Error("⚠️ ERRO DE SESSÃO (401): Sua conta ainda não está validada. Verifique se confirmou o e-mail ou tente sair e entrar novamente.");
+      throw new Error("⚠️ ERRO DE SESSÃO (401): " + (data?.error || error.message || "Sua sessão expirou ou é inválida. Tente sair e entrar novamente."));
     }
     
     throw new Error(error.message || "Erro ao processar pagamento.");

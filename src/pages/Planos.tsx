@@ -187,12 +187,20 @@ export const Planos = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-slate-900">
-                      {formatCurrency(calculateMonthlyWithDependents(monthlyPlan, dependentsCount))}
-                    </span>
-                    <span className="text-slate-500">/mês</span>
-                  </div>
+                  <a 
+                    href="https://pag.ae/81HWCZXnM" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="group/price transition-colors cursor-pointer inline-block"
+                    title="Pagar mensalidade base diretamente no PagBank"
+                  >
+                    <div className="flex items-baseline gap-1 group-hover/price:text-[#1E3A8A]">
+                      <span className="text-4xl font-bold text-slate-900 transition-colors group-hover/price:text-[#1E3A8A]">
+                        {formatCurrency(calculateMonthlyWithDependents(monthlyPlan, dependentsCount))}
+                      </span>
+                      <span className="text-slate-500">/mês</span>
+                    </div>
+                  </a>
                   {dependentsCount > 3 && (
                     <p className="text-xs text-slate-500 mt-1">
                       Base {formatCurrency(monthlyPlan.price_cents)} + {dependentsCount - 3} dep. extra(s)
@@ -219,7 +227,7 @@ export const Planos = () => {
 
                 <Button
                   className="w-full h-12 text-base font-semibold bg-slate-800 hover:bg-slate-900"
-                  onClick={() => navigate("/checkout", { state: { planId: monthlyPlan.id, dependentsCount } })}
+                  onClick={() => window.open("https://pag.ae/81HWCZXnM", "_blank")}
                 >
                   Assinar Mensal
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -249,12 +257,20 @@ export const Planos = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-slate-900">
-                      {formatCurrency(calculateMonthlyWithDependents(yearlyPlan, dependentsCount))}
-                    </span>
-                    <span className="text-slate-500">/mês</span>
-                  </div>
+                  <a 
+                    href="https://pag.ae/81HWE8wVs" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="group/price transition-colors cursor-pointer inline-block"
+                    title="Pagar anuidade base diretamente no PagBank"
+                  >
+                    <div className="flex items-baseline gap-1 group-hover/price:text-[#1E3A8A]">
+                      <span className="text-4xl font-bold text-slate-900 transition-colors group-hover/price:text-[#1E3A8A]">
+                        {formatCurrency(calculateMonthlyWithDependents(yearlyPlan, dependentsCount))}
+                      </span>
+                      <span className="text-slate-500">/mês</span>
+                    </div>
+                  </a>
                   <p className="text-sm text-slate-500 mt-1">
                     Total anual:{" "}
                     <strong>{formatCurrency(calculateTotalWithDependents(yearlyPlan, dependentsCount))}</strong>
@@ -290,7 +306,7 @@ export const Planos = () => {
 
                 <Button
                   className="w-full h-12 text-base font-semibold bg-[#dde400] hover:bg-[#c9d000] text-[#092952] shadow-lg shadow-[#dde400]/20"
-                  onClick={() => navigate("/checkout", { state: { planId: yearlyPlan.id, dependentsCount } })}
+                  onClick={() => window.open("https://pag.ae/81HWE8wVs", "_blank")}
                 >
                   <Crown className="h-4 w-4 mr-2" />
                   Assinar Anual

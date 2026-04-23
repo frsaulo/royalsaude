@@ -62,8 +62,7 @@ export const Login = () => {
           }
         }
 
-        
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -85,8 +84,15 @@ export const Login = () => {
           }
         });
         if (error) throw error;
-        toast.success("Cadastro realizado! Verifique seu e-mail ou faça o login.");
-        setIsRegistering(false);
+        
+        // Se a confirmação de e-mail estiver desativada, a sessão já virá preenchida
+        if (data.session) {
+          toast.success("Cadastro realizado com sucesso!");
+          navigate("/agenda");
+        } else {
+          toast.success("Cadastro realizado! Faça o login para continuar.");
+          setIsRegistering(false);
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
