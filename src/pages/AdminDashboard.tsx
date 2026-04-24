@@ -343,6 +343,14 @@ export const AdminDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4 w-full sm:w-auto">
             <Button 
+              onClick={() => navigate("/admin-users")}
+              variant="outline"
+              className="border-[#1E3A8A] text-[#1E3A8A] hover:bg-[#1E3A8A] hover:text-white w-full sm:w-auto"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Gestão de Usuários
+            </Button>
+            <Button 
               onClick={() => setIsGlobalModalOpen(true)}
               className="bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white w-full sm:w-auto"
             >
@@ -455,6 +463,12 @@ export const AdminDashboard = () => {
                             <ShieldAlert className="w-4 h-4 text-slate-400" /> Tipo de cadastro:
                             <span className="font-medium text-slate-900">{accountType}</span>
                         </div>
+                        {app.profiles?.address && (
+                            <div className="flex items-center gap-2 text-sm text-slate-600">
+                                <MapPin className="w-4 h-4 text-slate-400" /> Endereço:
+                                <span className="font-medium text-slate-900 break-words">{app.profiles.address}</span>
+                            </div>
+                        )}
 
                         {accountType === 'TITULAR' && dependents.length > 0 && (
                           <div className="pt-2 border-t border-slate-200 mt-2">

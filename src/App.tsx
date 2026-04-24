@@ -14,6 +14,7 @@ import { Checkout } from "./components/Checkout";
 import { MinhaAssinatura } from "./components/MinhaAssinatura";
 import { AdminLogin } from "./pages/AdminLogin";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import { AdminUsers } from "./pages/AdminUsers";
 import { PoliticaPrivacidade } from "./pages/PoliticaPrivacidade";
 import { ContratoAdesao } from "./pages/ContratoAdesao";
 import { PoliticaCancelamento } from "./pages/PoliticaCancelamento";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/admin-users" element={<AdminUsers />} />
             
             {/* Área do Paciente */}
             <Route 
