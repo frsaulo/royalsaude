@@ -3,7 +3,7 @@ import { Download, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 // @ts-ignore
-import pdfPolicy from "@/assets/Contrato Adesão - Usuário Final - Site e Porta a Porta.pdf";
+import pdfPolicy from "@/assets/Contrato Adesão - Usuário Final - Site e Porta a Porta.docx.pdf";
 
 export const ContratoAdesao = () => {
   const navigate = useNavigate();
