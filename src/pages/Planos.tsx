@@ -96,6 +96,40 @@ export const Planos = () => {
     return null;
   }
 
+  const handleSubscribe = async (plan: Plan) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const totalCents = calculateTotalWithDependents(plan, dependentsCount);
+      
+      const { data, error } = await supabase.functions.invoke("pagbank-save-order", {
+        body: {
+          plan_id: plan.id,
+          total_cents: totalCents,
+          extra_dependents: Math.max(0, dependentsCount - 3),
+          customer: {
+            email: user.email,
+            name: user.user_metadata?.full_name || "Cliente",
+          },
+          origin_url: window.location.origin,
+        },
+      });
+
+      if (error || !data.ok) throw new Error(error?.message || data.error);
+
+      if (data.payment_url) {
+        window.location.href = data.payment_url;
+      }
+    } catch (err: any) {
+      toast.error("Erro ao iniciar pagamento: " + err.message);
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-[#dde400]/5">
       {/* Header */}
@@ -226,13 +260,12 @@ export const Planos = () => {
                 </div>
 
                 <Button
-                  asChild
+                  onClick={() => handleSubscribe(monthlyPlan)}
                   className="w-full h-12 text-base font-semibold bg-slate-800 hover:bg-slate-900"
+                  disabled={loading}
                 >
-                  <a href="https://pag.ae/81J52rqHM" target="_blank" rel="noopener noreferrer">
-                    Assinar Mensal
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </a>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Assinar Mensal"}
+                  <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </CardContent>
             </Card>
@@ -307,14 +340,17 @@ export const Planos = () => {
                 </div>
 
                 <Button
-                  asChild
+                  onClick={() => handleSubscribe(yearlyPlan)}
                   className="w-full h-12 text-base font-semibold bg-[#dde400] hover:bg-[#c9d000] text-[#092952] shadow-lg shadow-[#dde400]/20"
+                  disabled={loading}
                 >
-                  <a href="https://pag.ae/81J51Yu7N" target="_blank" rel="noopener noreferrer">
-                    <Crown className="h-4 w-4 mr-2" />
-                    Assinar Anual
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </a>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                    <>
+                      <Crown className="h-4 w-4 mr-2" />
+                      Assinar Anual
+                    </>
+                  )}
+                  <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </CardContent>
             </Card>

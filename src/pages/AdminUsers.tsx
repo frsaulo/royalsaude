@@ -153,10 +153,11 @@ export const AdminUsers = () => {
     try {
       setLoading(true);
       
-      // Fetch profiles with subscriptions
+      // Fetch profiles with subscriptions, excluding admins
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*, subscriptions(status)')
+        .eq('is_admin', false)
         .order('full_name', { ascending: true });
 
       if (profilesError) throw profilesError;

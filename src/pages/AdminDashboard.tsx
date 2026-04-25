@@ -153,10 +153,11 @@ export const AdminDashboard = () => {
 
       if (appError) throw appError;
       
-      // Busca todos os profiles para mesclar o CPF de forma blindada contra erros de Schema
+      // Busca todos os profiles (exceto admins) para mesclar o CPF de forma blindada contra erros de Schema
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('id, full_name, cpf, phone, email, account_type, dependents');
+        .select('id, full_name, cpf, phone, email, account_type, dependents')
+        .eq('is_admin', false);
         
       const appointmentsWithProfiles = (appointmentsData || []).map(app => {
          const userProfile = profilesData?.find(p => p.id === app.user_id);

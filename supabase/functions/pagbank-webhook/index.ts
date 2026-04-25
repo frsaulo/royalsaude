@@ -8,12 +8,12 @@ const CORS = {
 
 const SUPABASE_URL  = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const PAGBANK_EMAIL = Deno.env.get("PAGBANK_EMAIL") ?? "";
-const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN") ?? "";
+const PAGBANK_EMAIL = Deno.env.get("PAGBANK_EMAIL") ?? "ronaldo.grupogold@icloud.com";
+const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN") ?? "e82e3dba-0dd7-4ba1-8afd-0feec510ca1c038248324d9a86eb68c57216168cba2f27ab-c6a0-499f-8e4b-fac05bad286b";
 
 // Consulta detalhes de uma transação PagSeguro v2 a partir do notificationCode
 async function fetchTransactionByNotification(code: string) {
-  const url = `https://ws.pagseguro.uol.com.br/v3/transactions/notifications/${code}?email=${encodeURIComponent(PAGBANK_EMAIL)}&token=${PAGBANK_TOKEN}`;
+  const url = `https://ws.sandbox.pagseguro.uol.com.br/v3/transactions/notifications/${code}?email=${encodeURIComponent(PAGBANK_EMAIL)}&token=${PAGBANK_TOKEN}`;
 
   const res = await fetch(url, {
     headers: { "Accept": "application/vnd.pagseguro.com.br.v3+xml;charset=ISO-8859-1" },

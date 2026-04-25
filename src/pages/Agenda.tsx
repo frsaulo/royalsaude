@@ -111,6 +111,7 @@ export const Agenda = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [appointmentAction, setAppointmentAction] = useState<{id: string, date: string, time: string, actionType: 'delete' | 'reschedule'} | null>(null);
   const [myAppointments, setMyAppointments] = useState<any[]>([]);
+  const [consultationPaymentUrl, setConsultationPaymentUrl] = useState<string | null>(null);
 
   // Appointment editing
   const [editingAppointment, setEditingAppointment] = useState<any | null>(null);
@@ -246,7 +247,7 @@ export const Agenda = () => {
     const patientPhone = profile?.phone || user.user_metadata?.phone || '';
     const patientName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Paciente';
 
-    const { error } = await supabase
+    const { data: newApp, error } = await supabase
       .from('appointments')
       .insert([{
         user_id: user.id,
@@ -256,7 +257,9 @@ export const Agenda = () => {
         specialty: specialty,
         patient_name: patientName,
         phone: patientPhone,
-      }]);
+      }])
+      .select()
+      .single();
 
     if (error) {
       if (error.code === '23505') {
@@ -265,6 +268,23 @@ export const Agenda = () => {
         toast.error("Falha ao agendar: " + error.message);
       }
     } else {
+      let payUrl = "https://sandbox.pagseguro.uol.com.br"; // Fallback Sandbox
+      
+      try {
+        const { data: payData, error: payError } = await supabase.functions.invoke('pagbank-pay-consultation', {
+          body: { 
+            appointment_id: newApp.id,
+            origin_url: window.location.origin
+          }
+        });
+        
+        if (!payError && payData?.payment_url) {
+          payUrl = payData.payment_url;
+        }
+      } catch (err) {
+        console.error("Erro ao gerar link de pagamento:", err);
+      }
+
       const whatsappMessage = window.encodeURIComponent(
         `Olá, sou ${patientName}. Confirmo meu agendamento de ${specialty} para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.\n\n(Ciente de que a consulta só será confirmada após a confirmação do pagamento)`
       );
@@ -273,14 +293,14 @@ export const Agenda = () => {
       toast.success(
         <div className="flex flex-col gap-2">
           <span className="font-bold text-base">Agendamento confirmado!</span>
-          <p className="text-sm">Para finalizar, realize o pagamento da consulta no link abaixo.</p>
+          <p className="text-sm">Para finalizar, realize o pagamento da consulta no link abaixo (Sandbox).</p>
           <div className="flex flex-wrap gap-2 pt-1">
             <Button 
               asChild
               size="sm" 
               className="bg-[#2566af] text-white hover:bg-[#1e528d] font-bold" 
             >
-              <a href="https://pag.ae/81J592y2N" target="_blank" rel="noopener noreferrer">
+              <a href={payUrl} target="_blank" rel="noopener noreferrer">
                 <CreditCard className="h-4 w-4 mr-2" /> Pagar Consulta
               </a>
             </Button>
