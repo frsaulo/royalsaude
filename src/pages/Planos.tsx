@@ -139,7 +139,10 @@ export const Planos = () => {
         window.location.href = data.payment_url;
       }
     } catch (err: any) {
-      toast.error("Erro ao iniciar pagamento: " + err.message);
+      console.error("Erro na assinatura:", err);
+      setLoading(false);
+      window.alert("Erro ao processar assinatura:\n" + err.message);
+    } finally {
       setLoading(false);
     }
   };

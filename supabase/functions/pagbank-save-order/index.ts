@@ -14,6 +14,10 @@ const PAGBANK_EMAIL = Deno.env.get("PAGBANK_EMAIL") ?? "ronaldo.grupogold@icloud
 const PAGSEGURO_API_URL      = "https://ws.sandbox.pagseguro.uol.com.br/v2/checkout";
 const PAGSEGURO_CHECKOUT_URL = "https://sandbox.pagseguro.uol.com.br/v2/checkout";
 
+console.log("[pagbank-save-order] Inicializando função.");
+console.log(`[pagbank-save-order] Token Configurado (tamanho): ${PAGBANK_TOKEN?.length}`);
+console.log(`[pagbank-save-order] Email Configurado: ${PAGBANK_EMAIL}`);
+
 // Cria sessão de checkout no PagSeguro v2 (Formulário HTML legado)
 // Não exige whitelist de IP — usa email + token da conta PagBank
 async function createV2Checkout(params: {
@@ -68,6 +72,7 @@ async function createV2Checkout(params: {
     // Tenta extrair mensagem de erro do XML
     const errMatch = text.match(/<error><code>(\d+)<\/code><message>([^<]+)<\/message><\/error>/);
     const errMsg = errMatch ? `Cód. ${errMatch[1]}: ${errMatch[2]}` : text;
+    console.error(`[pagbank-save-order] Erro PagSeguro: ${errMsg}`);
     throw new Error(`PagSeguro ${res.status}: ${errMsg}`);
   }
 
@@ -225,9 +230,13 @@ Deno.serve(async (req: Request) => {
     );
 
   } catch (err: any) {
-    console.error("[pagbank-save-order] ERRO:", err.message);
+    console.error("[pagbank-save-order] ERRO FATAL:", err.message);
     return new Response(
-      JSON.stringify({ ok: false, error: err.message }),
+      JSON.stringify({ 
+        ok: false, 
+        error: err.message,
+        timestamp: new Date().toISOString()
+      }),
       { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
     );
   }
