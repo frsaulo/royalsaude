@@ -136,7 +136,9 @@ export const Planos = () => {
       if (error || !data.ok) throw new Error(error?.message || data.error);
 
       if (data.payment_url) {
-        window.location.href = data.payment_url;
+        console.log("[Planos] Redirecionando para:", data.payment_url);
+        // Usar assign para garantir que o histórico seja mantido e evitar bloqueios de segurança
+        window.location.assign(data.payment_url);
       }
     } catch (err: any) {
       console.error("Erro na assinatura:", err);

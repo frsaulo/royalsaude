@@ -11,78 +11,88 @@ const SUPABASE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN") ?? "e82e3dba-0dd7-4ba1-8afd-0feec510ca1c038248324d9a86eb68c57216168cba2f27ab-c6a0-499f-8e4b-fac05bad286b";
 const PAGBANK_EMAIL = Deno.env.get("PAGBANK_EMAIL") ?? "ronaldo.grupogold@icloud.com";
 
-const PAGSEGURO_API_URL      = "https://ws.sandbox.pagseguro.uol.com.br/v2/checkout";
-const PAGSEGURO_CHECKOUT_URL = "https://sandbox.pagseguro.uol.com.br/v2/checkout";
+const PAGBANK_API_URL = "https://sandbox.api.pagseguro.com/checkouts";
 
 console.log("[pagbank-save-order] Inicializando função.");
 console.log(`[pagbank-save-order] Token Configurado (tamanho): ${PAGBANK_TOKEN?.length}`);
 console.log(`[pagbank-save-order] Email Configurado: ${PAGBANK_EMAIL}`);
 
-// Cria sessão de checkout no PagSeguro v2 (Formulário HTML legado)
-// Não exige whitelist de IP — usa email + token da conta PagBank
-async function createV2Checkout(params: {
+// Cria sessão de checkout no PagBank v3 (JSON)
+async function createV3Checkout(params: {
   reference: string;
   itemDescription: string;
   amountCents: number;
-  senderEmail: string;
-  senderName: string;
+  customer: {
+    name: string;
+    email: string;
+    tax_id?: string;
+  };
   redirectUrl: string;
   notificationUrl: string;
 }): Promise<string> {
-  const amount = (params.amountCents / 100).toFixed(2);
-
-  // Validação básica de nome (PagSeguro v2 exige nome e sobrenome)
-  let name = params.senderName.trim();
+  
+  // Validação básica de nome (PagBank exige nome e sobrenome)
+  let name = params.customer.name.trim();
   if (!name.includes(" ")) {
-    name = `${name} Cliente`; // Adiciona um sobrenome genérico se faltar
+    name = `${name} Cliente`;
   }
 
-  const body = new URLSearchParams({
-    email:            PAGBANK_EMAIL,
-    token:            PAGBANK_TOKEN,
-    currency:         "BRL",
-    itemId1:          "0001",
-    itemDescription1: params.itemDescription,
-    itemAmount1:      amount,
-    itemQuantity1:    "1",
-    reference:        params.reference,
-    senderEmail:      params.senderEmail,
-    senderName:       name,
-    redirectURL:      params.redirectUrl,
-    notificationURL:  params.notificationUrl,
-  });
+  const body = {
+    reference_id: params.reference,
+    customer: {
+      name: name,
+      email: params.customer.email,
+      tax_id: params.customer.tax_id ? params.customer.tax_id.replace(/\D/g, "") : undefined,
+    },
+    items: [
+      {
+        reference_id: "0001",
+        name: params.itemDescription,
+        quantity: 1,
+        unit_amount: params.amountCents
+      }
+    ],
+    payment_methods: [
+      { type: "CREDIT_CARD" },
+      { type: "BOLETO" },
+      { type: "PIX" }
+    ],
+    redirect_url: params.redirectUrl,
+    notification_urls: [params.notificationUrl]
+  };
 
-  console.log(`[pagbank-save-order] Chamando PagSeguro v2. Email: ${PAGBANK_EMAIL}, Amount: ${amount}`);
+  console.log(`[pagbank-save-order] Chamando PagBank v3. Reference: ${params.reference}`);
 
-  // Para garantir ISO-8859-1 em ambientes Deno, às vezes é necessário tratar o body manualmente
-  // mas o Header costuma ser suficiente se o texto for simples.
-  const res = await fetch(PAGSEGURO_API_URL, {
+  const res = await fetch(PAGBANK_API_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded; charset=ISO-8859-1",
-      "Accept": "application/xml",
+      "Authorization": `Bearer ${PAGBANK_TOKEN}`,
+      "Content-Type": "application/json",
+      "Accept": "application/json",
     },
-    body: body.toString(),
+    body: JSON.stringify(body),
   });
 
-  const text = await res.text();
-  console.log(`[pagbank-save-order] Resposta PagSeguro (${res.status}): ${text}`);
-
+  const responseData = await res.json();
+  
   if (!res.ok) {
-    // Tenta extrair mensagem de erro do XML
-    const errMatch = text.match(/<error><code>(\d+)<\/code><message>([^<]+)<\/message><\/error>/);
-    const errMsg = errMatch ? `Cód. ${errMatch[1]}: ${errMatch[2]}` : text;
-    console.error(`[pagbank-save-order] Erro PagSeguro: ${errMsg}`);
-    throw new Error(`PagSeguro ${res.status}: ${errMsg}`);
+    console.error(`[pagbank-save-order] Erro PagBank v3 (${res.status}):`, JSON.stringify(responseData));
+    // Formata erros da API V3 para o usuário
+    const errMsg = responseData.error_messages 
+      ? responseData.error_messages.map((e: any) => `${e.code}: ${e.description}`).join(", ")
+      : JSON.stringify(responseData);
+    throw new Error(`PagBank Erro: ${errMsg}`);
   }
 
-  // Extrai o code do XML de resposta: <checkout><code>XXXX</code>...</checkout>
-  const match = text.match(/<code>([^<]+)<\/code>/);
-  if (!match?.[1]) {
-    throw new Error(`Código de checkout não encontrado na resposta: ${text}`);
+  // A resposta contém uma lista de links. Procuramos o link com rel="PAY"
+  const payLink = responseData.links?.find((l: any) => l.rel === "PAY");
+  
+  if (!payLink?.href) {
+    console.error("[pagbank-save-order] Link de pagamento não encontrado na resposta:", responseData);
+    throw new Error("Link de pagamento não gerado pelo PagBank.");
   }
 
-  return match[1];
+  return payLink.href;
 }
 
 Deno.serve(async (req: Request) => {
@@ -179,19 +189,21 @@ Deno.serve(async (req: Request) => {
     const refId   = `royalmed_${user.id}_${Date.now()}`;
     const baseUrl = (origin_url && origin_url !== "null") ? origin_url : "https://royalsaude.com.br";
 
-    // ── Cria checkout v2 no PagSeguro ────────────────────────────────────────
-    const checkoutCode = await createV2Checkout({
+    // ── Cria checkout v3 no PagBank ────────────────────────────────────────
+    const paymentUrl = await createV3Checkout({
       reference:       refId,
       itemDescription: `Plano RoyalMed Health - ${plan.name}`,
       amountCents:     total_cents,
-      senderEmail:     customer.email,
-      senderName:      customer.name,
+      customer: {
+        name:   customer.name,
+        email:  customer.email,
+        tax_id: cleanTaxId
+      },
       redirectUrl:     `${baseUrl}/pagamento-confirmado?ref=${refId}`,
       notificationUrl: `${SUPABASE_URL}/functions/v1/pagbank-webhook`,
     });
 
-    const paymentUrl = `${PAGSEGURO_CHECKOUT_URL}#${checkoutCode}`;
-    console.log(`[pagbank-save-order] Checkout criado! Code: ${checkoutCode}`);
+    console.log(`[pagbank-save-order] Checkout criado! URL: ${paymentUrl}`);
 
     // ── Salva assinatura como PENDING antes de redirecionar ──────────────────
     const periodEnd = plan.interval_type === "YEARLY"
@@ -225,7 +237,7 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ ok: true, payment_url: paymentUrl, checkout_code: checkoutCode }),
+      JSON.stringify({ ok: true, payment_url: paymentUrl }),
       { headers: { ...CORS, "Content-Type": "application/json" } }
     );
 
