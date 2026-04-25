@@ -6,7 +6,22 @@ import { ptBR } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
 
 import { Badge } from "../components/ui/badge";
-import { Loader2, LogOut, User, Trash2, Calendar as CalendarIcon, Clock, MessageCircle, Users, Pencil, Plus, X, Save, ClipboardList, Crown, CreditCard } from "lucide-react";
+import { Loader2, LogOut, User,  Trash2,
+  Clock,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Pencil,
+  Save,
+  Plus,
+  ArrowRight,
+  CheckCircle2,
+  AlertCircle,
+  Users,
+  ShieldAlert,
+  CreditCard
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
@@ -96,6 +111,7 @@ const normalizeDependents = (raw: any): Dependent[] => {
 export const Agenda = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { isActive, loading: loadingSub } = useSubscription();
 
   // Tab state
   const [activeTab, setActiveTab] = useState("agendar");
@@ -187,6 +203,7 @@ export const Agenda = () => {
       if (error) {
         toast.error("Erro ao buscar horários: " + error.message);
       } else {
+        // Considera tanto confirmados quanto pendentes de pagamento como ocupados
         setBookedSlots(data.map(app => app.time ? app.time.substring(0, 5) : ''));
       }
       setLoadingHours(false);
@@ -257,6 +274,7 @@ export const Agenda = () => {
         specialty: specialty,
         patient_name: patientName,
         phone: patientPhone,
+        status: 'PENDING', // Agendamento começa pendente de pagamento
       }])
       .select()
       .single();
@@ -565,6 +583,52 @@ export const Agenda = () => {
   );
 
   // ──── MAIN RENDER ────
+  
+  // Loading state for subscription
+  if (loadingSub) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#1E3A8A]" />
+      </div>
+    );
+  }
+
+  // Se não estiver ativo, bloqueia a agenda
+  if (!isActive) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full shadow-xl border-none">
+          <CardHeader className="text-center">
+            <div className="mx-auto bg-amber-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4">
+              <ShieldAlert className="h-8 w-8 text-amber-600" />
+            </div>
+            <CardTitle className="text-2xl font-cinzel">Assinatura Necessária</CardTitle>
+            <CardDescription className="text-base pt-2">
+              Para realizar agendamentos, você precisa ter uma assinatura ativa e aprovada.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-slate-50 p-4 rounded-lg text-sm text-slate-600">
+              <p>Sua assinatura atual não foi encontrada ou ainda está pendente de confirmação.</p>
+            </div>
+            <Button 
+              className="w-full bg-[#1E3A8A] hover:bg-blue-900 h-12 text-lg font-bold"
+              onClick={() => navigate("/planos")}
+            >
+              Ver Planos de Assinatura
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full text-slate-500"
+              onClick={handleLogout}
+            >
+              Sair da Conta
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -868,36 +932,69 @@ export const Agenda = () => {
                                 <Badge variant="outline" className="text-[10px] capitalize">
                                   {app.type === 'telemedicina' ? '📱 Telemedicina' : '🏥 Presencial'}
                                 </Badge>
-                                <Badge className={`text-[10px] ${isPast ? 'bg-slate-200 text-slate-600' : 'bg-green-100 text-green-700'} border-none`}>
-                                  {isPast ? 'Realizada' : 'Agendado'}
-                                </Badge>
+                                {app.status === 'PENDING' ? (
+                                  <Badge className="text-[10px] bg-amber-100 text-amber-700 border-none flex items-center gap-1">
+                                    <Clock className="h-2.5 w-2.5" />
+                                    Aguardando Pagamento
+                                  </Badge>
+                                ) : (
+                                  <Badge className={`text-[10px] ${isPast ? 'bg-slate-200 text-slate-600' : 'bg-green-100 text-green-700'} border-none flex items-center gap-1`}>
+                                    {isPast ? <CheckCircle2 className="h-2.5 w-2.5" /> : <CheckCircle2 className="h-2.5 w-2.5" />}
+                                    {isPast ? 'Realizada' : 'Confirmado'}
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                           </div>
 
-                          {!isPast && (
                             <div className="flex items-center gap-2 flex-shrink-0">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-9 text-xs font-medium text-[#1E3A8A] border-[#1E3A8A]/30 hover:bg-blue-50"
-                                onClick={() => openEditAppointment(app)}
-                              >
-                                <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                                Remarcar
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-9 text-xs font-medium text-rose-600 border-rose-200 hover:bg-rose-50"
-                                disabled={deletingId === app.id}
-                                onClick={() => setAppointmentAction({id: app.id, date: app.date, time: app.time, actionType: 'delete'})}
-                              >
-                                {deletingId === app.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5 mr-1.5" />}
-                                Cancelar
-                              </Button>
+                              {app.status === 'PENDING' && !isPast && (
+                                <Button
+                                  size="sm"
+                                  className="h-9 text-xs font-bold bg-[#10b981] hover:bg-[#059669] text-white shadow-sm"
+                                  onClick={async () => {
+                                    setIsSubmitting(true);
+                                    try {
+                                      const { data, error } = await supabase.functions.invoke("pagbank-pay-consultation", {
+                                        body: { appointment_id: app.id, origin_url: window.location.origin }
+                                      });
+                                      if (error) throw error;
+                                      if (data?.payment_url) window.location.href = data.payment_url;
+                                    } catch (err: any) {
+                                      toast.error("Erro ao gerar pagamento: " + err.message);
+                                    } finally {
+                                      setIsSubmitting(false);
+                                    }
+                                  }}
+                                >
+                                  <CreditCard className="h-3.5 w-3.5 mr-1.5" />
+                                  Pagar Agora
+                                </Button>
+                              )}
+                              {!isPast && (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-9 text-xs font-medium text-[#1E3A8A] border-[#1E3A8A]/30 hover:bg-blue-50"
+                                    onClick={() => openEditAppointment(app)}
+                                  >
+                                    <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                                    Remarcar
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-9 text-xs font-medium text-rose-600 border-rose-200 hover:bg-rose-50"
+                                    disabled={deletingId === app.id}
+                                    onClick={() => setAppointmentAction({id: app.id, date: app.date, time: app.time, actionType: 'delete'})}
+                                  >
+                                    {deletingId === app.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5 mr-1.5" />}
+                                    Cancelar
+                                  </Button>
+                                </>
+                              )}
                             </div>
-                          )}
                         </div>
                       );
                     })}

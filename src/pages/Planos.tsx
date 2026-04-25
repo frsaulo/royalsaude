@@ -79,6 +79,7 @@ export const Planos = () => {
         .eq("id", user.id)
         .single();
       if (data) {
+        console.log("[Planos] Perfil carregado:", { hasCpf: !!data.tax_id, dependents: data.dependents?.length });
         if (data.dependents) {
           const deps = Array.isArray(data.dependents) ? data.dependents : [];
           setRealDependentsCount(deps.length);
@@ -87,6 +88,8 @@ export const Planos = () => {
         if (data.tax_id) {
           setUserCpf(data.tax_id);
         }
+      } else {
+        console.warn("[Planos] Perfil não encontrado ou erro no carregamento.");
       }
     };
     loadProfile();
@@ -143,11 +146,12 @@ export const Planos = () => {
       if (error || !data.ok) throw new Error(error?.message || data.error);
 
       if (data.payment_url) {
-        console.log("[Planos] Abrindo pagamento em nova aba:", data.payment_url);
+        console.log("[Planos] Abrindo pagamento:", data.payment_url);
         toast.success("Redirecionando para o PagBank...");
-        window.open(data.payment_url, "_blank");
-        // Também redireciona a página atual para uma confirmação de "aguardando"
-        navigate(`/pagamento-confirmado?ref=pending`);
+        
+        // Redireciona a página atual diretamente para evitar problemas de frame/popup
+        // window.location.assign é mais seguro que window.open para evitar bloqueios de popup em fluxos asscrônicos
+        window.location.assign(data.payment_url);
       }
     } catch (err: any) {
       console.error("Erro na assinatura:", err);

@@ -127,13 +127,25 @@ Deno.serve(async (req: Request) => {
 
     console.log(`[pagbank-webhook] ref=${refId} statusCode=${statusC} → sub=${subStatus} pay=${payStatus} method=${paymentMethod}`);
 
+    // Atualiza assinatura se for o caso
     await admin.from("subscriptions")
       .update({ status: subStatus, payment_method: paymentMethod, updated_at: new Date().toISOString() })
       .eq("pagbank_subscription_id", refId);
 
-    await admin.from("payments")
+    // Atualiza pagamento
+    const { data: payment } = await admin.from("payments")
       .update({ status: payStatus, payment_method: paymentMethod, updated_at: new Date().toISOString() })
-      .eq("pagbank_charge_id", refId);
+      .eq("pagbank_charge_id", refId)
+      .select("appointment_id")
+      .single();
+
+    // Se houver um agendamento vinculado e o pagamento for aprovado, confirma o agendamento
+    if (payment?.appointment_id && payStatus === "PAID") {
+      console.log(`[pagbank-webhook] Confirmando agendamento ${payment.appointment_id} para o pagamento ${refId}`);
+      await admin.from("appointments")
+        .update({ status: "CONFIRMED", updated_at: new Date().toISOString() })
+        .eq("id", payment.appointment_id);
+    }
 
     return ok();
 

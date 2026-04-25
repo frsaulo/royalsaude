@@ -357,12 +357,13 @@ export const AdminUsers = () => {
           if (error) throw error;
         }
       } else {
-        // Delete profile (this might fail if there are dependent records, need to handle)
-        const { error } = await supabase
-          .from('profiles')
-          .delete()
-          .eq('id', user.id);
+        // Call Edge Function to delete from Auth and Profiles
+        const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+          body: { userId: user.id }
+        });
+
         if (error) throw error;
+        if (data?.error) throw new Error(data.error);
       }
 
       toast.success("Usuário removido com sucesso.");
