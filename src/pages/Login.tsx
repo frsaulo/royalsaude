@@ -87,8 +87,8 @@ export const Login = () => {
         
         // Se a confirmação de e-mail estiver desativada, a sessão já virá preenchida
         if (data.session) {
-          toast.success("Cadastro realizado com sucesso!");
-          navigate("/agenda");
+          toast.success("Cadastro realizado com sucesso! Escolha seu plano para continuar.");
+          navigate("/planos");
         } else {
           toast.success("Cadastro realizado! Faça o login para continuar.");
           setIsRegistering(false);

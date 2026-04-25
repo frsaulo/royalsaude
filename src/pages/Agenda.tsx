@@ -252,6 +252,12 @@ export const Agenda = () => {
       return;
     }
 
+    if (!isActive) {
+      toast.error("Você precisa ter um plano pago e ativo para agendar consultas.");
+      navigate("/planos");
+      return;
+    }
+
     setIsSubmitting(true);
     const dateStr = format(date, 'yyyy-MM-dd');
 
