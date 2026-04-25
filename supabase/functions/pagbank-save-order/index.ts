@@ -52,11 +52,7 @@ async function createV3Checkout(params: {
         unit_amount: params.amountCents
       }
     ],
-    payment_methods: [
-      { type: "CREDIT_CARD" },
-      { type: "BOLETO" },
-      { type: "PIX" }
-    ],
+    // Removendo restrição de payment_methods para evitar loops no Sandbox
     redirect_url: params.redirectUrl,
     notification_urls: [params.notificationUrl]
   };

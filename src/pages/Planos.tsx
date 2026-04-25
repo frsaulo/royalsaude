@@ -43,6 +43,7 @@ export const Planos = () => {
   const [loading, setLoading] = useState(true);
   const [dependentsCount, setDependentsCount] = useState(0);
   const [realDependentsCount, setRealDependentsCount] = useState(0);
+  const [userCpf, setUserCpf] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -74,13 +75,18 @@ export const Planos = () => {
     const loadProfile = async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("dependents")
+        .select("dependents, tax_id")
         .eq("id", user.id)
         .single();
-      if (data?.dependents) {
-        const deps = Array.isArray(data.dependents) ? data.dependents : [];
-        setRealDependentsCount(deps.length);
-        setDependentsCount(deps.length);
+      if (data) {
+        if (data.dependents) {
+          const deps = Array.isArray(data.dependents) ? data.dependents : [];
+          setRealDependentsCount(deps.length);
+          setDependentsCount(deps.length);
+        }
+        if (data.tax_id) {
+          setUserCpf(data.tax_id);
+        }
       }
     };
     loadProfile();
@@ -128,6 +134,7 @@ export const Planos = () => {
           customer: {
             email: user.email,
             name: user.user_metadata?.full_name || "Cliente",
+            tax_id: userCpf
           },
           origin_url: window.location.origin,
         },
@@ -136,9 +143,11 @@ export const Planos = () => {
       if (error || !data.ok) throw new Error(error?.message || data.error);
 
       if (data.payment_url) {
-        console.log("[Planos] Redirecionando para:", data.payment_url);
-        // Usar assign para garantir que o histórico seja mantido e evitar bloqueios de segurança
-        window.location.assign(data.payment_url);
+        console.log("[Planos] Abrindo pagamento em nova aba:", data.payment_url);
+        toast.success("Redirecionando para o PagBank...");
+        window.open(data.payment_url, "_blank");
+        // Também redireciona a página atual para uma confirmação de "aguardando"
+        navigate(`/pagamento-confirmado?ref=pending`);
       }
     } catch (err: any) {
       console.error("Erro na assinatura:", err);
