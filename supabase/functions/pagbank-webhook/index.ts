@@ -11,16 +11,22 @@ const SUPABASE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const PAGBANK_EMAIL = Deno.env.get("PAGBANK_EMAIL") ?? "ronaldo.grupogold@icloud.com";
 const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN") ?? "e82e3dba-0dd7-4ba1-8afd-0feec510ca1c038248324d9a86eb68c57216168cba2f27ab-c6a0-499f-8e4b-fac05bad286b";
 
+const IS_SANDBOX = true; // Deve ser igual ao das outras funções
+
 // Consulta detalhes de uma transação PagSeguro v2 a partir do notificationCode
 async function fetchTransactionByNotification(code: string) {
-  const url = `https://ws.sandbox.pagseguro.uol.com.br/v3/transactions/notifications/${code}?email=${encodeURIComponent(PAGBANK_EMAIL)}&token=${PAGBANK_TOKEN}`;
+  const baseUrl = IS_SANDBOX 
+    ? "https://ws.sandbox.pagseguro.uol.com.br/v3/transactions/notifications"
+    : "https://ws.pagseguro.uol.com.br/v3/transactions/notifications";
+    
+  const url = `${baseUrl}/${code}?email=${encodeURIComponent(PAGBANK_EMAIL)}&token=${PAGBANK_TOKEN}`;
 
   const res = await fetch(url, {
     headers: { "Accept": "application/vnd.pagseguro.com.br.v3+xml;charset=ISO-8859-1" },
   });
 
   const text = await res.text();
-  console.log(`[pagbank-webhook] Consulta transação (${res.status}): ${text.slice(0, 500)}`);
+  console.log(`[pagbank-webhook] Consulta transação v2 (${res.status}): ${text.slice(0, 500)}`);
 
   if (!res.ok) throw new Error(`PagSeguro ${res.status}: ${text}`);
   return text;
@@ -33,7 +39,6 @@ function extractXml(xml: string, tag: string): string {
 }
 
 // Mapeia status numérico do PagSeguro v2 para status interno
-// Referência: https://dev.pagseguro.uol.com.br/v1/docs/pagamento-transacao-consultando
 function mapStatus(statusCode: string): { subStatus: string; payStatus: string } {
   const map: Record<string, { subStatus: string; payStatus: string }> = {
     "1": { subStatus: "PENDING",   payStatus: "PENDING" }, // Aguardando pagamento
@@ -52,7 +57,6 @@ function mapStatus(statusCode: string): { subStatus: string; payStatus: string }
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
 
-  // Sempre responde 200 — PagSeguro retenta se receber outro código
   const ok = () => new Response(JSON.stringify({ received: true }), {
     status: 200,
     headers: { ...CORS, "Content-Type": "application/json" },
@@ -62,53 +66,78 @@ Deno.serve(async (req: Request) => {
     const admin = createClient(SUPABASE_URL, SUPABASE_KEY);
     const contentType = req.headers.get("content-type") ?? "";
 
+    // 1. Tratamento para API V3 (JSON) - Usado em Planos/Assinaturas
+    if (contentType.includes("application/json")) {
+      const body = await req.json().catch(() => ({}));
+      console.log("[pagbank-webhook] Payload V3 (JSON) recebido:", JSON.stringify(body));
+
+      const refId       = body.reference_id || body.reference;
+      const orderStatus = body.status || (body.charges?.[0]?.status);
+      const chargeId    = body.id || (body.charges?.[0]?.id);
+      const payType     = body.charges?.[0]?.payment_method?.type ?? null;
+
+      if (refId && orderStatus) {
+        const statusMap: Record<string, { subStatus: string; payStatus: string }> = {
+          "PAID":       { subStatus: "ACTIVE",    payStatus: "PAID"    },
+          "COMPLETED":  { subStatus: "ACTIVE",    payStatus: "PAID"    },
+          "AUTHORIZED": { subStatus: "ACTIVE",    payStatus: "PAID"    },
+          "DECLINED":   { subStatus: "SUSPENDED", payStatus: "FAILED"  },
+          "CANCELED":   { subStatus: "CANCELLED", payStatus: "FAILED"  },
+          "CANCELLED":  { subStatus: "CANCELLED", payStatus: "FAILED"  },
+          "REFUNDED":   { subStatus: "CANCELLED", payStatus: "REFUNDED"},
+        };
+        
+        const { subStatus, payStatus } = statusMap[orderStatus] ?? { subStatus: "PENDING", payStatus: "PENDING" };
+
+        console.log(`[pagbank-webhook] V3 Processando: ref=${refId} status=${orderStatus} -> sub=${subStatus}`);
+
+        // Atualiza Assinatura
+        const { error: subErr } = await admin.from("subscriptions")
+          .update({ 
+            status: subStatus, 
+            payment_method: payType, 
+            updated_at: new Date().toISOString() 
+          })
+          .eq("pagbank_subscription_id", refId);
+        
+        if (subErr) console.error("[pagbank-webhook] Erro ao atualizar assinatura:", subErr.message);
+
+        // Atualiza Pagamento
+        const { error: payErr } = await admin.from("payments")
+          .update({ 
+            status: payStatus, 
+            payment_method: payType, 
+            pagbank_charge_id: chargeId, // Atualiza com o ID real do PagBank
+            updated_at: new Date().toISOString() 
+          })
+          .eq("pagbank_charge_id", refId); // Busca pelo ID temporário (reference_id)
+        
+        if (payErr) console.error("[pagbank-webhook] Erro ao atualizar pagamento:", payErr.message);
+      }
+      return ok();
+    }
+
+    // 2. Tratamento para API V2 (Form-encoded) - Usado em Agendamentos
     let notificationCode = "";
     let notificationType = "";
 
-    // PagSeguro v2 envia application/x-www-form-urlencoded
     if (contentType.includes("application/x-www-form-urlencoded")) {
       const text = await req.text();
       const params = new URLSearchParams(text);
       notificationCode = params.get("notificationCode") ?? "";
       notificationType = params.get("notificationType") ?? "";
-      console.log(`[pagbank-webhook] v2 form-encoded — code=${notificationCode} type=${notificationType}`);
-    } else {
-      // Fallback: tenta JSON (API v3 moderna, caso ainda seja chamada)
-      const body = await req.json().catch(() => ({}));
-      console.log("[pagbank-webhook] Payload JSON recebido:", JSON.stringify(body));
-
-      const refId       = body.reference_id;
-      const orderStatus = body.charges?.[0]?.status ?? body.status;
-      const chargeId    = body.charges?.[0]?.id ?? body.id;
-      const payType     = body.charges?.[0]?.payment_method?.type ?? null;
-
-      if (refId && orderStatus) {
-        const statusMap: Record<string, { subStatus: string; payStatus: string }> = {
-          PAID:        { subStatus: "ACTIVE",    payStatus: "PAID"    },
-          AUTHORIZED:  { subStatus: "ACTIVE",    payStatus: "PAID"    },
-          DECLINED:    { subStatus: "SUSPENDED", payStatus: "FAILED"  },
-          CANCELLED:   { subStatus: "CANCELLED", payStatus: "FAILED"  },
-          REFUNDED:    { subStatus: "CANCELLED", payStatus: "REFUNDED"},
-        };
-        const { subStatus, payStatus } = statusMap[orderStatus] ?? { subStatus: "PENDING", payStatus: "PENDING" };
-
-        await admin.from("subscriptions").update({ status: subStatus, payment_method: payType, updated_at: new Date().toISOString() }).eq("pagbank_subscription_id", refId);
-        await admin.from("payments").update({ status: payStatus, payment_method: payType, pagbank_charge_id: chargeId, updated_at: new Date().toISOString() }).eq("pagbank_charge_id", refId);
-        console.log(`[pagbank-webhook] JSON ref=${refId} → sub=${subStatus}`);
-      }
-      return ok();
+      console.log(`[pagbank-webhook] v2 Notificação recebida — code=${notificationCode} type=${notificationType}`);
     }
 
     if (!notificationCode || notificationType !== "transaction") {
-      console.log("[pagbank-webhook] Notificação ignorada — tipo:", notificationType);
       return ok();
     }
 
-    // Consulta detalhes da transação
+    // Consulta detalhes da transação v2
     const xml     = await fetchTransactionByNotification(notificationCode);
     const refId   = extractXml(xml, "reference");
     const statusC = extractXml(xml, "status");
-    const payType = extractXml(xml, "type"); // tipo de pagamento: 1=boleto, 2=cartão, 3=débito, 7=pix
+    const payType = extractXml(xml, "type"); 
 
     if (!refId) {
       console.warn("[pagbank-webhook] <reference> ausente no XML");
@@ -116,32 +145,25 @@ Deno.serve(async (req: Request) => {
     }
 
     const payTypeMap: Record<string, string> = {
-      "1": "BOLETO",
-      "2": "CREDIT_CARD",
-      "3": "DEBIT_CARD",
-      "7": "PIX",
+      "1": "BOLETO", "2": "CREDIT_CARD", "3": "DEBIT_CARD", "7": "PIX",
     };
 
     const { subStatus, payStatus } = mapStatus(statusC);
     const paymentMethod = payTypeMap[payType] ?? null;
 
-    console.log(`[pagbank-webhook] ref=${refId} statusCode=${statusC} → sub=${subStatus} pay=${payStatus} method=${paymentMethod}`);
+    console.log(`[pagbank-webhook] v2 ref=${refId} statusCode=${statusC} → sub=${subStatus}`);
 
-    // Atualiza assinatura se for o caso
     await admin.from("subscriptions")
       .update({ status: subStatus, payment_method: paymentMethod, updated_at: new Date().toISOString() })
       .eq("pagbank_subscription_id", refId);
 
-    // Atualiza pagamento
     const { data: payment } = await admin.from("payments")
       .update({ status: payStatus, payment_method: paymentMethod, updated_at: new Date().toISOString() })
       .eq("pagbank_charge_id", refId)
       .select("appointment_id")
       .single();
 
-    // Se houver um agendamento vinculado e o pagamento for aprovado, confirma o agendamento
     if (payment?.appointment_id && payStatus === "PAID") {
-      console.log(`[pagbank-webhook] Confirmando agendamento ${payment.appointment_id} para o pagamento ${refId}`);
       await admin.from("appointments")
         .update({ status: "CONFIRMED", updated_at: new Date().toISOString() })
         .eq("id", payment.appointment_id);

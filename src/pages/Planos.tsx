@@ -31,7 +31,6 @@ import {
   Loader2,
   Star,
 } from "lucide-react";
-import { toast } from "sonner";
 
 export const Planos = () => {
   const { user } = useAuth();
@@ -253,6 +252,7 @@ export const Planos = () => {
             </Button>
           </div>
         ) : (
+          <>
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* Monthly Plan */}
             {monthlyPlan && (
@@ -263,20 +263,14 @@ export const Planos = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <a 
-                    href="https://pag.ae/81J52rqHM"
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="group/price transition-colors cursor-pointer inline-block"
-                    title="Pagar mensalidade base diretamente no PagBank"
-                  >
+                  <div className="group/price transition-colors inline-block">
                     <div className="flex items-baseline gap-1 group-hover/price:text-[#1E3A8A]">
                       <span className="text-4xl font-bold text-slate-900 transition-colors group-hover/price:text-[#1E3A8A]">
                         {formatCurrency(calculateMonthlyWithDependents(monthlyPlan, dependentsCount))}
                       </span>
                       <span className="text-slate-500">/mês</span>
                     </div>
-                  </a>
+                  </div>
                   {dependentsCount > 3 && (
                     <p className="text-xs text-slate-500 mt-1">
                       Base {formatCurrency(monthlyPlan.price_cents)} + {dependentsCount - 3} dep. extra(s)
@@ -334,20 +328,14 @@ export const Planos = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <a 
-                    href="https://pag.ae/81J51Yu7N"
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="group/price transition-colors cursor-pointer inline-block"
-                    title="Pagar anuidade base diretamente no PagBank"
-                  >
+                  <div className="group/price transition-colors inline-block">
                     <div className="flex items-baseline gap-1 group-hover/price:text-[#1E3A8A]">
                       <span className="text-4xl font-bold text-slate-900 transition-colors group-hover/price:text-[#1E3A8A]">
                         {formatCurrency(calculateMonthlyWithDependents(yearlyPlan, dependentsCount))}
                       </span>
                       <span className="text-slate-500">/mês</span>
                     </div>
-                  </a>
+                  </div>
                   <p className="text-sm text-slate-500 mt-1">
                     Total anual:{" "}
                     <strong>{formatCurrency(calculateTotalWithDependents(yearlyPlan, dependentsCount))}</strong>
@@ -417,6 +405,8 @@ export const Planos = () => {
             </CardContent>
           </Card>
         </div>
+          </>
+        )}
       </main>
     </div>
   );

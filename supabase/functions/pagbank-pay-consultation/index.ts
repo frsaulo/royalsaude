@@ -11,8 +11,15 @@ const SUPABASE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN") ?? "e82e3dba-0dd7-4ba1-8afd-0feec510ca1c038248324d9a86eb68c57216168cba2f27ab-c6a0-499f-8e4b-fac05bad286b";
 const PAGBANK_EMAIL = Deno.env.get("PAGBANK_EMAIL") ?? "ronaldo.grupogold@icloud.com";
 
-const PAGSEGURO_API_URL      = "https://ws.sandbox.pagseguro.uol.com.br/v2/checkout";
-const PAGSEGURO_CHECKOUT_URL = "https://sandbox.pagseguro.uol.com.br/v2/checkout";
+const IS_SANDBOX = true; // Mude para false para produção
+
+const PAGSEGURO_API_URL      = IS_SANDBOX 
+  ? "https://ws.sandbox.pagseguro.uol.com.br/v2/checkout"
+  : "https://ws.pagseguro.uol.com.br/v2/checkout";
+
+const PAGSEGURO_CHECKOUT_URL = IS_SANDBOX
+  ? "https://sandbox.pagseguro.uol.com.br/v2/checkout"
+  : "https://pagseguro.uol.com.br/v2/checkout";
 
 async function createV2Checkout(params: {
   reference: string;

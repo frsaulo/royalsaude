@@ -117,6 +117,7 @@ export const AdminUsers = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    toast.success("Painel de Gestão V2 carregado");
     checkAdminAndFetchData();
   }, []);
 
@@ -153,14 +154,37 @@ export const AdminUsers = () => {
     try {
       setLoading(true);
       
-      // Fetch profiles with subscriptions, excluding admins
+      // Fetch profiles excluding admins
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('*, subscriptions(status)')
+        .select('*')
         .eq('is_admin', false)
         .order('full_name', { ascending: true });
 
       if (profilesError) throw profilesError;
+
+      // Busca assinaturas ordenadas pela mais recente
+      const { data: subsData, error: subsError } = await supabase
+        .from('subscriptions')
+        .select('user_id, status, created_at')
+        .order('created_at', { ascending: false });
+
+      if (subsError) {
+        console.error('Error fetching subscriptions:', subsError);
+      } else {
+        console.log(`Fetched ${subsData?.length || 0} subscriptions for admin mapping`);
+      }
+
+      // Create a map: pega sempre a assinatura mais recente (dados já ordenados por created_at DESC)
+      const subMap = new Map();
+      (subsData || []).forEach(s => {
+        // Só guarda o primeiro encontrado (mais recente) para cada user_id
+        if (!subMap.has(s.user_id)) {
+          subMap.set(s.user_id, (s.status || "NONE").toUpperCase());
+        }
+      });
+      
+      console.log('Francisco status mapping:', subMap.get('e41eaacc-93d0-46ee-a0c3-05209b7fa268'));
 
       // Fetch appointment counts
       const { data: appointmentsData, error: appointmentsError } = await supabase
@@ -173,7 +197,7 @@ export const AdminUsers = () => {
       const allUsers: FlattenedUser[] = [];
 
       (profilesData || []).forEach((p: any) => {
-        const subStatus = p.subscriptions?.[0]?.status || "NONE";
+        const subStatus = subMap.get(p.id) || "NONE";
         const titularAppointments = appointmentsData?.filter(a => a.user_id === p.id && (a.patient_name === 'Paciente Cadastrado' || a.patient_name === p.full_name)).length || 0;
 
         // Add Titular
@@ -315,16 +339,31 @@ export const AdminUsers = () => {
         
         if (error) throw error;
 
-        // Update subscription status if it exists
-        if (editingUser.subscriptionStatus !== "NONE") {
+        // Upsert subscription status (funciona mesmo se não existir ainda)
+        const { data: existingSub } = await supabase
+          .from('subscriptions')
+          .select('id')
+          .eq('user_id', editingUser.id)
+          .maybeSingle();
+
+        if (existingSub) {
+          // Atualiza assinatura existente
           const { error: subError } = await supabase
             .from('subscriptions')
-            .update({ status: editingUser.subscriptionStatus })
+            .update({ status: editingUser.subscriptionStatus, updated_at: new Date().toISOString() })
             .eq('user_id', editingUser.id);
-          
-          if (subError) {
-             console.warn("Could not update subscription status. It might not exist for this user yet.");
-          }
+          if (subError) console.warn("Erro ao atualizar status:", subError.message);
+        } else if (editingUser.subscriptionStatus !== "NONE") {
+          // Cria assinatura manual quando não existe nenhuma
+          const { error: insertError } = await supabase
+            .from('subscriptions')
+            .insert({
+              user_id: editingUser.id,
+              status: editingUser.subscriptionStatus,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+          if (insertError) console.warn("Erro ao criar assinatura:", insertError.message);
         }
       }
 
@@ -400,7 +439,7 @@ export const AdminUsers = () => {
                 <ChevronLeft className="w-6 h-6" />
              </Button>
              <div>
-                <h1 className="text-xl font-bold">Gestão de Usuários</h1>
+                <h1 className="text-xl font-bold">Gestão de Usuários (V2)</h1>
                 <p className="text-xs text-slate-400">Base de dados RoyalMed</p>
              </div>
           </div>
