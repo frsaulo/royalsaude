@@ -13,6 +13,7 @@ import {
 } from "../lib/pagbank";
 import { supabase } from "../lib/supabase";
 import { Button } from "../components/ui/button";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Slider } from "../components/ui/slider";
