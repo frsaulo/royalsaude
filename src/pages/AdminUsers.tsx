@@ -117,7 +117,6 @@ export const AdminUsers = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    toast.success("Painel de Gestão V2 carregado");
     checkAdminAndFetchData();
   }, []);
 
@@ -439,7 +438,7 @@ export const AdminUsers = () => {
                 <ChevronLeft className="w-6 h-6" />
              </Button>
              <div>
-                <h1 className="text-xl font-bold">Gestão de Usuários (V2)</h1>
+                <h1 className="text-xl font-bold">Gestão de Usuários</h1>
                 <p className="text-xs text-slate-400">Base de dados RoyalMed</p>
              </div>
           </div>
