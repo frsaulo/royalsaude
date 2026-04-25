@@ -23,11 +23,13 @@ import {
   Users,
   Stethoscope,
   Shield,
+  ShieldAlert,
   Sparkles,
   ChevronLeft,
   Loader2,
   Star,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Planos = () => {
   const { user } = useAuth();
@@ -42,12 +44,22 @@ export const Planos = () => {
 
   useEffect(() => {
     const load = async () => {
+      // Timeout de segurança de 10 segundos
+      const timeoutId = setTimeout(() => {
+        if (loading) {
+          setLoading(false);
+          toast.error("O carregamento está demorando mais que o esperado. Verifique sua conexão.");
+        }
+      }, 10000);
+
       try {
         const data = await fetchPlans();
         setPlans(data);
-      } catch {
-        // silent
+      } catch (err: any) {
+        console.error("Erro ao carregar planos:", err);
+        toast.error("Não foi possível carregar os planos.");
       } finally {
+        clearTimeout(timeoutId);
         setLoading(false);
       }
     };
@@ -211,9 +223,19 @@ export const Planos = () => {
         </div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Monthly Plan */}
-          {monthlyPlan && (
+        {plans.length === 0 ? (
+          <div className="text-center p-12 bg-white rounded-xl shadow-sm border border-slate-200">
+            <ShieldAlert className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-slate-800">Nenhum plano disponível</h3>
+            <p className="text-slate-500 mb-6">Não conseguimos encontrar planos ativos no momento.</p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Tentar Novamente
+            </Button>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Monthly Plan */}
+            {monthlyPlan && (
             <Card className="relative border-2 border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white overflow-hidden group">
               <CardHeader className="pb-4">
                 <CardTitle className="text-2xl font-cinzel text-slate-800">Mensal</CardTitle>
