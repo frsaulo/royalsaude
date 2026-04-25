@@ -142,7 +142,19 @@ export const Planos = () => {
         },
       });
 
-      if (error || !data.ok) throw new Error(error?.message || data.error);
+      if (error) {
+        console.error("[Planos] Erro bruto da function:", error);
+        // Tenta extrair a mensagem de erro do corpo da resposta 400
+        let errorMessage = error.message;
+        try {
+          const body = await (error as any).context?.json();
+          if (body?.error) errorMessage = body.error;
+        } catch (e) { /* fallback para o erro padrão */ }
+        
+        throw new Error(errorMessage);
+      }
+
+      if (!data?.ok) throw new Error(data?.error || "Erro desconhecido na resposta da função");
 
       if (data.payment_url) {
         console.log("[Planos] Abrindo pagamento:", data.payment_url);
