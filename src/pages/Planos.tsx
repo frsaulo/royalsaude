@@ -74,18 +74,18 @@ export const Planos = () => {
     const loadProfile = async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("dependents, tax_id")
+        .select("dependents, cpf")
         .eq("id", user.id)
         .single();
       if (data) {
-        console.log("[Planos] Perfil carregado:", { hasCpf: !!data.tax_id, dependents: data.dependents?.length });
+        console.log("[Planos] Perfil carregado:", { hasCpf: !!data.cpf, dependents: data.dependents?.length });
         if (data.dependents) {
           const deps = Array.isArray(data.dependents) ? data.dependents : [];
           setRealDependentsCount(deps.length);
           setDependentsCount(deps.length);
         }
-        if (data.tax_id) {
-          setUserCpf(data.tax_id);
+        if (data.cpf) {
+          setUserCpf(data.cpf);
         }
       } else {
         console.warn("[Planos] Perfil não encontrado ou erro no carregamento.");
