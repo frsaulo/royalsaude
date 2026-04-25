@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
+import { useSubscription } from "../hooks/useSubscription";
 
 import { Badge } from "../components/ui/badge";
 import { Loader2, LogOut, User,  Trash2,
