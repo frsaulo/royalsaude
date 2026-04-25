@@ -8,8 +8,9 @@ const CORS = {
 
 const SUPABASE_URL  = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN") ?? "e82e3dba-0dd7-4ba1-8afd-0feec510ca1c038248324d9a86eb68c57216168cba2f27ab-c6a0-499f-8e4b-fac05bad286b";
-const PAGBANK_EMAIL = Deno.env.get("PAGBANK_EMAIL") ?? "ronaldo.grupogold@icloud.com";
+// Hardcoded para teste conforme solicitado
+const PAGBANK_TOKEN = "e82e3dba-0dd7-4ba1-8afd-0feec510ca1c038248324d9a86eb68c57216168cba2f27ab-c6a0-499f-8e4b-fac05bad286b";
+const PAGBANK_EMAIL = "ronaldo.grupogold@icloud.com";
 
 const IS_SANDBOX = true; // Mude para false para produção
 
@@ -59,10 +60,13 @@ async function createV2Checkout(params: {
   });
 
   const text = await res.text();
-  if (!res.ok) throw new Error(`PagSeguro ${res.status}: ${text}`);
+  if (!res.ok) {
+    console.error("[pagbank-pay-consultation] Erro da API do PagBank:", text, "Dados enviados:", body.toString());
+    throw new Error(`PagSeguro ${res.status}: ${text}`);
+  }
 
   const match = text.match(/<code>([^<]+)<\/code>/);
-  if (!match?.[1]) throw new Error(`Código de checkout não encontrado.`);
+  if (!match?.[1]) throw new Error(`Código de checkout não encontrado. Resp: ${text}`);
 
   return match[1];
 }
@@ -99,8 +103,7 @@ Deno.serve(async (req: Request) => {
       .eq("status", "ACTIVE")
       .single();
 
-    // Se não tiver plano ativo, preço padrão (ex: R$ 99,90) ou erro?
-    // O usuário disse "conforme as regras dos meus planos", então vamos seguir o plano.
+    // Se não tiver plano ativo, preço padrão (ex: R$ 69,90) ou erro?
     const consultationPrice = sub?.plans?.consultation_price_cents ?? 6990; 
 
     const refId = `appointment_${appointment_id}_${Date.now()}`;

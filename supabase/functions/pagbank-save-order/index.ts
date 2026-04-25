@@ -8,7 +8,8 @@ const CORS = {
 
 const SUPABASE_URL  = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN") ?? "e82e3dba-0dd7-4ba1-8afd-0feec510ca1c038248324d9a86eb68c57216168cba2f27ab-c6a0-499f-8e4b-fac05bad286b";
+// Hardcoded para teste conforme solicitado
+const PAGBANK_TOKEN = "e82e3dba-0dd7-4ba1-8afd-0feec510ca1c038248324d9a86eb68c57216168cba2f27ab-c6a0-499f-8e4b-fac05bad286b";
 
 const IS_SANDBOX = true; 
 
@@ -44,12 +45,18 @@ async function createV3Checkout(params: {
     type: "MOBILE"
   } : undefined;
 
+  // Usa CPF genérico válido para testes se não vier nada
+  let finalCpf = params.customer.tax_id.replace(/\D/g, "");
+  if (!finalCpf || finalCpf.length !== 11) {
+    if (IS_SANDBOX) finalCpf = "62349187063"; // Dummy válido pro sandbox
+  }
+
   const body = {
     reference_id: params.reference,
     customer: {
       name: name,
       email: params.customer.email,
-      tax_id: params.customer.tax_id.replace(/\D/g, ""),
+      tax_id: finalCpf,
       phones: phoneObj ? [phoneObj] : undefined
     },
     items: [
@@ -80,12 +87,14 @@ async function createV3Checkout(params: {
     body: JSON.stringify(body),
   });
 
-  const responseData = await res.json();
+  const responseData = await res.json().catch(() => ({}));
   
   if (!res.ok) {
     const errMsg = responseData.error_messages 
-      ? responseData.error_messages.map((e: any) => `${e.code}: ${e.description}`).join(", ")
+      ? responseData.error_messages.map((e: any) => `${e.parameter_name || e.code}: ${e.description}`).join(" | ")
       : JSON.stringify(responseData);
+      
+    console.error("[pagbank-save-order] Erro da API do PagBank:", errMsg, "Dados enviados:", JSON.stringify(body));
     throw new Error(`PagBank Erro: ${errMsg}`);
   }
 
