@@ -7,7 +7,8 @@ import { toZonedTime } from "date-fns-tz";
 import { useSubscription } from "../hooks/useSubscription";
 
 import { Badge } from "../components/ui/badge";
-import { Loader2, LogOut, User,  Trash2,
+import { 
+  Loader2, LogOut, User, Trash2,
   Clock,
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -21,7 +22,9 @@ import { Loader2, LogOut, User,  Trash2,
   AlertCircle,
   Users,
   ShieldAlert,
-  CreditCard
+  CreditCard,
+  Crown,
+  MessageCircle
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
