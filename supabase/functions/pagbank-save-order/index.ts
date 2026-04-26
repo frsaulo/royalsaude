@@ -8,79 +8,112 @@ const CORS = {
 
 const SUPABASE_URL  = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-// Hardcoded para teste conforme solicitado
-const PAGBANK_TOKEN = "e82e3dba-0dd7-4ba1-8afd-0feec510ca1c038248324d9a86eb68c57216168cba2f27ab-c6a0-499f-8e4b-fac05bad286b";
 
+// Token do Sandbox fornecido (V3 Bearer Token)
+const PAGBANK_TOKEN = "e82e3dba-0dd7-4ba1-8afd-0feec510ca1c038248324d9a86eb68c57216168cba2f27ab-c6a0-499f-8e4b-fac05bad286b";
 const IS_SANDBOX = true; 
 
-const PAGBANK_EMAIL = "ronaldo.grupogold@icloud.com";
-
 const PAGSEGURO_API_URL = IS_SANDBOX 
-  ? "https://ws.sandbox.pagseguro.uol.com.br/v2/checkout"
-  : "https://ws.pagseguro.uol.com.br/v2/checkout";
+  ? "https://sandbox.api.pagseguro.com/checkouts"
+  : "https://api.pagseguro.com/checkouts";
 
-const PAGSEGURO_CHECKOUT_URL = IS_SANDBOX
-  ? "https://sandbox.pagseguro.uol.com.br/v2/checkout"
-  : "https://pagseguro.uol.com.br/v2/checkout";
-
-async function createV2Checkout(params: {
+async function createV3Checkout(params: {
   reference: string;
   itemDescription: string;
   amountCents: number;
   senderEmail: string;
   senderName: string;
+  taxId?: string;
+  phone?: string;
   redirectUrl: string;
   notificationUrl: string;
 }): Promise<string> {
-  const amount = (params.amountCents / 100).toFixed(2);
-  let name = params.senderName.trim();
+  console.log(`[pagbank-save-order] Criando checkout V3: ${params.itemDescription} - R$ ${params.amountCents / 100}`);
+
+  // Formata o telefone, se existir
+  let phones = [];
+  if (params.phone) {
+    const cleanPhone = params.phone.replace(/\D/g, "");
+    if (cleanPhone.length >= 10 && cleanPhone.length <= 11) {
+      phones.push({
+        country: "55",
+        area: cleanPhone.substring(0, 2),
+        number: cleanPhone.substring(2),
+        type: cleanPhone.length === 11 ? "MOBILE" : "HOME"
+      });
+    }
+  }
+
+  // Se for sandbox, o PagBank frequentemente tem restrições quanto ao email do customer.
+  let customerEmail = params.senderEmail;
+  if (IS_SANDBOX && (!customerEmail || customerEmail.includes("ronaldo.grupogold"))) {
+    customerEmail = "c31804257124195159424@sandbox.pagseguro.com.br";
+  }
+
+  let cleanTaxId = params.taxId ? params.taxId.replace(/\D/g, "") : "";
+  // Em sandbox, se não houver CPF válido (11 dígitos), usamos um gerado ou deixamos de enviar se não for obrigatório no sandbox
+  // Vamos enviar vazio se não for válido para evitar erro de validação
+  if (cleanTaxId.length !== 11 && cleanTaxId.length !== 14) {
+    cleanTaxId = "";
+  }
+
+  const payload: any = {
+    reference_id: params.reference,
+    customer: {
+      name: params.senderName,
+      email: customerEmail,
+    },
+    items: [
+      {
+        reference_id: "item_01",
+        name: params.itemDescription,
+        quantity: 1,
+        unit_amount: params.amountCents
+      }
+    ],
+    redirect_url: params.redirectUrl,
+    notification_urls: [ params.notificationUrl ]
+  };
+
+  if (cleanTaxId) {
+    payload.customer.tax_id = cleanTaxId;
+  }
   
-  // O PagSeguro exige nome com pelo menos 2 palavras e sem caracteres especiais
-  if (!name.includes(" ")) name = `${name} Cliente`;
-  name = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z\s]/g, "");
-
-  console.log(`[pagbank-save-order] Criando checkout V2: ${params.itemDescription} - R$ ${amount}`);
-
-  const body = new URLSearchParams({
-    email:            PAGBANK_EMAIL,
-    token:            PAGBANK_TOKEN,
-    currency:         "BRL",
-    itemId1:          "0001",
-    itemDescription1: params.itemDescription,
-    itemAmount1:      amount,
-    itemQuantity1:    "1",
-    reference:        params.reference,
-    senderEmail:      params.senderEmail,
-    senderName:       name,
-    redirectURL:      params.redirectUrl,
-    notificationURL:  params.notificationUrl,
-  });
+  if (phones.length > 0) {
+    payload.customer.phones = phones;
+  }
 
   const res = await fetch(PAGSEGURO_API_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded; charset=ISO-8859-1",
-      "Accept": "application/xml",
+      "Authorization": `Bearer ${PAGBANK_TOKEN}`,
+      "Content-Type": "application/json",
+      "Accept": "application/json"
     },
-    body: body.toString(),
+    body: JSON.stringify(payload),
   });
 
-  const text = await res.text();
+  const data = await res.json().catch(() => null);
   
   if (!res.ok) {
-    console.error("[pagbank-save-order] Erro bruto PagSeguro:", text);
-    // Extrai as mensagens de erro do XML
-    const errorMatches = text.matchAll(/<message>([^<]+)<\/message>/g);
-    const errors = Array.from(errorMatches).map(m => m[1]);
-    const errorMsg = errors.length > 0 ? errors.join(" | ") : "Erro desconhecido no PagBank";
-    
-    throw new Error(`PagSeguro: ${errorMsg}`);
+    console.error(`[pagbank-save-order] Erro PagSeguro V3 (Status ${res.status}):`, JSON.stringify(data));
+    let errorMsg = "Erro desconhecido";
+    if (data && data.error_messages) {
+      errorMsg = data.error_messages.map((e: any) => `${e.parameter_name}: ${e.description}`).join(" | ");
+    } else if (data && data.message) {
+      errorMsg = data.message;
+    }
+    throw new Error(`Erro PagBank: ${errorMsg}`);
   }
 
-  const match = text.match(/<code>([^<]+)<\/code>/);
-  if (!match?.[1]) throw new Error(`Código de checkout não encontrado na resposta do PagSeguro.`);
+  // Extrair o link de pagamento
+  const payLink = data.links?.find((l: any) => l.rel === "PAY");
+  if (!payLink || !payLink.href) {
+    console.error("[pagbank-save-order] Resposta sem link de pagamento:", JSON.stringify(data));
+    throw new Error("Link de pagamento não retornado pelo PagBank.");
+  }
 
-  return `${PAGSEGURO_CHECKOUT_URL}?code=${match[1]}`;
+  return payLink.href;
 }
 
 Deno.serve(async (req: Request) => {
@@ -107,27 +140,24 @@ Deno.serve(async (req: Request) => {
     if (planErr || !plan) throw new Error("Plano não encontrado.");
 
     // Busca dados do perfil do usuário
-    const { data: profile } = await admin.from("profiles").select("full_name").eq("id", userId).single();
+    const { data: profile } = await admin.from("profiles").select("full_name, phone, cpf").eq("id", userId).single();
 
     const refId = `sub_${userId.substring(0,8)}_${Date.now()}`;
     const baseUrl = origin_url || "https://royalsaude.com.br";
 
-    // NO SANDBOX: O e-mail do comprador NÃO PODE ser o mesmo do vendedor
-    // Se o usuário estiver usando o e-mail ronaldo.grupogold@icloud.com (vendedor), 
-    // mudamos o comprador para um e-mail de teste genérico.
-    let senderEmail = bodyParams.customer?.email || "cliente@teste.com.br";
-    if (IS_SANDBOX && senderEmail.toLowerCase() === PAGBANK_EMAIL.toLowerCase()) {
-      senderEmail = "c31804257124195159424@sandbox.pagseguro.com.br"; // E-mail de comprador padrão de sandbox
-    } else if (IS_SANDBOX && !senderEmail.includes("@")) {
-      senderEmail = "cliente@teste.com.br";
-    }
+    const senderEmail = bodyParams.customer?.email || "cliente@teste.com.br";
+    const senderName = profile?.full_name || bodyParams.customer?.name || "Cliente RoyalMed";
+    const taxId = profile?.cpf || bodyParams.customer?.tax_id || "";
+    const phone = profile?.phone || "";
 
-    const checkoutUrl = await createV2Checkout({
+    const checkoutUrl = await createV3Checkout({
       reference: refId,
       itemDescription: `Assinatura ${plan.name} - RoyalMed`,
       amountCents: total_cents || plan.price_cents,
-      senderEmail: senderEmail,
-      senderName: profile?.full_name || bodyParams.customer?.name || "Cliente RoyalMed",
+      senderEmail,
+      senderName,
+      taxId,
+      phone,
       redirectUrl: `${baseUrl}/pagamento-confirmado?ref=${refId}`,
       notificationUrl: `${SUPABASE_URL}/functions/v1/pagbank-webhook`,
     });

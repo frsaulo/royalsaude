@@ -27,7 +27,7 @@ function formatDate(dateStr: string): string {
 function buildConfirmMessage(name: string, date: string, time: string, type: string): string {
   const isTele = type === "telemedicina";
   return (
-    `\uD83C\uDFE5 *RoyalMed Health \u2013 Consulta Confirmada!*\n\n` +
+    `\uD83C\uDFE5 *RoyalMed Health \u2013 Pré-Agendamento Confirmado!*\n\n` +
     `Ol\u00e1, *${name}*! \u2705\n\n` +
     `Sua consulta foi agendada com sucesso:\n\n` +
     `\uD83D\uDCC5 *Data:* ${date}\n` +
