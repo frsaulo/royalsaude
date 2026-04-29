@@ -37,6 +37,16 @@ async function createV3Order(params: {
   const areaCode = phoneDigits.substring(0, 2) || "11";
   const phoneNumber = phoneDigits.substring(2) || "999999999";
 
+  const address = {
+    street: "Avenida Paulista",
+    number: "1000",
+    locality: "Bela Vista",
+    city: "São Paulo",
+    region_code: "SP",
+    country: "BRA",
+    postal_code: "01310100"
+  };
+
   const payload: any = {
     reference_id: params.reference,
     customer: {
@@ -61,6 +71,11 @@ async function createV3Order(params: {
     ],
     qr_codes: params.paymentMethod === "PIX" ? [{ amount: { value: params.amountCents } }] : undefined,
   };
+
+  // Para Boleto, o endereço no customer é OBRIGATÓRIO
+  if (params.paymentMethod === "BOLETO") {
+    payload.customer.address = address;
+  }
 
   // Se for Cartão de Crédito
   if (params.paymentMethod === "CREDIT_CARD" && params.cardEncrypted) {
@@ -102,15 +117,7 @@ async function createV3Order(params: {
             name: params.senderName,
             tax_id: params.taxId.replace(/\D/g, ""),
             email: params.senderEmail,
-            address: {
-              street: "Avenida Paulista",
-              number: "1000",
-              locality: "Bela Vista",
-              city: "São Paulo",
-              region_code: "SP",
-              country: "BRA",
-              postal_code: "01310100"
-            }
+            address: address
           }
         }
       }

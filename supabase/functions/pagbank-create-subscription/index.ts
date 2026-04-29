@@ -7,7 +7,10 @@ const CORS_HEADERS = {
 };
 
 const PAGBANK_TOKEN    = Deno.env.get("PAGBANK_TOKEN");
-const PAGBANK_BASE_URL = Deno.env.get("PAGBANK_API_URL") || "https://sandbox.api.pagseguro.com";
+const IS_SANDBOX = Deno.env.get("PAGBANK_SANDBOX") === "true";
+const PAGBANK_BASE_URL = IS_SANDBOX 
+  ? "https://sandbox.api.pagseguro.com"
+  : "https://api.pagseguro.com";
 const SUPABASE_URL     = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY     = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
@@ -104,6 +107,15 @@ async function createBoletoOrder(plan: any, customer: any, totalCents: number) {
       name: customer.name,
       email: customer.email,
       tax_id: customer.tax_id.replace(/\D/g, ""),
+      address: {
+        street: customer.street ?? "Avenida Paulista",
+        number: customer.number ?? "1000",
+        locality: customer.neighborhood ?? "Bela Vista",
+        city: customer.city ?? "São Paulo",
+        region_code: (customer.state ?? "SP").substring(0, 2).toUpperCase(),
+        country: "BRA",
+        postal_code: (customer.postal_code ?? "01310100").replace(/\D/g, ""),
+      }
     },
     items: [
       {
@@ -131,14 +143,13 @@ async function createBoletoOrder(plan: any, customer: any, totalCents: number) {
               tax_id: customer.tax_id.replace(/\D/g, ""),
               email: customer.email,
               address: {
-                country: "Brasil",
-                region: customer.state ?? "SP",
-                region_code: customer.state ?? "SP",
-                city: customer.city ?? "Sao Paulo",
-                postal_code: (customer.postal_code ?? "01310100").replace(/\D/g, ""),
                 street: customer.street ?? "Avenida Paulista",
-                number: customer.number ?? "1",
-                locality: customer.neighborhood ?? "Centro",
+                number: customer.number ?? "1000",
+                locality: customer.neighborhood ?? "Bela Vista",
+                city: customer.city ?? "São Paulo",
+                region_code: (customer.state ?? "SP").substring(0, 2).toUpperCase(),
+                country: "BRA",
+                postal_code: (customer.postal_code ?? "01310100").replace(/\D/g, ""),
               },
             },
           },
