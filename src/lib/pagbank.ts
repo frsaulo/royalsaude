@@ -151,6 +151,7 @@ export const createSubscription = async (params: {
     name: string;
     email: string;
     tax_id: string;
+    phone?: string;
   };
   card?: {
     encrypted: string;

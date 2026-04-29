@@ -118,59 +118,19 @@ export const Planos = () => {
     return null;
   }
 
-  const handleSubscribe = async (plan: Plan) => {
+  const handleSubscribe = (plan: Plan) => {
     if (!user) {
       navigate("/login");
       return;
     }
-
-    setLoading(true);
-    try {
-      const totalCents = calculateTotalWithDependents(plan, dependentsCount);
-      
-      const { data, error } = await supabase.functions.invoke("pagbank-save-order", {
-        body: {
-          plan_id: plan.id,
-          total_cents: totalCents,
-          extra_dependents: Math.max(0, dependentsCount - 3),
-          customer: {
-            email: user.email,
-            name: user.user_metadata?.full_name || "Cliente",
-            tax_id: userCpf
-          },
-          origin_url: window.location.origin,
-        },
-      });
-
-      if (error) {
-        console.error("[Planos] Erro bruto da function:", error);
-        // Tenta extrair a mensagem de erro do corpo da resposta 400
-        let errorMessage = error.message;
-        try {
-          const body = await (error as any).context?.json();
-          if (body?.error) errorMessage = body.error;
-        } catch (e) { /* fallback para o erro padrão */ }
-        
-        throw new Error(errorMessage);
-      }
-
-      if (!data?.ok) throw new Error(data?.error || "Erro desconhecido na resposta da função");
-
-      if (data.payment_url) {
-        console.log("[Planos] Abrindo pagamento:", data.payment_url);
-        toast.success("Redirecionando para o PagBank...");
-        
-        // Redireciona a página atual diretamente para evitar problemas de frame/popup
-        // window.location.assign é mais seguro que window.open para evitar bloqueios de popup em fluxos asscrônicos
-        window.location.assign(data.payment_url);
-      }
-    } catch (err: any) {
-      console.error("Erro na assinatura:", err);
-      setLoading(false);
-      window.alert("Erro ao processar assinatura:\n" + err.message);
-    } finally {
-      setLoading(false);
-    }
+    
+    // Navega para a página de checkout interna passando o plano selecionado
+    navigate("/checkout", { 
+      state: { 
+        planId: plan.id, 
+        dependentsCount 
+      } 
+    });
   };
 
   return (

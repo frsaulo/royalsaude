@@ -9,111 +9,135 @@ const CORS = {
 const SUPABASE_URL  = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-// Token do Sandbox fornecido (V3 Bearer Token)
-const PAGBANK_TOKEN = "e82e3dba-0dd7-4ba1-8afd-0feec510ca1c038248324d9a86eb68c57216168cba2f27ab-c6a0-499f-8e4b-fac05bad286b";
-const IS_SANDBOX = true; 
+// API de Orders para Checkout Transparente
+const IS_SANDBOX = Deno.env.get("PAGBANK_SANDBOX") === "true";
+const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN") ?? "";
 
-const PAGSEGURO_API_URL = IS_SANDBOX 
-  ? "https://sandbox.api.pagseguro.com/checkouts"
-  : "https://api.pagseguro.com/checkouts";
+// API de Orders para Checkout Transparente
+const PAGSEGURO_ORDERS_URL = IS_SANDBOX 
+  ? "https://sandbox.api.pagseguro.com/orders"
+  : "https://api.pagseguro.com/orders";
 
-async function createV3Checkout(params: {
+async function createV3Order(params: {
   reference: string;
   itemDescription: string;
   amountCents: number;
   senderEmail: string;
   senderName: string;
-  taxId?: string;
+  taxId: string;
   phone?: string;
-  redirectUrl: string;
-  notificationUrl: string;
-}): Promise<string> {
-  console.log(`[pagbank-save-order] Criando checkout V3: ${params.itemDescription} - R$ ${params.amountCents / 100}`);
+  paymentMethod: string;
+  cardEncrypted?: string;
+}): Promise<any> {
+  console.log(`[pagbank-save-order] Preparando payload (${params.paymentMethod}): ${params.itemDescription}`);
 
-  // Formata o telefone, se existir
-  let phones = [];
-  if (params.phone) {
-    const cleanPhone = params.phone.replace(/\D/g, "");
-    if (cleanPhone.length >= 10 && cleanPhone.length <= 11) {
-      phones.push({
-        country: "55",
-        area: cleanPhone.substring(0, 2),
-        number: cleanPhone.substring(2),
-        type: cleanPhone.length === 11 ? "MOBILE" : "HOME"
-      });
-    }
-  }
-
-  // Se for sandbox, o PagBank frequentemente tem restrições quanto ao email do customer.
-  let customerEmail = params.senderEmail;
-  if (IS_SANDBOX && (!customerEmail || customerEmail.includes("ronaldo.grupogold"))) {
-    customerEmail = "c31804257124195159424@sandbox.pagseguro.com.br";
-  }
-
-  let cleanTaxId = params.taxId ? params.taxId.replace(/\D/g, "") : "";
-  // Em sandbox, se não houver CPF válido (11 dígitos), usamos um gerado ou deixamos de enviar se não for obrigatório no sandbox
-  // Vamos enviar vazio se não for válido para evitar erro de validação
-  if (cleanTaxId.length !== 11 && cleanTaxId.length !== 14) {
-    cleanTaxId = "";
-  }
+  // Tratar telefone (obrigatório para alguns métodos V3)
+  const rawPhone = params.phone || "11999999999";
+  const phoneDigits = rawPhone.replace(/\D/g, "");
+  const areaCode = phoneDigits.substring(0, 2) || "11";
+  const phoneNumber = phoneDigits.substring(2) || "999999999";
 
   const payload: any = {
     reference_id: params.reference,
     customer: {
       name: params.senderName,
-      email: customerEmail,
+      email: params.senderEmail,
+      tax_id: params.taxId.replace(/\D/g, ""),
+      phones: [
+        {
+          country: "55",
+          area: areaCode,
+          number: phoneNumber,
+          type: "MOBILE"
+        }
+      ]
     },
     items: [
       {
-        reference_id: "item_01",
         name: params.itemDescription,
         quantity: 1,
         unit_amount: params.amountCents
       }
     ],
-    redirect_url: params.redirectUrl,
-    notification_urls: [ params.notificationUrl ]
+    qr_codes: params.paymentMethod === "PIX" ? [{ amount: { value: params.amountCents } }] : undefined,
   };
 
-  if (cleanTaxId) {
-    payload.customer.tax_id = cleanTaxId;
-  }
-  
-  if (phones.length > 0) {
-    payload.customer.phones = phones;
+  // Se for Cartão de Crédito
+  if (params.paymentMethod === "CREDIT_CARD" && params.cardEncrypted) {
+    payload.charges = [{
+      reference_id: params.reference,
+      description: params.itemDescription,
+      amount: { value: params.amountCents, currency: "BRL" },
+      payment_method: {
+        type: "CREDIT_CARD",
+        installments: 1,
+        capture: true,
+        card: {
+          encrypted: params.cardEncrypted,
+          store: false
+        }
+      }
+    }];
   }
 
-  const res = await fetch(PAGSEGURO_API_URL, {
+  // Se for Boleto
+  if (params.paymentMethod === "BOLETO") {
+    const today = new Date();
+    today.setDate(today.getDate() + 3); // Vencimento em 3 dias
+    const dueDate = today.toISOString().split("T")[0];
+
+    payload.charges = [{
+      reference_id: params.reference,
+      description: params.itemDescription,
+      amount: { value: params.amountCents, currency: "BRL" },
+      payment_method: {
+        type: "BOLETO",
+        boleto: {
+          due_date: dueDate,
+          instruction_lines: {
+            line_1: "Pagável em qualquer banco até o vencimento.",
+            line_2: "RoyalMed Health - Plano de Saúde"
+          },
+          holder: {
+            name: params.senderName,
+            tax_id: params.taxId.replace(/\D/g, ""),
+            email: params.senderEmail,
+            address: {
+              street: "Avenida Paulista",
+              number: "1000",
+              locality: "Bela Vista",
+              city: "São Paulo",
+              region_code: "SP",
+              country: "BRA",
+              postal_code: "01310100"
+            }
+          }
+        }
+      }
+    }];
+  }
+
+  console.log("[pagbank-save-order] Enviando Payload para PagBank:", JSON.stringify(payload));
+
+  const res = await fetch(PAGSEGURO_ORDERS_URL, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${PAGBANK_TOKEN}`,
-      "Content-Type": "application/json",
-      "Accept": "application/json"
+      "Content-Type": "application/json"
     },
     body: JSON.stringify(payload),
   });
 
-  const data = await res.json().catch(() => null);
+  const data = await res.json();
   
   if (!res.ok) {
-    console.error(`[pagbank-save-order] Erro PagSeguro V3 (Status ${res.status}):`, JSON.stringify(data));
-    let errorMsg = "Erro desconhecido";
-    if (data && data.error_messages) {
-      errorMsg = data.error_messages.map((e: any) => `${e.parameter_name}: ${e.description}`).join(" | ");
-    } else if (data && data.message) {
-      errorMsg = data.message;
-    }
-    throw new Error(`Erro PagBank: ${errorMsg}`);
+    console.error("[pagbank-save-order] Erro detectado na resposta do PagBank:", JSON.stringify(data, null, 2));
+    const errorMsg = data.error_messages?.[0]?.description || "Erro ao processar pedido no PagBank.";
+    const parameter = data.error_messages?.[0]?.parameter_name ? ` (Campo: ${data.error_messages[0].parameter_name})` : "";
+    throw new Error(`${errorMsg}${parameter}`);
   }
 
-  // Extrair o link de pagamento
-  const payLink = data.links?.find((l: any) => l.rel === "PAY");
-  if (!payLink || !payLink.href) {
-    console.error("[pagbank-save-order] Resposta sem link de pagamento:", JSON.stringify(data));
-    throw new Error("Link de pagamento não retornado pelo PagBank.");
-  }
-
-  return payLink.href;
+  return data;
 }
 
 Deno.serve(async (req: Request) => {
@@ -131,43 +155,71 @@ Deno.serve(async (req: Request) => {
     if (!userId) throw new Error("Usuário não identificado.");
 
     const bodyParams = await req.json();
-    console.log("[pagbank-save-order] Payload recebido:", JSON.stringify(bodyParams));
-    
-    const { plan_id, total_cents, extra_dependents = 0, origin_url } = bodyParams;
+    const { plan_id, total_cents, extra_dependents = 0, payment_method, card } = bodyParams;
 
-    // Busca dados do plano
     const { data: plan, error: planErr } = await admin.from("plans").select("*").eq("id", plan_id).single();
     if (planErr || !plan) throw new Error("Plano não encontrado.");
 
-    // Busca dados do perfil do usuário
     const { data: profile } = await admin.from("profiles").select("full_name, phone, cpf").eq("id", userId).single();
 
     const refId = `sub_${userId.substring(0,8)}_${Date.now()}`;
-    const baseUrl = origin_url || "https://royalsaude.com.br";
+    const senderEmail = bodyParams.customer?.email || profile?.email || "cliente@teste.com.br";
+    const senderName = bodyParams.customer?.name || profile?.full_name || "Cliente RoyalMed";
+    const taxId = bodyParams.customer?.tax_id || profile?.cpf || "";
 
-    const senderEmail = bodyParams.customer?.email || "cliente@teste.com.br";
-    const senderName = profile?.full_name || bodyParams.customer?.name || "Cliente RoyalMed";
-    const taxId = profile?.cpf || bodyParams.customer?.tax_id || "";
-    const phone = profile?.phone || "";
+    if (!taxId) throw new Error("CPF é obrigatório para o checkout transparente.");
 
-    const checkoutUrl = await createV3Checkout({
+    // Cria o Pedido (Order) no PagBank
+    const orderData = await createV3Order({
       reference: refId,
       itemDescription: `Assinatura ${plan.name} - RoyalMed`,
       amountCents: total_cents || plan.price_cents,
       senderEmail,
       senderName,
       taxId,
-      phone,
-      redirectUrl: `${baseUrl}/pagamento-confirmado?ref=${refId}`,
-      notificationUrl: `${SUPABASE_URL}/functions/v1/pagbank-webhook`,
+      phone: bodyParams.customer?.phone || profile?.phone,
+      paymentMethod: payment_method,
+      cardEncrypted: card?.encrypted,
     });
 
-    // Registra a intenção de assinatura no banco
-    const { error: upsertErr } = await admin.from("subscriptions").upsert({
+    console.log(`[pagbank-save-order] Order criada com sucesso: ${orderData.id}`);
+
+    // Extrai dados de pagamento dependendo do método
+    let paymentResponse: any = { ok: true, reference: refId, method: payment_method };
+
+    if (payment_method === "PIX") {
+      const qrCode = orderData.qr_codes?.[0];
+      if (!qrCode) throw new Error("Erro ao gerar QR Code PIX no PagBank.");
+      
+      paymentResponse.pix = {
+        qr_code: qrCode.text,
+        qr_code_image: qrCode.links?.find((l: any) => l.rel === "QRCODE.PNG")?.href
+      };
+      console.log("[pagbank-save-order] Dados PIX capturados:", !!paymentResponse.pix.qr_code);
+    } else if (payment_method === "BOLETO") {
+      const charge = orderData.charges?.[0];
+      if (!charge) throw new Error("Erro ao gerar Boleto no PagBank (charge não encontrada).");
+      
+      const boletoData = charge.payment_method?.boleto;
+      paymentResponse.boleto = {
+        barcode: boletoData?.barcode,
+        formatted_barcode: boletoData?.formatted_barcode,
+        pdf_link: charge.links?.find((l: any) => l.rel === "PAYMENT.BOLETO.PDF")?.href,
+        due_date: boletoData?.due_date
+      };
+      console.log("[pagbank-save-order] Dados Boleto capturados:", !!paymentResponse.boleto.barcode);
+    } else if (payment_method === "CREDIT_CARD") {
+      const charge = orderData.charges?.[0];
+      paymentResponse.status = charge?.status;
+      console.log("[pagbank-save-order] Status Cartão:", paymentResponse.status);
+    }
+
+    // Registra no banco
+    await admin.from("subscriptions").upsert({
       user_id: userId,
       plan_id: plan.id,
       pagbank_subscription_id: refId,
-      status: "PENDING",
+      status: payment_method === "CREDIT_CARD" && paymentResponse.status === "PAID" ? "ACTIVE" : "PENDING",
       current_period_start: new Date().toISOString(),
       current_period_end: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
       extra_dependents_count: extra_dependents,
@@ -175,14 +227,12 @@ Deno.serve(async (req: Request) => {
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
 
-    if (upsertErr) console.error("[pagbank-save-order] Erro ao salvar sub:", upsertErr);
-
-    return new Response(JSON.stringify({ ok: true, payment_url: checkoutUrl }), {
+    return new Response(JSON.stringify(paymentResponse), {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
 
   } catch (err: any) {
-    console.error("[pagbank-save-order] Erro na execução:", err.message);
+    console.error("[pagbank-save-order] Erro:", err.message);
     return new Response(JSON.stringify({ ok: false, error: err.message }), {
       status: 400,
       headers: { ...CORS, "Content-Type": "application/json" },

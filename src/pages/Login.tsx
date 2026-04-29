@@ -38,6 +38,7 @@ export const Login = () => {
   const [dependents, setDependents] = useState<DependentForm[]>([]);
 
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isResetPassword, setIsResetPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -46,6 +47,16 @@ export const Login = () => {
     setLoading(true);
 
     try {
+      if (isResetPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/redefinir-senha`,
+        });
+        if (error) throw error;
+        toast.success("E-mail de redefinição enviado! Verifique sua caixa de entrada.");
+        setIsResetPassword(false);
+        return;
+      }
+
       if (isRegistering) {
         if (accountType === "TITULAR") {
           const invalidDependent = dependents.find(
@@ -157,17 +168,19 @@ export const Login = () => {
         <form onSubmit={handleAuth}>
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold tracking-tight text-center text-[#1E3A8A]">
-              {isRegistering ? "Criar Conta" : "Acesso Restrito"}
+              {isResetPassword ? "Recuperar Senha" : isRegistering ? "Criar Conta" : "Acesso Restrito"}
             </CardTitle>
             <CardDescription className="text-center">
-              {isRegistering
+              {isResetPassword
+                ? "Informe seu e-mail para receber um link de redefinição de senha."
+                : isRegistering
                 ? "Preencha todos os dados para criar seu acesso à agenda."
                 : "Entre com seu e-mail e senha para acessar a agenda da RoyalMed Health."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
 
-            {isRegistering && (
+            {isRegistering && !isResetPassword && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="accountType">Tipo de Cadastro</Label>
@@ -332,20 +345,22 @@ export const Login = () => {
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+            {!isResetPassword && (
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            )}
 
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
+          <CardFooter className="flex flex-col space-y-2">
             <Button
               type="submit"
               className="w-full bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 mt-2"
@@ -353,20 +368,49 @@ export const Login = () => {
             >
               {loading
                 ? "Processando..."
+                : isResetPassword
+                ? "Enviar Link de Recuperação"
                 : isRegistering
                 ? "Criar Conta"
                 : "Entrar na Agenda"}
             </Button>
-            <Button
-              type="button"
-              variant="link"
-              className="text-sm text-slate-500"
-              onClick={() => setIsRegistering(!isRegistering)}
-            >
-              {isRegistering
-                ? "Já tem uma conta? Faça login"
-                : "Não possui acesso? Cadastre-se"}
-            </Button>
+            
+            <div className="flex flex-col items-center w-full space-y-1 pt-2">
+              {!isResetPassword ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-sm text-slate-500 h-auto p-0"
+                    onClick={() => setIsRegistering(!isRegistering)}
+                  >
+                    {isRegistering
+                      ? "Já tem uma conta? Faça login"
+                      : "Não possui acesso? Cadastre-se"}
+                  </Button>
+                  
+                  {!isRegistering && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="text-sm text-[#1E3A8A] font-medium h-auto p-0 pt-1"
+                      onClick={() => setIsResetPassword(true)}
+                    >
+                      Esqueceu sua senha? Redefinir
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-sm text-slate-500 h-auto p-0"
+                  onClick={() => setIsResetPassword(false)}
+                >
+                  Voltar para o login
+                </Button>
+              )}
+            </div>
           </CardFooter>
         </form>
       </Card>

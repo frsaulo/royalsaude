@@ -19,6 +19,7 @@ import { PoliticaPrivacidade } from "./pages/PoliticaPrivacidade";
 import { ContratoAdesao } from "./pages/ContratoAdesao";
 import { PoliticaCancelamento } from "./pages/PoliticaCancelamento";
 import { PagamentoConfirmado } from "./pages/PagamentoConfirmado";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import WhatsAppButton from "./components/WhatsAppButton";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
             
             {/* Autenticação */}
             <Route path="/login" element={<Login />} />
+            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/admin-users" element={<AdminUsers />} />

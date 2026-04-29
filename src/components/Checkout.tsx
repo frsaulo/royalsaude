@@ -83,6 +83,7 @@ export const Checkout = () => {
   // Customer info
   const [customerName, setCustomerName] = useState("");
   const [customerTaxId, setCustomerTaxId] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
 
   // Credit card form
   const [cardNumber, setCardNumber] = useState("");
@@ -93,25 +94,39 @@ export const Checkout = () => {
   // Payment data from API
   const [paymentData, setPaymentData] = useState<any>(null);
 
-  // Carregar SDK PagBank
+  // Carregar SDK PagBank (Novo SDK para Criptografia)
   useEffect(() => {
     const existingScript = document.getElementById("pagbank-sdk");
     if (existingScript) { setSdkReady(true); return; }
 
     const script = document.createElement("script");
     script.id = "pagbank-sdk";
-    script.src = "https://assets.pagseguro.com.br/checkout-sdk/js/directpayment.min.js";
+    // URL correta para o SDK de criptografia do PagBank
+    script.src = "https://assets.pagseguro.com.br/checkout-sdk-js/rc/dist/browser/pagseguro.min.js";
     script.async = true;
-    script.onload = () => setSdkReady(true);
-    script.onerror = () => console.warn("SDK PagBank não carregou");
+    script.onload = () => {
+      console.log("SDK PagBank carregado com sucesso");
+      setSdkReady(true);
+    };
+    script.onerror = () => {
+      console.error("Erro ao carregar SDK PagBank");
+      toast.error("Erro ao carregar módulo de segurança de pagamento.");
+    };
     document.head.appendChild(script);
   }, []);
 
-  // Pré-preencher nome do usuário
+  // Pré-preencher dados do usuário
   useEffect(() => {
-    if (user?.user_metadata?.full_name) {
-      setCustomerName(user.user_metadata.full_name);
-    }
+    const loadProfile = async () => {
+      if (!user) return;
+      const { data } = await supabase.from("profiles").select("full_name, phone, cpf").eq("id", user.id).single();
+      if (data) {
+        if (data.full_name) setCustomerName(data.full_name);
+        if (data.phone) setCustomerPhone(data.phone);
+        if (data.cpf) setCustomerTaxId(data.cpf);
+      }
+    };
+    loadProfile();
   }, [user]);
 
   useEffect(() => {
@@ -170,35 +185,58 @@ export const Checkout = () => {
       return;
     }
 
+    let cardEncrypted = null;
+    if (paymentMethod === "CREDIT_CARD") {
+      if (!cardName || !cardNumber || !cardExpiry || !cardCvv) {
+        toast.error("Preencha todos os dados do cartão.");
+        return;
+      }
+      cardEncrypted = encryptCard();
+      if (!cardEncrypted) return; // Erro já mostrado no encryptCard
+    }
+
     setProcessing(true);
-    toast.info("Preparando ambiente de pagamento seguro…");
+    const loadingToast = toast.loading("Processando seu pagamento com segurança...");
 
     try {
       const extraDependents = Math.max(0, dependentsCount - plan.free_dependents);
       const totalCents = calculateTotalWithDependents(plan, dependentsCount);
 
-      // Invoca a Edge Function proxy que cria o Checkout no PagBank e salva no banco
+      // Invoca a Edge Function proxy que cria a Order no PagBank
       const response = await createSubscription({
         planId: plan.id,
-        paymentMethod: paymentMethod, // Apesar de ser Hosted Checkout, passamos para registro
+        paymentMethod: paymentMethod,
         extraDependentsCount: extraDependents,
         totalCents: totalCents,
         customer: {
           name: customerName,
           email: user.email || "",
           tax_id: cpfDigits,
+          phone: customerPhone.replace(/\D/g, ""),
         },
+        card: paymentMethod === "CREDIT_CARD" ? {
+          encrypted: cardEncrypted!,
+          holder_name: cardName,
+        } : undefined,
       });
 
-      if (!response?.ok || !response?.payment_url) {
-        throw new Error(response?.error || "Não foi possível gerar o link de pagamento.");
-      }
+      console.log("[Checkout] Resposta da API:", response);
 
-      toast.success("Redirecionando para o PagBank…");
-      // Redireciona o usuário para o Checkout Hospedado gerado pela Edge Function
-      window.location.href = response.payment_url;
+      if (response?.ok) {
+        setPaymentData(response);
+        // Usamos o método retornado pela API para garantir consistência
+        if (response.method) {
+          setPaymentMethod(response.method);
+        }
+        setPaymentSuccess(true);
+        toast.dismiss(loadingToast);
+        toast.success("Pagamento processado com sucesso!");
+      } else {
+        throw new Error(response?.error || "Erro ao processar pagamento.");
+      }
     } catch (err: any) {
       console.error(err);
+      toast.dismiss(loadingToast);
       toast.error("Erro: " + (err.message || "tente novamente."));
       setProcessing(false);
     }
@@ -228,7 +266,7 @@ export const Checkout = () => {
               </p>
 
               {/* PIX QR Code */}
-              {paymentMethod === "PIX" && paymentData?.pix && (
+              {(paymentMethod === "PIX" || paymentData?.method === "PIX") && paymentData?.pix && (
                 <div className="mt-6 p-6 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center gap-4">
                   <p className="text-sm font-bold text-[#1E3A8A] uppercase tracking-wider">Escaneie o QR Code PIX</p>
                   {paymentData.pix.qr_code_image && (
@@ -253,7 +291,7 @@ export const Checkout = () => {
               )}
 
               {/* Boleto */}
-              {paymentMethod === "BOLETO" && paymentData?.boleto && (
+              {(paymentMethod === "BOLETO" || paymentData?.method === "BOLETO") && paymentData?.boleto && (
                 <div className="mt-6 p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
                   <p className="text-sm font-bold text-[#1E3A8A] text-center uppercase tracking-wider">Boleto Gerado</p>
                   <div className="flex flex-col gap-3">
@@ -287,7 +325,7 @@ export const Checkout = () => {
               )}
 
               {/* Cartão aprovado */}
-              {paymentMethod === "CREDIT_CARD" && (
+              {(paymentMethod === "CREDIT_CARD" || paymentData?.method === "CREDIT_CARD") && (
                 <div className="mt-6 p-4 bg-green-50 rounded-xl flex items-center gap-3">
                   <Check className="h-5 w-5 text-green-600 shrink-0" />
                   <p className="text-sm text-green-800 text-left">
@@ -365,6 +403,15 @@ export const Checkout = () => {
                       maxLength={14}
                     />
                   </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="phone">Telefone/WhatsApp <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="phone"
+                      placeholder="(00) 00000-0000"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -439,9 +486,53 @@ export const Checkout = () => {
                         <p className="text-sm text-indigo-600">Cobrança recorrente automática · Ativação imediata</p>
                       </div>
                     </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2 space-y-1.5">
+                        <Label htmlFor="cardNumber">Número do Cartão</Label>
+                        <div className="relative">
+                          <Input
+                            id="cardNumber"
+                            placeholder="0000 0000 0000 0000"
+                            value={cardNumber}
+                            onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                            className="pr-10"
+                          />
+                          <CreditCard className="absolute right-3 top-2.5 h-5 w-5 text-slate-400" />
+                        </div>
+                      </div>
+                      <div className="md:col-span-2 space-y-1.5">
+                        <Label htmlFor="cardName">Nome como no Cartão</Label>
+                        <Input
+                          id="cardName"
+                          placeholder="NOME DO TITULAR"
+                          value={cardName}
+                          onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="cardExpiry">Validade (MM/AA)</Label>
+                        <Input
+                          id="cardExpiry"
+                          placeholder="MM/AA"
+                          value={cardExpiry}
+                          onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="cardCvv">CVV</Label>
+                        <Input
+                          id="cardCvv"
+                          placeholder="123"
+                          value={cardCvv}
+                          onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                        />
+                      </div>
+                    </div>
+
                     <div className="flex items-center gap-2 p-3 bg-indigo-50/50 rounded-lg border border-indigo-100">
                       <Lock className="h-4 w-4 text-indigo-500 shrink-0" />
-                      <p className="text-xs text-indigo-700">Para sua segurança, os dados do cartão serão solicitados diretamente no ambiente criptografado do PagBank na próxima etapa.</p>
+                      <p className="text-[10px] text-indigo-700">Seus dados são criptografados e processados com segurança pelo PagBank. Não armazenamos os dados sensíveis do seu cartão.</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -454,14 +545,14 @@ export const Checkout = () => {
               disabled={processing}
             >
               {processing ? (
-                <><Loader2 className="h-5 w-5 mr-2 animate-spin" />Preparando pagamento…</>
+                <><Loader2 className="h-5 w-5 mr-2 animate-spin" />Processando…</>
               ) : (
-                <><Lock className="h-4 w-4 mr-2" />Ir para Pagamento Seguro — {formatCurrency(totalAmount)}</>
+                <><Check className="h-4 w-4 mr-2" />Finalizar Assinatura — {formatCurrency(totalAmount)}</>
               )}
             </Button>
 
             <p className="text-center text-xs text-slate-400">
-              🔒 Você será redirecionado para o ambiente seguro do PagBank para concluir o pagamento.
+              🔒 Pagamento 100% seguro processado pelo PagBank.
             </p>
           </div>
 
