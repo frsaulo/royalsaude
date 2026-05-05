@@ -73,6 +73,7 @@ interface Profile {
   phone: string;
   email: string;
   address: string;
+  birth_date: string;
   account_type: string;
   dependents: any[];
   created_at: string;
@@ -89,6 +90,7 @@ interface FlattenedUser {
   phone: string;
   email: string;
   address: string;
+  birthDate: string;
   type: string;
   relationship: string;
   subscriptionStatus: string;
@@ -110,7 +112,8 @@ export const AdminUsers = () => {
     cpf: "",
     relationship: "FILHO",
     email: "",
-    phone: ""
+    phone: "",
+    birth_date: ""
   });
   const [isSaving, setIsSaving] = useState(false);
   
@@ -208,6 +211,7 @@ export const AdminUsers = () => {
           phone: p.phone || "Sem Telefone",
           email: p.email || "Sem E-mail",
           address: p.address || "",
+          birthDate: p.birth_date || "N/A",
           type: "TITULAR",
           relationship: "TITULAR",
           subscriptionStatus: subStatus,
@@ -227,6 +231,7 @@ export const AdminUsers = () => {
             phone: d.phone || p.phone || "Sem Telefone",
             email: d.email || p.email || "Sem E-mail",
             address: p.address || "", // inherits titular address
+            birthDate: d.birth_date || "N/A",
             type: "DEPENDENTE",
             relationship: d.relationship || "DEPENDENTE",
             subscriptionStatus: subStatus, // inherits titular subscription
@@ -251,7 +256,8 @@ export const AdminUsers = () => {
       cpf: "",
       relationship: "FILHO",
       email: "",
-      phone: ""
+      phone: "",
+      birth_date: ""
     });
     setIsAddDependentDialogOpen(true);
   };
@@ -312,7 +318,8 @@ export const AdminUsers = () => {
               cpf: editingUser.cpf,
               phone: editingUser.phone,
               email: editingUser.email,
-              relationship: editingUser.relationship
+              relationship: editingUser.relationship,
+              birth_date: editingUser.birthDate
             };
 
             const { error } = await supabase
@@ -332,7 +339,8 @@ export const AdminUsers = () => {
             cpf: editingUser.cpf,
             phone: editingUser.phone,
             email: editingUser.email,
-            address: editingUser.address
+            address: editingUser.address,
+            birth_date: editingUser.birthDate
           })
           .eq('id', editingUser.id);
         
@@ -353,16 +361,29 @@ export const AdminUsers = () => {
             .eq('user_id', editingUser.id);
           if (subError) console.warn("Erro ao atualizar status:", subError.message);
         } else if (editingUser.subscriptionStatus !== "NONE") {
-          // Cria assinatura manual quando não existe nenhuma
-          const { error: insertError } = await supabase
-            .from('subscriptions')
-            .insert({
-              user_id: editingUser.id,
-              status: editingUser.subscriptionStatus,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            });
-          if (insertError) console.warn("Erro ao criar assinatura:", insertError.message);
+          // Busca o primeiro plano disponível para vincular
+          const { data: planData } = await supabase
+            .from('plans')
+            .select('id')
+            .eq('active', true)
+            .limit(1)
+            .single();
+
+          if (planData) {
+            // Cria assinatura manual quando não existe nenhuma
+            const { error: insertError } = await supabase
+              .from('subscriptions')
+              .insert({
+                user_id: editingUser.id,
+                plan_id: planData.id,
+                status: editingUser.subscriptionStatus,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              });
+            if (insertError) console.warn("Erro ao criar assinatura:", insertError.message);
+          } else {
+            console.warn("Nenhum plano ativo encontrado para criar a assinatura.");
+          }
         }
       }
 
@@ -504,6 +525,9 @@ export const AdminUsers = () => {
                                <MapPin className="w-3 h-3 inline mr-1" />
                                {user.address || "Sem endereço cadastrado"}
                             </div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">
+                               Nascimento: {user.birthDate}
+                            </div>
                           </td>
                           <td className="px-6 py-4 text-sm text-slate-600 font-mono">
                             {user.cpf}
@@ -610,6 +634,20 @@ export const AdminUsers = () => {
                 <Input 
                   value={editingUser?.phone || ""} 
                   onChange={(e) => setEditingUser(prev => prev ? {...prev, phone: e.target.value} : null)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Nascimento</Label>
+                <Input 
+                  value={editingUser?.birthDate || ""} 
+                  placeholder="dd/mm/aaaa"
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+                    let formatted = digits;
+                    if (digits.length > 2) formatted = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+                    if (digits.length > 4) formatted = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+                    setEditingUser(prev => prev ? {...prev, birthDate: formatted} : null);
+                  }}
                 />
               </div>
               <div className="space-y-2 col-span-2">
@@ -730,13 +768,29 @@ export const AdminUsers = () => {
                 placeholder="email@exemplo.com"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Telefone (Opcional)</Label>
-              <Input 
-                value={newDependent.phone} 
-                onChange={(e) => setNewDependent(prev => ({...prev, phone: e.target.value}))}
-                placeholder="(00) 00000-0000"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Telefone (Opcional)</Label>
+                <Input 
+                  value={newDependent.phone} 
+                  onChange={(e) => setNewDependent(prev => ({...prev, phone: e.target.value}))}
+                  placeholder="(00) 00000-0000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Nascimento</Label>
+                <Input 
+                  value={newDependent.birth_date} 
+                  placeholder="dd/mm/aaaa"
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+                    let formatted = digits;
+                    if (digits.length > 2) formatted = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+                    if (digits.length > 4) formatted = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+                    setNewDependent(prev => ({...prev, birth_date: formatted}));
+                  }}
+                />
+              </div>
             </div>
           </div>
 

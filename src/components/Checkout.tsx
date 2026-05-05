@@ -202,6 +202,15 @@ export const Checkout = () => {
       const extraDependents = Math.max(0, dependentsCount - plan.free_dependents);
       const totalCents = calculateTotalWithDependents(plan, dependentsCount);
 
+      console.log("[Checkout] Enviando dados para createSubscription:", {
+        planId: plan.id,
+        paymentMethod: paymentMethod,
+        customer: {
+          name: customerName,
+          tax_id: cpfDigits,
+        }
+      });
+
       // Invoca a Edge Function proxy que cria a Order no PagBank
       const response = await createSubscription({
         planId: plan.id,
@@ -220,9 +229,14 @@ export const Checkout = () => {
         } : undefined,
       });
 
-      console.log("[Checkout] Resposta da API:", response);
+      console.log("[Checkout] Resposta completa da API:", JSON.stringify(response, null, 2));
 
       if (response?.ok) {
+        console.log("[Checkout] Pagamento OK! Dados retornados:", response);
+        if (response.boleto) {
+          console.log("[Checkout] Dados do Boleto:", response.boleto);
+          console.log("[Checkout] Link do PDF:", response.boleto.pdf_link || response.boleto.payment_link);
+        }
         setPaymentData(response);
         // Usamos o método retornado pela API para garantir consistência
         if (response.method) {
@@ -295,13 +309,20 @@ export const Checkout = () => {
                 <div className="mt-6 p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
                   <p className="text-sm font-bold text-[#1E3A8A] text-center uppercase tracking-wider">Boleto Gerado</p>
                   <div className="flex flex-col gap-3">
-                    {paymentData.boleto.pdf_link && (
-                      <Button className="w-full bg-[#1E3A8A]" asChild>
-                        <a href={paymentData.boleto.pdf_link} target="_blank" rel="noopener noreferrer">
-                          <FileText className="h-4 w-4 mr-2" />
-                          Baixar PDF do Boleto
+                    {(paymentData.boleto.pdf_link || paymentData.boleto.payment_link) ? (
+                      <Button className="w-full bg-[#1E3A8A] h-12 text-base shadow-lg hover:bg-[#1E3A8A]/90" asChild>
+                        <a href={paymentData.boleto.pdf_link || paymentData.boleto.payment_link} target="_blank" rel="noopener noreferrer">
+                          <FileText className="h-5 w-5 mr-2" />
+                          Baixar Boleto (PDF)
                         </a>
                       </Button>
+                    ) : (
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3">
+                        <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+                        <p className="text-xs text-amber-800">
+                          Link do boleto ainda não disponível. Use a linha digitável abaixo para pagar.
+                        </p>
+                      </div>
                     )}
                     {paymentData.boleto.formatted_barcode && (
                       <div className="space-y-1">

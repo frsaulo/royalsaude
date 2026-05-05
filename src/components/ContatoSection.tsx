@@ -36,7 +36,7 @@ const ContatoSection = () => {
               icon: Phone,
               title: "Telefone comercial",
               info: "Informações sobre planos e pacotes\n(67) 9142-7016",
-              href: "https://wa.me/556791427016",
+              href: "https://wa.me/556791427016?text=Olá,%20vim%20do%20site%20e%20gostaria%20de%20mais%20informações.",
             },
             {
               icon: MapPin,
@@ -46,9 +46,9 @@ const ContatoSection = () => {
             },
             {
               icon: WhatsappIcon,
-              title: "WhatsApp",
+              title: "SAC",
               info: "Dúvidas? Fale com nosso suporte.",
-              href: "https://wa.me/67991747844",
+              href: "https://wa.me/5567991747844?text=Olá,%20vim%20do%20site%20e%20gostaria%20de%20mais%20informações.",
             },
           ].map((item, i) => (
             <motion.a

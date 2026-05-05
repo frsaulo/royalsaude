@@ -137,9 +137,6 @@ const HeroSection = () => {
               <p className="text-2xl md:text-3xl text-[#dde400] font-body italic font-semibold">
                 Simples, rápido e sem burocracia.
               </p>
-              <p className="text-lg md:text-xl text-[#dde400] font-body font-medium">
-                Ligue para 4004-4935 (agendamento disponível 24h, 7 dias por semana)
-              </p>
             </div>
           </div>
         </div>

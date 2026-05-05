@@ -18,6 +18,7 @@ type DependentForm = {
   cpf: string;
   phone: string;
   email: string;
+  birthDate: string;
 };
 
 const createEmptyDependent = (): DependentForm => ({
@@ -26,7 +27,15 @@ const createEmptyDependent = (): DependentForm => ({
   cpf: "",
   phone: "",
   email: "",
+  birthDate: "",
 });
+
+const formatBirthDate = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+};
 
 export const Login = () => {
   const [email, setEmail] = useState("");
@@ -34,6 +43,12 @@ export const Login = () => {
   const [fullName, setFullName] = useState("");
   const [cpf, setCpf] = useState("");
   const [phone, setPhone] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
+  const [logradouro, setLogradouro] = useState("");
+  const [numero, setNumero] = useState("");
+  const [cep, setCep] = useState("");
   const [accountType, setAccountType] = useState<AccountType>("TITULAR");
   const [dependents, setDependents] = useState<DependentForm[]>([]);
 
@@ -81,6 +96,12 @@ export const Login = () => {
               full_name: fullName,
               cpf: cpf,
               phone: phone,
+              birth_date: birthDate,
+              cidade: cidade,
+              estado: estado,
+              logradouro: logradouro,
+              numero: numero,
+              cep: cep,
               account_type: accountType,
               dependents: accountType === "TITULAR"
                 ? dependents.map((dependent) => ({
@@ -89,6 +110,7 @@ export const Login = () => {
                     cpf: dependent.cpf,
                     phone: dependent.phone || null,
                     email: dependent.email || null,
+                    birth_date: dependent.birthDate || null,
                   }))
                 : [],
             }
@@ -221,15 +243,93 @@ export const Login = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">WhatsApp</Label>
+                    <Label htmlFor="birthDate">Nascimento</Label>
                     <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="(00) 90000-0000"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      required={false}
+                      id="birthDate"
+                      type="text"
+                      placeholder="dd/mm/aaaa"
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(formatBirthDate(e.target.value))}
+                      required={isRegistering}
                     />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">WhatsApp</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="(00) 90000-0000"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required={false}
+                  />
+                </div>
+
+                <div className="space-y-4 rounded-lg border border-slate-200 p-4">
+                  <h3 className="text-sm font-semibold text-slate-800">Endereço</h3>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="cep">CEP</Label>
+                    <Input
+                      id="cep"
+                      type="text"
+                      placeholder="00000-000"
+                      value={cep}
+                      onChange={(e) => setCep(e.target.value)}
+                      required={isRegistering}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="col-span-3 space-y-2">
+                      <Label htmlFor="logradouro">Logradouro</Label>
+                      <Input
+                        id="logradouro"
+                        type="text"
+                        placeholder="Rua, Avenida, etc."
+                        value={logradouro}
+                        onChange={(e) => setLogradouro(e.target.value)}
+                        required={isRegistering}
+                      />
+                    </div>
+                    <div className="col-span-1 space-y-2">
+                      <Label htmlFor="numero">Número</Label>
+                      <Input
+                        id="numero"
+                        type="text"
+                        placeholder="123"
+                        value={numero}
+                        onChange={(e) => setNumero(e.target.value)}
+                        required={isRegistering}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="cidade">Cidade</Label>
+                      <Input
+                        id="cidade"
+                        type="text"
+                        placeholder="Sua cidade"
+                        value={cidade}
+                        onChange={(e) => setCidade(e.target.value)}
+                        required={isRegistering}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="estado">Estado</Label>
+                      <Input
+                        id="estado"
+                        type="text"
+                        placeholder="UF"
+                        value={estado}
+                        onChange={(e) => setEstado(e.target.value)}
+                        required={isRegistering}
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -305,15 +405,27 @@ export const Login = () => {
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor={`dependent-phone-${index}`}>Telefone/WhatsApp (opcional)</Label>
+                            <Label htmlFor={`dependent-birthdate-${index}`}>Nascimento</Label>
                             <Input
-                              id={`dependent-phone-${index}`}
-                              type="tel"
-                              placeholder="(00) 90000-0000"
-                              value={dependent.phone}
-                              onChange={(e) => updateDependent(index, "phone", e.target.value)}
+                              id={`dependent-birthdate-${index}`}
+                              type="text"
+                              placeholder="dd/mm/aaaa"
+                              value={dependent.birthDate}
+                              onChange={(e) => updateDependent(index, "birthDate", formatBirthDate(e.target.value))}
+                              required={isRegistering && accountType === "TITULAR"}
                             />
                           </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor={`dependent-phone-${index}`}>Telefone/WhatsApp (opcional)</Label>
+                          <Input
+                            id={`dependent-phone-${index}`}
+                            type="tel"
+                            placeholder="(00) 90000-0000"
+                            value={dependent.phone}
+                            onChange={(e) => updateDependent(index, "phone", e.target.value)}
+                          />
                         </div>
 
                         <div className="space-y-2">

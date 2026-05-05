@@ -31,28 +31,50 @@ async function createV3Order(params: {
 }): Promise<any> {
   console.log(`[pagbank-save-order] Preparando payload (${params.paymentMethod}): ${params.itemDescription}`);
 
-  // Tratar telefone (obrigatório para alguns métodos V3)
-  const rawPhone = params.phone || "11999999999";
-  const phoneDigits = rawPhone.replace(/\D/g, "");
-  const areaCode = phoneDigits.substring(0, 2) || "11";
-  const phoneNumber = phoneDigits.substring(2) || "999999999";
+  // Tratar telefone com mais segurança
+  const phoneDigits = (params.phone || "11999999999").replace(/\D/g, "");
+  let areaCode = "11";
+  let phoneNumber = "999999999";
 
-  const address = {
+  if (phoneDigits.length >= 10) {
+    areaCode = phoneDigits.substring(0, 2);
+    phoneNumber = phoneDigits.substring(2);
+  }
+
+  // Endereço padrão para Customer e Cartão (V3)
+  const customerAddress = {
     street: "Avenida Paulista",
     number: "1000",
     locality: "Bela Vista",
-    city: "São Paulo",
+    city: "Sao Paulo",
+    region: "SP",
     region_code: "SP",
     country: "BRA",
-    postal_code: "01310100"
+    postal_code: "01310100",
+    complement: ""
   };
+
+  // Endereço específico para o Holder do Boleto
+  const boletoAddress = {
+    street: "Avenida Paulista",
+    number: "1000",
+    locality: "Bela Vista",
+    city: "Sao Paulo",
+    region: "SP",
+    region_code: "SP",
+    country: "BRA",
+    postal_code: "01310100",
+    complement: ""
+  };
+
+  const cleanTaxId = params.taxId.replace(/\D/g, "");
 
   const payload: any = {
     reference_id: params.reference,
     customer: {
       name: params.senderName,
       email: params.senderEmail,
-      tax_id: params.taxId.replace(/\D/g, ""),
+      tax_id: cleanTaxId,
       phones: [
         {
           country: "55",
@@ -64,17 +86,23 @@ async function createV3Order(params: {
     },
     items: [
       {
+        reference_id: "REF001",
         name: params.itemDescription,
         quantity: 1,
         unit_amount: params.amountCents
       }
     ],
-    qr_codes: params.paymentMethod === "PIX" ? [{ amount: { value: params.amountCents } }] : undefined,
+    notification_urls: ["https://royalsaude.com.br/api/webhook/pagbank"]
   };
 
-  // Para Boleto, o endereço no customer é OBRIGATÓRIO
-  if (params.paymentMethod === "BOLETO") {
-    payload.customer.address = address;
+  // No Customer, usamos o padrão region_code
+  if (params.paymentMethod === "BOLETO" || params.paymentMethod === "CREDIT_CARD") {
+    payload.customer.address = customerAddress;
+  }
+
+  // QR Code apenas para PIX
+  if (params.paymentMethod === "PIX") {
+    payload.qr_codes = [{ amount: { value: params.amountCents } }];
   }
 
   // Se for Cartão de Crédito
@@ -115,37 +143,49 @@ async function createV3Order(params: {
           },
           holder: {
             name: params.senderName,
-            tax_id: params.taxId.replace(/\D/g, ""),
+            tax_id: cleanTaxId,
             email: params.senderEmail,
-            address: address
+            address: boletoAddress
           }
         }
       }
     }];
   }
 
-  console.log("[pagbank-save-order] Enviando Payload para PagBank:", JSON.stringify(payload));
+  console.log(`[pagbank-save-order] Chamando PagBank (${params.paymentMethod})...`);
+  console.log(`[pagbank-save-order] Payload completo:`, JSON.stringify(payload, null, 2));
 
-  const res = await fetch(PAGSEGURO_ORDERS_URL, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${PAGBANK_TOKEN}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const res = await fetch(PAGSEGURO_ORDERS_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${PAGBANK_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload),
+    });
 
-  const data = await res.json();
-  
-  if (!res.ok) {
-    console.error("[pagbank-save-order] Erro detectado na resposta do PagBank:", JSON.stringify(data, null, 2));
-    const errorMsg = data.error_messages?.[0]?.description || "Erro ao processar pedido no PagBank.";
-    const parameter = data.error_messages?.[0]?.parameter_name ? ` (Campo: ${data.error_messages[0].parameter_name})` : "";
-    throw new Error(`${errorMsg}${parameter}`);
+    const data = await res.json();
+    
+    if (!res.ok) {
+      console.error("[pagbank-save-order] RESPOSTA DE ERRO DO PAGBANK:", JSON.stringify(data, null, 2));
+      
+      // Tentar extrair a mensagem de erro específica do PagBank
+      if (data.error_messages && data.error_messages.length > 0) {
+        const errors = data.error_messages.map((m: any) => `${m.description} (${m.parameter_name || 'geral'})`).join(" | ");
+        throw new Error(`PagBank diz: ${errors}`);
+      }
+      
+      throw new Error(data.message || `Erro HTTP ${res.status} no PagBank`);
+    }
+
+    return data;
+  } catch (err: any) {
+    console.error("[pagbank-save-order] Falha na requisição ao PagBank:", err.message);
+    throw err;
   }
-
-  return data;
 }
+
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
@@ -208,13 +248,50 @@ Deno.serve(async (req: Request) => {
       if (!charge) throw new Error("Erro ao gerar Boleto no PagBank (charge não encontrada).");
       
       const boletoData = charge.payment_method?.boleto;
+      const allLinks = [
+        ...(orderData.links || []),
+        ...(charge.links || []),
+        ...(charge.payment_method?.links || []),
+        ...(boletoData?.links || [])
+      ];
+      
+      // Busca exaustiva e resiliente pelo PDF ou link de pagamento
+      const allLinksData = allLinks.map(l => ({ rel: l.rel, href: l.href }));
+      console.log("[pagbank-save-order] Lista exaustiva de links recebidos:", JSON.stringify(allLinksData));
+
+      // Filtramos links que são claramente internos/API
+      const isInternalApi = (l: any) => 
+        (l.href.includes("api.pagseguro.com") && (l.rel === "self" || l.rel === "PAY")) ||
+        l.href.includes("/charges/") || l.href.includes("/orders/");
+
+      // Tenta achar PDF primeiro
+      const pdfLink = allLinks.find((l: any) => 
+        l.rel.toUpperCase().includes("PDF") || 
+        ["PAYMENT.BOLETO.PDF", "BOLETO.PDF"].includes(l.rel.toUpperCase())
+      )?.href;
+ 
+      // Tenta achar HTML/PAY_LINK
+      const payLink = allLinks.find((l: any) => 
+        (l.rel.toUpperCase().includes("BOLETO") && l.rel.toUpperCase().includes("HTML")) ||
+        ["PAYMENT.BOLETO.HTML", "BOLETO.HTML", "PAY_LINK", "VIEW", "PAYMENT_LINK"].includes(l.rel.toUpperCase()) ||
+        (l.rel.toLowerCase().includes("boleto") && !isInternalApi(l))
+      )?.href;
+
+      // Fallback final: qualquer link que não seja API e tenha boleto no nome ou venha do objeto boleto
+      const finalPdfLink = pdfLink || payLink || boletoData?.payment_link || (allLinks.find((l: any) => !isInternalApi(l))?.href);
+ 
       paymentResponse.boleto = {
         barcode: boletoData?.barcode,
         formatted_barcode: boletoData?.formatted_barcode,
-        pdf_link: charge.links?.find((l: any) => l.rel === "PAYMENT.BOLETO.PDF")?.href,
+        pdf_link: finalPdfLink,
         due_date: boletoData?.due_date
       };
-      console.log("[pagbank-save-order] Dados Boleto capturados:", !!paymentResponse.boleto.barcode);
+
+      console.log("[pagbank-save-order] Boleto processado com sucesso. Link:", finalPdfLink);
+      
+      if (!finalPdfLink) {
+        console.warn("[pagbank-save-order] AVISO: Nenhum link PÚBLICO de boleto encontrado.");
+      }
     } else if (payment_method === "CREDIT_CARD") {
       const charge = orderData.charges?.[0];
       paymentResponse.status = charge?.status;
@@ -225,6 +302,7 @@ Deno.serve(async (req: Request) => {
     await admin.from("subscriptions").upsert({
       user_id: userId,
       plan_id: plan.id,
+      payment_method: payment_method,
       pagbank_subscription_id: refId,
       status: payment_method === "CREDIT_CARD" && paymentResponse.status === "PAID" ? "ACTIVE" : "PENDING",
       current_period_start: new Date().toISOString(),
