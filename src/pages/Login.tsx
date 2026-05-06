@@ -48,6 +48,7 @@ export const Login = () => {
   const [estado, setEstado] = useState("");
   const [logradouro, setLogradouro] = useState("");
   const [numero, setNumero] = useState("");
+  const [complemento, setComplemento] = useState("");
   const [cep, setCep] = useState("");
   const [accountType, setAccountType] = useState<AccountType>("TITULAR");
   const [dependents, setDependents] = useState<DependentForm[]>([]);
@@ -101,6 +102,7 @@ export const Login = () => {
               estado: estado,
               logradouro: logradouro,
               numero: numero,
+              complemento: complemento,
               cep: cep,
               account_type: accountType,
               dependents: accountType === "TITULAR"
@@ -305,6 +307,17 @@ export const Login = () => {
                         required={isRegistering}
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="complemento">Complemento <span className="text-slate-400 font-normal">(opcional)</span></Label>
+                    <Input
+                      id="complemento"
+                      type="text"
+                      placeholder="Apto, Bloco, Casa, etc."
+                      value={complemento}
+                      onChange={(e) => setComplemento(e.target.value)}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
