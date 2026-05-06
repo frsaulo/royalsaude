@@ -52,6 +52,8 @@ export const Login = () => {
   const [cep, setCep] = useState("");
   const [accountType, setAccountType] = useState<AccountType>("TITULAR");
   const [dependents, setDependents] = useState<DependentForm[]>([]);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const [isRegistering, setIsRegistering] = useState(false);
   const [isResetPassword, setIsResetPassword] = useState(false);
@@ -74,6 +76,16 @@ export const Login = () => {
       }
 
       if (isRegistering) {
+        if (!acceptPrivacy) {
+          toast.error("Você deve aceitar a Política de Privacidade e LGPD para continuar.");
+          setLoading(false);
+          return;
+        }
+        if (!acceptTerms) {
+          toast.error("Você deve aceitar o Contrato de adesão para continuar.");
+          setLoading(false);
+          return;
+        }
         if (accountType === "TITULAR") {
           const invalidDependent = dependents.find(
             (dependent) =>
@@ -487,6 +499,55 @@ export const Login = () => {
 
           </CardContent>
           <CardFooter className="flex flex-col space-y-2">
+            {isRegistering && (
+              <div className="space-y-3 pb-3 pt-1 w-full text-slate-700">
+                <p className="text-xs font-semibold text-slate-500">
+                  Ao clicar em assinar nosso Club de Benefícios, eu concordo com:
+                </p>
+                <div className="flex items-start space-x-2 text-sm">
+                  <input
+                    id="accept-privacy"
+                    type="checkbox"
+                    checked={acceptPrivacy}
+                    onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#1E3A8A] focus:ring-[#1E3A8A] cursor-pointer"
+                    required
+                  />
+                  <label htmlFor="accept-privacy" className="text-xs text-slate-600 leading-tight cursor-pointer select-none">
+                    Eu aceito a{" "}
+                    <a
+                      href="https://royalmedhealth.com.br/politica-privacidade"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#1E3A8A] hover:underline font-semibold"
+                    >
+                      Política de Privacidade e LGPD
+                    </a>
+                  </label>
+                </div>
+                <div className="flex items-start space-x-2 text-sm">
+                  <input
+                    id="accept-terms"
+                    type="checkbox"
+                    checked={acceptTerms}
+                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#1E3A8A] focus:ring-[#1E3A8A] cursor-pointer"
+                    required
+                  />
+                  <label htmlFor="accept-terms" className="text-xs text-slate-600 leading-tight cursor-pointer select-none">
+                    Eu aceito o{" "}
+                    <a
+                      href="https://royalmedhealth.com.br/contrato-adesao"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#1E3A8A] hover:underline font-semibold"
+                    >
+                      Contrato de adesão
+                    </a>
+                  </label>
+                </div>
+              </div>
+            )}
             <Button
               type="submit"
               className="w-full bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 mt-2"
