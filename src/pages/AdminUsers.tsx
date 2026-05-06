@@ -680,15 +680,15 @@ export const AdminUsers = () => {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-lg h-[90vh] max-h-[700px] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-2 border-b border-slate-100 shrink-0">
             <DialogTitle>Editar Dados do Usuário</DialogTitle>
             <DialogDescription>
               Altere as informações cadastrais abaixo.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2 col-span-2">
                 <Label>Nome Completo</Label>
@@ -842,7 +842,7 @@ export const AdminUsers = () => {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="p-6 pt-2 border-t border-slate-100 bg-slate-50 shrink-0 rounded-b-lg flex flex-row justify-end gap-2">
              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                Cancelar
              </Button>
