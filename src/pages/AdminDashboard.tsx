@@ -35,6 +35,7 @@ const relationshipLabelMap: Record<string, string> = {
   FILHA: "Filha",
   PAI: "Pai",
   MAE: "Mãe",
+  OUTRO: "Outro",
 };
 
 const normalizeDependents = (rawDependents: any): any[] => {

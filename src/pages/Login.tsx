@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ArrowLeft } from "lucide-react";
 
 type AccountType = "TITULAR" | "DEPENDENTE";
-type Relationship = "ESPOSA" | "MARIDO" | "FILHO" | "FILHA" | "PAI" | "MAE";
+type Relationship = "ESPOSA" | "MARIDO" | "FILHO" | "FILHA" | "PAI" | "MAE" | "OUTRO";
 
 type DependentForm = {
   relationship: Relationship;
@@ -389,6 +389,7 @@ export const Login = () => {
                             <option value="FILHA">FILHA</option>
                             <option value="PAI">PAI</option>
                             <option value="MAE">MÃE</option>
+                            <option value="OUTRO">OUTRO</option>
                           </select>
                         </div>
 

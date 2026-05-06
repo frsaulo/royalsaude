@@ -64,6 +64,7 @@ const relationshipLabelMap: Record<string, string> = {
   PAI: "Pai",
   MAE: "Mãe",
   TITULAR: "Titular",
+  OUTRO: "Outro",
 };
 
 interface Profile {
@@ -96,7 +97,19 @@ interface FlattenedUser {
   subscriptionStatus: string;
   titularName?: string;
   appointmentsCount: number;
+  createdAt?: string;
 }
+
+const formatCreatedAt = (dateStr?: string) => {
+  if (!dateStr) return "N/A";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "N/A";
+    return d.toLocaleDateString('pt-BR');
+  } catch {
+    return "N/A";
+  }
+};
 
 export const AdminUsers = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -215,7 +228,8 @@ export const AdminUsers = () => {
           type: "TITULAR",
           relationship: "TITULAR",
           subscriptionStatus: subStatus,
-          appointmentsCount: titularAppointments
+          appointmentsCount: titularAppointments,
+          createdAt: p.created_at || ""
         });
 
         // Add Dependents
@@ -236,7 +250,8 @@ export const AdminUsers = () => {
             relationship: d.relationship || "DEPENDENTE",
             subscriptionStatus: subStatus, // inherits titular subscription
             titularName: p.full_name,
-            appointmentsCount: depAppointments
+            appointmentsCount: depAppointments,
+            createdAt: p.created_at || ""
           });
         });
       });
@@ -525,8 +540,10 @@ export const AdminUsers = () => {
                                <MapPin className="w-3 h-3 inline mr-1" />
                                {user.address || "Sem endereço cadastrado"}
                             </div>
-                            <div className="text-[10px] text-slate-400 mt-0.5">
-                               Nascimento: {user.birthDate}
+                            <div className="flex flex-wrap gap-x-2 text-[10px] text-slate-400 mt-0.5">
+                               <span>Nascimento: {user.birthDate}</span>
+                               <span className="text-slate-300">•</span>
+                               <span>Adesão: {formatCreatedAt(user.createdAt)}</span>
                             </div>
                           </td>
                           <td className="px-6 py-4 text-sm text-slate-600 font-mono">
@@ -698,6 +715,7 @@ export const AdminUsers = () => {
                       <option value="FILHA">FILHA</option>
                       <option value="PAI">PAI</option>
                       <option value="MAE">MÃE</option>
+                      <option value="OUTRO">OUTRO</option>
                     </select>
                  </div>
               )}
@@ -757,6 +775,7 @@ export const AdminUsers = () => {
                   <option value="MARIDO">MARIDO</option>
                   <option value="PAI">PAI</option>
                   <option value="MAE">MÃE</option>
+                  <option value="OUTRO">OUTRO</option>
                 </select>
               </div>
             </div>

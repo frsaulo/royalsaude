@@ -85,6 +85,7 @@ type Dependent = {
   cpf: string;
   phone: string;
   email: string;
+  birth_date?: string;
 };
 
 const RELATIONSHIP_OPTIONS = [
@@ -94,7 +95,15 @@ const RELATIONSHIP_OPTIONS = [
   { value: "FILHA", label: "Filha" },
   { value: "PAI", label: "Pai" },
   { value: "MAE", label: "Mãe" },
+  { value: "OUTRO", label: "Outro" },
 ];
+
+const formatBirthDate = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+};
 
 const createEmptyDependent = (): Dependent => ({
   relationship: "FILHO",
@@ -102,6 +111,7 @@ const createEmptyDependent = (): Dependent => ({
   cpf: "",
   phone: "",
   email: "",
+  birth_date: "",
 });
 
 const normalizeDependents = (raw: any): Dependent[] => {
@@ -503,8 +513,8 @@ export const Agenda = () => {
   };
 
   const handleAddDependent = async () => {
-    if (!newDependent.full_name.trim() || !newDependent.cpf.trim()) {
-      toast.error("Preencha pelo menos o nome e CPF do dependente.");
+    if (!newDependent.full_name.trim() || !newDependent.cpf.trim() || !newDependent.birth_date?.trim()) {
+      toast.error("Nome, CPF e data de nascimento são obrigatórios.");
       return;
     }
     const updated = [...dependents, newDependent];
@@ -519,8 +529,8 @@ export const Agenda = () => {
 
   const handleSaveEditDependent = async () => {
     if (editingDepIndex === null || !editingDep) return;
-    if (!editingDep.full_name.trim() || !editingDep.cpf.trim()) {
-      toast.error("Nome e CPF são obrigatórios.");
+    if (!editingDep.full_name.trim() || !editingDep.cpf.trim() || !editingDep.birth_date?.trim()) {
+      toast.error("Nome, CPF e data de nascimento são obrigatórios.");
       return;
     }
     const updated = dependents.map((d, i) => i === editingDepIndex ? editingDep : d);
@@ -1275,9 +1285,15 @@ export const Agenda = () => {
                 <Input value={newDependent.phone} onChange={(e) => setNewDependent({ ...newDependent, phone: e.target.value })} placeholder="(00) 90000-0000" />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>E-mail</Label>
-              <Input type="email" value={newDependent.email} onChange={(e) => setNewDependent({ ...newDependent, email: e.target.value })} placeholder="email@exemplo.com" />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>E-mail</Label>
+                <Input type="email" value={newDependent.email} onChange={(e) => setNewDependent({ ...newDependent, email: e.target.value })} placeholder="email@exemplo.com" />
+              </div>
+              <div className="space-y-2">
+                <Label>Data de Nascimento *</Label>
+                <Input value={newDependent.birth_date || ""} onChange={(e) => setNewDependent({ ...newDependent, birth_date: formatBirthDate(e.target.value) })} placeholder="dd/mm/aaaa" />
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -1327,9 +1343,15 @@ export const Agenda = () => {
                   <Input value={editingDep.phone} onChange={(e) => setEditingDep({ ...editingDep, phone: e.target.value })} />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>E-mail</Label>
-                <Input type="email" value={editingDep.email} onChange={(e) => setEditingDep({ ...editingDep, email: e.target.value })} />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>E-mail</Label>
+                  <Input type="email" value={editingDep.email} onChange={(e) => setEditingDep({ ...editingDep, email: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Data de Nascimento *</Label>
+                  <Input value={editingDep.birth_date || ""} onChange={(e) => setEditingDep({ ...editingDep, birth_date: formatBirthDate(e.target.value) })} placeholder="dd/mm/aaaa" />
+                </div>
               </div>
             </div>
           )}
