@@ -521,6 +521,7 @@ export const AdminUsers = () => {
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">CPF</th>
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tipo / Vínculo</th>
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Assinatura</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Adesão</th>
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Contato</th>
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Consultas</th>
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Ações</th>
@@ -559,6 +560,9 @@ export const AdminUsers = () => {
                               <sub.icon className="w-3 h-3 mr-1" />
                               {sub.label}
                             </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-600 font-medium">
+                            {formatCreatedAt(user.createdAt)}
                           </td>
                           <td className="px-6 py-4 space-y-1">
                             <div className="flex items-center gap-1.5 text-xs text-slate-600">
