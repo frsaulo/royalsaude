@@ -19,7 +19,9 @@ import {
   XCircle,
   Plus,
   UserPlus,
-  ArrowLeft
+  ArrowLeft,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
@@ -129,6 +131,10 @@ export const AdminUsers = () => {
     birth_date: ""
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   
   const navigate = useNavigate();
 
@@ -264,6 +270,52 @@ export const AdminUsers = () => {
     }
   };
 
+  const handleSendResetPasswordEmail = async () => {
+    if (!editingUser || !editingUser.email) {
+      toast.error("E-mail do usuário não encontrado.");
+      return;
+    }
+    
+    setIsResettingPassword(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(editingUser.email, {
+        redirectTo: `${window.location.origin}/redefinir-senha`,
+      });
+      
+      if (error) throw error;
+      toast.success(`E-mail de redefinição de senha enviado com sucesso para ${editingUser.email}!`);
+    } catch (error: any) {
+      toast.error("Erro ao enviar e-mail de redefinição: " + error.message);
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!editingUser) return;
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("A senha deve ter no mínimo 6 caracteres.");
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-update-password", {
+        body: { userId: editingUser.id, newPassword: newPassword }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success("Senha redefinida com sucesso!");
+      setNewPassword("");
+    } catch (error: any) {
+      toast.error("Erro ao redefinir senha: " + error.message);
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
   const handleAddDependent = (titularId: string) => {
     setTargetTitularId(titularId);
     setNewDependent({
@@ -309,6 +361,8 @@ export const AdminUsers = () => {
 
   const handleEdit = (user: FlattenedUser) => {
     setEditingUser(user);
+    setNewPassword("");
+    setShowPassword(false);
     setIsEditDialogOpen(true);
   };
 
@@ -702,6 +756,68 @@ export const AdminUsers = () => {
                       <option value="CANCELLED">Cancelada</option>
                       <option value="EXPIRED">Expirada</option>
                     </select>
+                  </div>
+                  <div className="space-y-4 col-span-2 pt-4 border-t border-slate-100">
+                    <Label className="text-slate-500 font-semibold text-xs uppercase tracking-wider block">Segurança e Acesso</Label>
+                    
+                    {/* Redefinição de Senha Manual */}
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-xs font-bold text-slate-700">Definir Nova Senha Manualmente</p>
+                        <p className="text-[11px] text-slate-500">Altere a senha deste usuário diretamente. A alteração entra em vigor imediatamente.</p>
+                      </div>
+                      
+                      <div className="flex gap-2 items-center">
+                        <div className="relative flex-1">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Digite a nova senha (mín. 6 caracteres)"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="pr-10 h-10 border-slate-200 bg-white"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        <Button
+                          type="button"
+                          onClick={handleUpdatePassword}
+                          disabled={isUpdatingPassword || !newPassword}
+                          className="bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white font-semibold text-xs h-10 px-4 shrink-0"
+                        >
+                          {isUpdatingPassword ? (
+                            <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                          ) : null}
+                          Atualizar Senha
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Enviar link de redefinição por e-mail */}
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-slate-700">Enviar link de redefinição por e-mail</p>
+                        <p className="text-[11px] text-slate-500 leading-tight">Envia um link oficial do sistema para o e-mail do usuário para que ele redefina sua própria senha com segurança.</p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSendResetPasswordEmail}
+                        disabled={isResettingPassword}
+                        className="shrink-0 text-xs border-[#1E3A8A] text-[#1E3A8A] hover:bg-[#1E3A8A]/5 font-semibold h-9"
+                      >
+                        {isResettingPassword ? (
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                        ) : null}
+                        Enviar E-mail
+                      </Button>
+                    </div>
                   </div>
                 </>
               )}
