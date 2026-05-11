@@ -578,14 +578,14 @@ export const AdminUsers = () => {
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Adesão</th>
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Contato</th>
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Consultas</th>
-                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right sticky right-0 bg-slate-50 z-10 border-l border-slate-200">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredUsers.map((user, idx) => {
                       const sub = statusConfig[user.subscriptionStatus] || { label: "Sem Plano", color: "bg-slate-100 text-slate-500", icon: XCircle };
                       return (
-                        <tr key={`${user.id}-${user.name}-${idx}`} className="hover:bg-slate-50/50 transition-colors">
+                        <tr key={`${user.id}-${user.name}-${idx}`} className="hover:bg-slate-50 transition-colors group">
                           <td className="px-6 py-4">
                             <div className="font-semibold text-slate-900">{user.name}</div>
                             {user.isDependent && (
@@ -632,7 +632,7 @@ export const AdminUsers = () => {
                                 <span className="font-bold text-slate-900">{user.appointmentsCount}</span>
                              </div>
                           </td>
-                          <td className="px-6 py-4 text-right">
+                          <td className="px-6 py-4 text-right sticky right-0 bg-white group-hover:bg-slate-50 z-10 border-l border-slate-200">
                             <div className="flex justify-end gap-2">
                               <Button variant="ghost" size="icon" onClick={() => handleEdit(user)} title="Editar" className="text-blue-600 hover:bg-blue-50">
                                 <Edit className="w-4 h-4" />
