@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "@supabase/supabase-js";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +13,85 @@ const PAGBANK_BASE_URL = IS_SANDBOX
   : "https://api.pagseguro.com";
 const SUPABASE_URL     = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY     = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+interface Plan {
+  id: string;
+  name: string;
+  price_cents: number;
+  interval_type?: string;
+  extra_dependent_price_cents?: number;
+}
+
+interface Customer {
+  name: string;
+  email: string;
+  tax_id: string;
+  street?: string;
+  number?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+}
+
+interface Card {
+  encrypted: string;
+  security_code?: string;
+  holder_name: string;
+}
+
+interface PagBankLink {
+  media?: string;
+  href?: string;
+  rel?: string;
+}
+
+interface PagBankOrderResponse {
+  id: string;
+  qr_codes?: Array<{
+    text?: string;
+    expiration_date?: string;
+    links?: PagBankLink[];
+  }>;
+  charges?: Array<{
+    id: string;
+    status?: string;
+    payment_method?: {
+      type?: string;
+      boleto?: {
+        barcode?: string;
+        formatted_barcode?: string;
+        due_date?: string;
+      };
+      card?: {
+        brand?: string;
+        last_digits?: string;
+      };
+    };
+    links?: PagBankLink[];
+  }>;
+}
+
+interface PaymentResult {
+  order_id: string;
+  charge_id?: string;
+  status?: string;
+  pix?: {
+    qr_code?: string;
+    qr_code_image?: string;
+    expiration?: string;
+  };
+  boleto?: {
+    barcode?: string;
+    formatted_barcode?: string;
+    due_date?: string;
+    pdf_link?: string;
+  };
+  credit_card?: {
+    brand?: string;
+    last_digits?: string;
+  };
+}
 
 console.log("[pagbank-create-subscription] Função iniciada");
 
@@ -53,14 +132,14 @@ async function pagbankRequest(path: string, method: string, body?: object) {
 
   try {
     return JSON.parse(text);
-  } catch (err) {
+  } catch (_err) {
     console.error(`[pagbankRequest] Erro ao processar JSON de sucesso: ${text}`);
     throw new Error(`PagBank retornou resposta inválida (HTTP ${res.status}).`);
   }
 }
 
 // ─── PIX ─────────────────────────────────────────────────────────────────────
-async function createPixOrder(plan: any, customer: any, totalCents: number) {
+async function createPixOrder(plan: Plan, customer: Customer, totalCents: number): Promise<PaymentResult> {
   const payload = {
     reference_id: `royalmed_${Date.now()}`,
     customer: {
@@ -84,21 +163,21 @@ async function createPixOrder(plan: any, customer: any, totalCents: number) {
     ],
   };
 
-  const result = await pagbankRequest("/orders", "POST", payload);
+  const result = await pagbankRequest("/orders", "POST", payload) as PagBankOrderResponse;
   const qrCode = result.qr_codes?.[0];
 
   return {
     order_id: result.id,
     pix: {
       qr_code: qrCode?.text,
-      qr_code_image: qrCode?.links?.find((l: any) => l.media === "image/png")?.href,
+      qr_code_image: qrCode?.links?.find((l: PagBankLink) => l.media === "image/png")?.href,
       expiration: qrCode?.expiration_date,
     },
   };
 }
 
 // ─── BOLETO ───────────────────────────────────────────────────────────────────
-async function createBoletoOrder(plan: any, customer: any, totalCents: number) {
+async function createBoletoOrder(plan: Plan, customer: Customer, totalCents: number): Promise<PaymentResult> {
   const dueDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
   const payload = {
@@ -158,7 +237,7 @@ async function createBoletoOrder(plan: any, customer: any, totalCents: number) {
     ],
   };
 
-  const result = await pagbankRequest("/orders", "POST", payload);
+  const result = await pagbankRequest("/orders", "POST", payload) as PagBankOrderResponse;
   const charge = result.charges?.[0];
   const boleto = charge?.payment_method?.boleto;
 
@@ -169,13 +248,13 @@ async function createBoletoOrder(plan: any, customer: any, totalCents: number) {
       barcode: boleto?.barcode,
       formatted_barcode: boleto?.formatted_barcode,
       due_date: boleto?.due_date,
-      pdf_link: charge?.links?.find((l: any) => l.media === "application/pdf")?.href,
+      pdf_link: charge?.links?.find((l: PagBankLink) => l.media === "application/pdf")?.href,
     },
   };
 }
 
 // ─── CARTÃO ───────────────────────────
-async function createCardOrder(plan: any, customer: any, card: any, totalCents: number) {
+async function createCardOrder(plan: Plan, customer: Customer, card: Card, totalCents: number): Promise<PaymentResult> {
   const payload = {
     reference_id: `royalmed_${Date.now()}`,
     customer: {
@@ -211,7 +290,7 @@ async function createCardOrder(plan: any, customer: any, card: any, totalCents: 
     ],
   };
 
-  const result = await pagbankRequest("/orders", "POST", payload);
+  const result = await pagbankRequest("/orders", "POST", payload) as PagBankOrderResponse;
   const charge = result.charges?.[0];
 
   return {
@@ -262,7 +341,7 @@ Deno.serve(async (req: Request) => {
     const extraAmountCents = Math.max(0, extra_dependents) * (plan.extra_dependent_price_cents ?? 2490);
     const totalCents = plan.price_cents + (plan.interval_type === "YEARLY" ? extraAmountCents * 12 : extraAmountCents);
 
-    let paymentResult: any;
+    let paymentResult: PaymentResult;
 
     if (payment_method === "PIX") {
       paymentResult = await createPixOrder(plan, customer, totalCents);
@@ -318,9 +397,10 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ ok: true, subscription_id: subscription.id, ...paymentResult }), {
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err) {
     // Retornamos 400 Bad Request em vez de 500 para exibir o erro corretamente pro usuário
-    return new Response(JSON.stringify({ ok: false, error: err.message }), {
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ ok: false, error: message }), {
       status: 400,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });

@@ -147,6 +147,7 @@ export const createSubscription = async (params: {
   paymentMethod: PaymentMethod;
   extraDependentsCount: number;
   totalCents: number;
+  couponCode?: string;
   customer: {
     name: string;
     email: string;
@@ -177,6 +178,7 @@ export const createSubscription = async (params: {
       payment_method:   params.paymentMethod,
       extra_dependents: params.extraDependentsCount,
       total_cents:      params.totalCents,
+      coupon_code:      params.couponCode,
       customer:         params.customer,
       card:             params.card,
       origin_url:       window.location.origin,

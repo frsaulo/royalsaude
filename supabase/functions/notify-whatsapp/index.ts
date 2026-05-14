@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "@supabase/supabase-js";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -83,7 +83,7 @@ function buildRescheduleNewMessage(name: string, oldDate: string, oldTime: strin
   );
 }
 
-async function sendWhatsApp(phone: string, message: string): Promise<{ ok: boolean; body?: any; error?: string }> {
+async function sendWhatsApp(phone: string, message: string): Promise<{ ok: boolean; body?: unknown; error?: string }> {
   if (!ZAPI_INSTANCE || !ZAPI_TOKEN) {
     throw new Error("ZAPI configuration missing");
   }
@@ -143,7 +143,7 @@ Deno.serve(async (req: Request) => {
       console.log(`[notify-whatsapp] action=${action} phone=${formattedPhone}`);
       const result = await sendWhatsApp(formattedPhone, message);
       
-      return new Response(JSON.stringify({ ok: result.ok, phone: formattedPhone, ...result }), {
+      return new Response(JSON.stringify({ phone: formattedPhone, ...result }), {
         status: result.ok ? 200 : 500,
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
@@ -190,14 +190,15 @@ Deno.serve(async (req: Request) => {
     const result = await sendWhatsApp(formattedPhone, message);
 
     return new Response(
-      JSON.stringify({ ok: result.ok, phone: formattedPhone, ...result }),
+      JSON.stringify({ phone: formattedPhone, ...result }),
       { status: result.ok ? 200 : 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
     );
 
-  } catch (err: any) {
-    console.error("[notify-whatsapp] Erro:", err.message);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[notify-whatsapp] Erro:", message);
     return new Response(
-      JSON.stringify({ ok: false, error: err.message }),
+      JSON.stringify({ ok: false, error: message }),
       { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
     );
   }

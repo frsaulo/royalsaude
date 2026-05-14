@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "@supabase/supabase-js";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -9,7 +9,7 @@ const CORS = {
 const SUPABASE_URL  = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 // Hardcoded para teste conforme solicitado
-const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN");
+const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN") ?? "";
 const PAGBANK_EMAIL = Deno.env.get("PAGBANK_EMAIL") ?? "ronaldo.grupogold@icloud.com";
 const IS_SANDBOX    = Deno.env.get("PAGBANK_API_URL")?.includes("sandbox") ?? true;
 
@@ -95,7 +95,7 @@ Deno.serve(async (req: Request) => {
     if (appErr || !appointment) throw new Error("Agendamento não encontrado.");
 
     // 2. Busca plano ativo do usuário para saber o preço da consulta
-    const { data: sub, error: subErr } = await admin
+    const { data: sub, error: _subErr } = await admin
       .from("subscriptions")
       .select("plans(*)")
       .eq("user_id", userId)
@@ -103,7 +103,9 @@ Deno.serve(async (req: Request) => {
       .single();
 
     // Se não tiver plano ativo, preço padrão (ex: R$ 69,90) ou erro?
-    const consultationPrice = sub?.plans?.consultation_price_cents ?? 6990; 
+    const plansArray = sub?.plans;
+    const singlePlan = Array.isArray(plansArray) ? plansArray[0] : plansArray;
+    const consultationPrice = (singlePlan as Record<string, unknown>)?.consultation_price_cents as number ?? 6990; 
 
     const refId = `appointment_${appointment_id}_${Date.now()}`;
     const baseUrl = (origin_url && origin_url !== "null") ? origin_url : "https://royalsaude.com.br";
@@ -136,8 +138,9 @@ Deno.serve(async (req: Request) => {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
 
-  } catch (err: any) {
-    return new Response(JSON.stringify({ ok: false, error: err.message }), {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ ok: false, error: message }), {
       status: 400,
       headers: { ...CORS, "Content-Type": "application/json" },
     });

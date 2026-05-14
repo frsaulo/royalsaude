@@ -94,6 +94,12 @@ export const Checkout = () => {
   // Payment data from API
   const [paymentData, setPaymentData] = useState<any>(null);
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponError, setCouponError] = useState("");
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+
   // Carregar SDK PagBank (Novo SDK para Criptografia)
   useEffect(() => {
     const existingScript = document.getElementById("pagbank-sdk");
@@ -145,6 +151,53 @@ export const Checkout = () => {
     };
     load();
   }, [planId, navigate]);
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim() || !user) return;
+    setValidatingCoupon(true);
+    setCouponError("");
+    setAppliedCoupon(null);
+
+    try {
+      const { data: existingSub } = await supabase
+        .from("subscriptions")
+        .select("id")
+        .eq("user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingSub) {
+        setCouponError("Cupons são válidos apenas para a primeira assinatura.");
+        setValidatingCoupon(false);
+        return;
+      }
+
+      const { data: coupon, error } = await supabase
+        .from("coupons")
+        .select("*")
+        .eq("code", couponCode.trim().toUpperCase())
+        .eq("active", true)
+        .single();
+
+      if (error || !coupon) {
+        setCouponError("Cupom inválido ou expirado.");
+      } else {
+        setAppliedCoupon(coupon);
+        setCouponError("");
+        toast.success("Cupom aplicado com sucesso!");
+      }
+    } catch (err: any) {
+      setCouponError("Erro ao validar o cupom.");
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setCouponCode("");
+    setAppliedCoupon(null);
+    setCouponError("");
+  };
 
   const encryptCard = (): string | null => {
     if (!sdkReady || !window.PagSeguro) {
@@ -217,6 +270,7 @@ export const Checkout = () => {
         paymentMethod: paymentMethod,
         extraDependentsCount: extraDependents,
         totalCents: totalCents,
+        couponCode: appliedCoupon ? appliedCoupon.code : undefined,
         customer: {
           name: customerName,
           email: user.email || "",
@@ -375,6 +429,22 @@ export const Checkout = () => {
   const totalAmount = calculateTotalWithDependents(plan, dependentsCount);
   const monthlyAmount = calculateMonthlyWithDependents(plan, dependentsCount);
   const extraDeps = Math.max(0, dependentsCount - plan.free_dependents);
+
+  let finalTotalAmount = totalAmount;
+  let finalMonthlyAmount = monthlyAmount;
+  let discountAmount = 0;
+
+  if (appliedCoupon) {
+    if (appliedCoupon.type === "fixed") {
+      discountAmount = Math.round(appliedCoupon.value * 100);
+      finalTotalAmount = Math.max(0, totalAmount - discountAmount);
+      finalMonthlyAmount = Math.max(0, monthlyAmount - (plan.interval_type === "YEARLY" ? Math.round(discountAmount / 12) : discountAmount));
+    } else if (appliedCoupon.type === "percentage") {
+      discountAmount = Math.round(totalAmount * (appliedCoupon.value / 100));
+      finalTotalAmount = Math.max(0, totalAmount - discountAmount);
+      finalMonthlyAmount = Math.max(0, monthlyAmount - Math.round(monthlyAmount * (appliedCoupon.value / 100)));
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-50">
@@ -568,7 +638,7 @@ export const Checkout = () => {
               {processing ? (
                 <><Loader2 className="h-5 w-5 mr-2 animate-spin" />Processando…</>
               ) : (
-                <><Check className="h-4 w-4 mr-2" />Finalizar Assinatura — {formatCurrency(totalAmount)}</>
+                <><Check className="h-4 w-4 mr-2" />Finalizar Assinatura — {formatCurrency(finalTotalAmount)}</>
               )}
             </Button>
 
@@ -602,12 +672,56 @@ export const Checkout = () => {
                       </span>
                     </div>
                   )}
+
+                  {/* Cupom Section */}
+                  <div className="border-t pt-3 space-y-2">
+                    {!appliedCoupon ? (
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="coupon" className="text-xs text-slate-500">Possui um cupom de desconto?</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="coupon"
+                            placeholder="CUPOM"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                            className="uppercase"
+                          />
+                          <Button 
+                            variant="secondary" 
+                            onClick={applyCoupon} 
+                            disabled={validatingCoupon || !couponCode}
+                          >
+                            {validatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : "Aplicar"}
+                          </Button>
+                        </div>
+                        {couponError && <p className="text-xs text-red-500">{couponError}</p>}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between bg-green-50 text-green-700 p-2 rounded-md border border-green-200">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold flex items-center gap-1">
+                            <Check className="h-4 w-4" /> Cupom {appliedCoupon.code} aplicado!
+                          </span>
+                          <span className="text-xs">
+                            Desconto de {appliedCoupon.type === 'percentage' ? `${appliedCoupon.value}%` : formatCurrency(appliedCoupon.value * 100)}
+                          </span>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={removeCoupon} className="h-8 text-red-600 hover:bg-red-100 hover:text-red-700">
+                          Remover
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="border-t pt-3 flex justify-between">
                     <span className="font-bold text-slate-800">Total</span>
                     <div className="text-right">
-                      <span className="font-bold text-lg text-[#1E3A8A]">{formatCurrency(totalAmount)}</span>
+                      {appliedCoupon && (
+                        <span className="text-xs line-through text-slate-400 block">{formatCurrency(totalAmount)}</span>
+                      )}
+                      <span className="font-bold text-lg text-[#1E3A8A]">{formatCurrency(finalTotalAmount)}</span>
                       {plan.interval_type === "YEARLY" && (
-                        <p className="text-xs text-slate-500">≈ {formatCurrency(monthlyAmount)}/mês</p>
+                        <p className="text-xs text-slate-500">≈ {formatCurrency(finalMonthlyAmount)}/mês</p>
                       )}
                     </div>
                   </div>

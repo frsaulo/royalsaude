@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "@supabase/supabase-js";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -48,7 +48,7 @@ async function pagbankRequest(path: string, method: string, body?: object) {
   if (text) {
     try {
       return JSON.parse(text);
-    } catch (err) {
+    } catch (_err) {
       console.error(`[pagbankRequest] Erro ao processar JSON: ${text}`);
       return { ok: true };
     }
@@ -121,7 +121,7 @@ Deno.serve(async (req: Request) => {
       throw new Error("Ação inválida");
     }
 
-    const updateData: any = { 
+    const updateData = { 
       status: newStatus,
       updated_at: new Date().toISOString()
     };
@@ -145,9 +145,10 @@ Deno.serve(async (req: Request) => {
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
 
-  } catch (err: any) {
-    console.error("[Manage] Erro:", err.message);
-    return new Response(JSON.stringify({ ok: false, error: err.message }), {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[Manage] Erro:", message);
+    return new Response(JSON.stringify({ ok: false, error: message }), {
       status: 400,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });

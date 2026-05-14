@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Trash2, Users, Search, Calendar as CalendarIcon, Phone, MapPin, MonitorPlay, Loader2, LogOut, Mail, Clock, RefreshCw, ShieldAlert, Lock, Plus } from "lucide-react";
+import { Trash2, Users, Search, Calendar as CalendarIcon, Phone, MapPin, MonitorPlay, Loader2, LogOut, Mail, Clock, RefreshCw, ShieldAlert, Lock, Plus, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
@@ -351,6 +351,14 @@ export const AdminDashboard = () => {
             >
               <Users className="w-4 h-4 mr-2" />
               Gestão de Usuários
+            </Button>
+            <Button 
+              onClick={() => navigate("/admin-coupons")}
+              variant="outline"
+              className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white w-full sm:w-auto"
+            >
+              <Tag className="w-4 h-4 mr-2" />
+              Gestão de Cupons
             </Button>
             <Button 
               onClick={() => setIsGlobalModalOpen(true)}

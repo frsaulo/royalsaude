@@ -1,5 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "@supabase/supabase-js";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -55,7 +54,7 @@ async function pagbankRequest(path: string, method: string, body?: object) {
 
   try {
     return JSON.parse(text);
-  } catch (err) {
+  } catch (_) {
     console.error(`[pagbank-setup-plans] Erro ao processar JSON de sucesso: ${text}`);
     throw new Error(`PagBank retornou resposta inválida (HTTP ${res.status}).`);
   }
@@ -126,9 +125,10 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ ok: true, results }), {
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
     console.error("[pagbank-setup-plans] erro:", err);
-    return new Response(JSON.stringify({ ok: false, error: err.message }), {
+    return new Response(JSON.stringify({ ok: false, error: message }), {
       status: 500,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });

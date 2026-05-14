@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "@supabase/supabase-js";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -170,8 +170,9 @@ Deno.serve(async (req: Request) => {
 
     return ok();
 
-  } catch (err: any) {
-    console.error("[pagbank-webhook] Erro:", err.message);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[pagbank-webhook] Erro:", message);
     return ok(); // Sempre 200 para evitar retentativas infinitas do PagSeguro
   }
 });
