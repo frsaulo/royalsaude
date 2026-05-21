@@ -284,6 +284,8 @@ export const Agenda = () => {
     const patientPhone = profile?.phone || user.user_metadata?.phone || '';
     const patientName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Paciente';
 
+    const isTestUser = user.email === 'teste@teste.com.br';
+
     const { data: newApp, error } = await supabase
       .from('appointments')
       .insert([{
@@ -294,7 +296,7 @@ export const Agenda = () => {
         specialty: specialty,
         patient_name: patientName,
         phone: patientPhone,
-        status: 'PENDING', // Agendamento começa pendente de pagamento
+        status: isTestUser ? 'CONFIRMED' : 'PENDING', // Se for teste, confirma direto
       }])
       .select()
       .single();
@@ -306,61 +308,87 @@ export const Agenda = () => {
         toast.error("Falha ao agendar: " + error.message);
       }
     } else {
-      let payUrl = "https://sandbox.pagseguro.uol.com.br"; // Fallback Sandbox
-      
-      try {
-        const { data: payData, error: payError } = await supabase.functions.invoke('pagbank-pay-consultation', {
-          body: { 
-            appointment_id: newApp.id,
-            origin_url: window.location.origin
-          }
-        });
+      if (isTestUser) {
+        const whatsappMessage = window.encodeURIComponent(
+          `Olá, sou ${patientName}. Confirmo meu agendamento de ${specialty} para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.`
+        );
+        const whatsappUrl = `https://wa.me/5567991747844?text=${whatsappMessage}`;
+
+        toast.success(
+          <div className="flex flex-col gap-2">
+            <span className="font-bold text-base">Agendamento confirmado!</span>
+            <p className="text-sm">Sua consulta de teste foi agendada e confirmada automaticamente com sucesso.</p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button 
+                asChild
+                size="sm" 
+                className="bg-green-600 text-white border-none hover:bg-green-700 font-bold" 
+              >
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp
+                </a>
+              </Button>
+            </div>
+          </div>,
+          { duration: 15000 }
+        );
+      } else {
+        let payUrl = "https://sandbox.pagseguro.uol.com.br"; // Fallback Sandbox
         
-        if (!payError && payData?.payment_url) {
-          payUrl = payData.payment_url;
+        try {
+          const { data: payData, error: payError } = await supabase.functions.invoke('pagbank-pay-consultation', {
+            body: { 
+              appointment_id: newApp.id,
+              origin_url: window.location.origin
+            }
+          });
+          
+          if (!payError && payData?.payment_url) {
+            payUrl = payData.payment_url;
+          }
+        } catch (err) {
+          console.error("Erro ao gerar link de pagamento:", err);
         }
-      } catch (err) {
-        console.error("Erro ao gerar link de pagamento:", err);
+
+        const whatsappMessage = window.encodeURIComponent(
+          `Olá, sou ${patientName}. Confirmo meu agendamento de ${specialty} para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.\n\n(Ciente de que a consulta só será confirmada após a confirmação do pagamento)`
+        );
+        const whatsappUrl = `https://wa.me/5567991747844?text=${whatsappMessage}`;
+
+        toast.success(
+          <div className="flex flex-col gap-2">
+            <span className="font-bold text-base">Agendamento confirmado!</span>
+            <p className="text-sm">Para finalizar, realize o pagamento da consulta no link abaixo (Sandbox).</p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button 
+                asChild
+                size="sm" 
+                className="bg-[#2566af] text-white hover:bg-[#1e528d] font-bold" 
+              >
+                <a href={payUrl} target="_blank" rel="noopener noreferrer">
+                  <CreditCard className="h-4 w-4 mr-2" /> Pagar Consulta
+                </a>
+              </Button>
+              <Button 
+                asChild
+                size="sm" 
+                variant="outline" 
+                className="bg-green-600 text-white border-none hover:bg-green-700" 
+              >
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp
+                </a>
+              </Button>
+            </div>
+          </div>,
+          { duration: 15000 }
+        );
+
+        // Solicitação automática de pagamento (abre em nova aba)
+        setTimeout(() => {
+          window.open("https://pag.ae/81J592y2N", "_blank");
+        }, 1000);
       }
-
-      const whatsappMessage = window.encodeURIComponent(
-        `Olá, sou ${patientName}. Confirmo meu agendamento de ${specialty} para o dia ${format(date, "dd/MM/yyyy")} às ${selectedTime}.\n\n(Ciente de que a consulta só será confirmada após a confirmação do pagamento)`
-      );
-      const whatsappUrl = `https://wa.me/5567991747844?text=${whatsappMessage}`;
-
-      toast.success(
-        <div className="flex flex-col gap-2">
-          <span className="font-bold text-base">Agendamento confirmado!</span>
-          <p className="text-sm">Para finalizar, realize o pagamento da consulta no link abaixo (Sandbox).</p>
-          <div className="flex flex-wrap gap-2 pt-1">
-            <Button 
-              asChild
-              size="sm" 
-              className="bg-[#2566af] text-white hover:bg-[#1e528d] font-bold" 
-            >
-              <a href={payUrl} target="_blank" rel="noopener noreferrer">
-                <CreditCard className="h-4 w-4 mr-2" /> Pagar Consulta
-              </a>
-            </Button>
-            <Button 
-              asChild
-              size="sm" 
-              variant="outline" 
-              className="bg-green-600 text-white border-none hover:bg-green-700" 
-            >
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp
-              </a>
-            </Button>
-          </div>
-        </div>,
-        { duration: 15000 }
-      );
-
-      // Solicitação automática de pagamento (abre em nova aba)
-      setTimeout(() => {
-        window.open("https://pag.ae/81J592y2N", "_blank");
-      }, 1000);
 
       setBookedSlots([...bookedSlots, selectedTime]);
       setSelectedTime(null);

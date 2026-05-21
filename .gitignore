@@ -29,3 +29,6 @@ dist-ssr
 
 .vercel
 .env*.local
+# Agent and Gemini directories
+.agent/
+.gemini/
