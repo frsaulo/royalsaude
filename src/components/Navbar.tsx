@@ -39,10 +39,18 @@ const Navbar = () => {
           </a>
         </div>
 
-        {/* Mobile toggle */}
-        <button onClick={() => setOpen(!open)} className="md:hidden text-primary">
-          {open ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {/* Mobile toggle e botão ENTRAR */}
+        <div className="flex items-center gap-3 md:hidden">
+          <a
+            href="/login"
+            className="bg-primary text-white font-inter text-xs font-bold px-3.5 py-1.5 rounded-sm shadow-royal hover:brightness-110 transition-all cursor-pointer"
+          >
+            ENTRAR
+          </a>
+          <button onClick={() => setOpen(!open)} className="text-primary focus:outline-none">
+            {open ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
@@ -65,6 +73,13 @@ const Navbar = () => {
                   {link.label}
                 </a>
               ))}
+              <a
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="bg-primary text-white text-center font-inter text-sm font-bold px-5 py-2.5 rounded-sm shadow-royal hover:brightness-110 transition-all cursor-pointer mt-2"
+              >
+                ENTRAR
+              </a>
             </div>
           </motion.div>
         )}
