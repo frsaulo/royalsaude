@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
+import EspecialidadesSection from "@/components/EspecialidadesSection";
 import ComoFunciona from "@/components/ComoFunciona";
 import QuemSomos from "@/components/QuemSomos";
 import ContatoSection from "@/components/ContatoSection";
@@ -10,6 +11,7 @@ const Index = () => {
     <div className="min-h-screen">
       <Navbar />
       <HeroSection />
+      <EspecialidadesSection />
       
       {/* Planos Section via Iframe */}
       <section id="planos" className="w-full bg-slate-50">
