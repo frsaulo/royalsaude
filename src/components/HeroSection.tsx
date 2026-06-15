@@ -117,7 +117,7 @@ const HeroSection = () => {
             <ul className="text-xl md:text-2xl text-white font-body font-light space-y-5 mb-10">
               <li className="flex items-center gap-4">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#dde400]"></span>
-                25 especialidades disponíveis
+                Mais de 20 especialidades disponíveis
               </li>
               <li className="flex items-center gap-4">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#dde400]"></span>
@@ -175,17 +175,23 @@ const HeroSection = () => {
                 Um espaço moderno, confortável e acolhedor, com:
               </p>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-12 gap-y-4">
                 {[
-                  "Clínico geral",
-                  "Oftalmologista",
-                  "Psicólogo",
-                  "Dentista",
-                  "Nutricionista"
+                  "Clínico Geral",
+                  "Cardiologista",
+                  "Odontologia",
+                  "Ginecologista",
+                  "Obstetrícia",
+                  "Ortopedia",
+                  "Pediatria",
+                  "Psicologia",
+                  "Pneumologista",
+                  "Nefrologista",
+                  "Reumatologista"
                 ].map((servico) => (
                   <div key={servico} className="flex items-center gap-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></span>
-                    <span className="text-xl md:text-2xl font-bold tracking-tight">
+                    <span className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] flex-shrink-0"></span>
+                    <span className="text-lg md:text-xl font-bold tracking-tight whitespace-nowrap">
                       {servico}
                     </span>
                   </div>

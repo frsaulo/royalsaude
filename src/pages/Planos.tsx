@@ -369,7 +369,7 @@ export const Planos = () => {
               <div>
                 <p className="font-semibold text-slate-800">Consultas Avulsas</p>
                 <p className="text-sm text-slate-600">
-                  Cada consulta tem um custo adicional de{" "}
+                  Cada consulta tem um custo adicional a partir de{" "}
                   <strong className="text-[#1E3A8A]">R$ 69,90</strong>, cobrado
                   no momento do agendamento. Aceitos: PIX, Boleto e Cartão.
                 </p>
