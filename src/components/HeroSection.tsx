@@ -83,6 +83,10 @@ const HeroSection = () => {
               *Ao assinar a mensalidade, você tem direito a consultas ILIMITADAS
               {"\n"} com uma pequena coparticipação de R$69,90 por consulta.
             </span>
+            <span className="block text-xs mt-2 opacity-75 leading-relaxed">
+              *Carências:
+              {"\n"}- Telemedicina e desconto em farmácias, seguro de vida e auxílio funeral: 30 dias
+            </span>
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
