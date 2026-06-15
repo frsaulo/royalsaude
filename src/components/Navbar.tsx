@@ -4,10 +4,11 @@ import { Menu, X } from "lucide-react";
 import logo from "@/assets/RoyalMed.png";
 
 const navLinks = [
-  { label: "Início", href: "#" },
-  { label: "Como Funciona", href: "#como-funciona" },
-  { label: "Quem Somos", href: "#quem-somos" },
-  { label: "Contato", href: "#contato" },
+  { label: "Início", href: "/" },
+  { label: "Especialidades", href: "/especialidades" },
+  { label: "Como Funciona", href: "/#como-funciona" },
+  { label: "Quem Somos", href: "/#quem-somos" },
+  { label: "Contato", href: "/#contato" },
 ];
 
 const Navbar = () => {
