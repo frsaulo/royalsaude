@@ -147,19 +147,23 @@ export const Especialidades = () => {
       );
       if (found) {
         setSelectedEsp(found);
+      } else {
+        setSelectedEsp(null);
       }
+    } else {
+      setSelectedEsp(null);
     }
   }, [searchParams]);
 
   // Atualiza a URL quando o modal abre ou fecha
   const handleOpenModal = (esp: Especialidade) => {
     setSelectedEsp(esp);
-    setSearchParams({ active: esp.id });
+    setSearchParams({ active: esp.id }, { replace: true });
   };
 
   const handleCloseModal = () => {
     setSelectedEsp(null);
-    setSearchParams({});
+    setSearchParams({}, { replace: true });
   };
 
   const handleBook = () => {
