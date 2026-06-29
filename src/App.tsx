@@ -22,6 +22,7 @@ import { PoliticaCancelamento } from "./pages/PoliticaCancelamento";
 import { PagamentoConfirmado } from "./pages/PagamentoConfirmado";
 import RedefinirSenha from "./pages/RedefinirSenha";
 import { Especialidades } from "./pages/Especialidades";
+import { EspecialidadeDetalhe } from "./pages/EspecialidadeDetalhe";
 import WhatsAppButton from "./components/WhatsAppButton";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,7 @@ const App = () => (
             {/* Páginas Públicas */}
             <Route path="/planos" element={<Planos />} />
             <Route path="/especialidades" element={<Especialidades />} />
+            <Route path="/especialidades/:id" element={<EspecialidadeDetalhe />} />
             <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/contrato-adesao" element={<ContratoAdesao />} />
             <Route path="/politica-cancelamento" element={<PoliticaCancelamento />} />

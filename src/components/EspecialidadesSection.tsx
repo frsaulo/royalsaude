@@ -1,88 +1,11 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
-  Stethoscope, 
-  HeartPulse, 
-  Flower2, 
-  Baby, 
-  Bone, 
-  Smile, 
-  Brain, 
-  Wind, 
-  Activity, 
-  Accessibility,
   MapPin,
   CalendarCheck
 } from "lucide-react";
+import { especialidadesList } from "../data/especialidades";
 
-const especialidades = [
-  {
-    id: "clinico-geral",
-    icon: Stethoscope,
-    name: "Clínico Geral",
-    description: "Diagnóstico e cuidados gerais para sua saúde do dia a dia.",
-  },
-  {
-    id: "cardiologista",
-    icon: HeartPulse,
-    name: "Cardiologista",
-    description: "Prevenção, diagnóstico e tratamento de doenças do coração.",
-  },
-  {
-    id: "odontologia",
-    icon: Smile,
-    name: "Odontologia",
-    description: "Cuidados completos com a saúde bucal, prevenção e tratamentos dentários.",
-  },
-  {
-    id: "ginecologista",
-    icon: Flower2,
-    name: "Ginecologista",
-    description: "Atenção integral à saúde íntima da mulher em todas as fases.",
-  },
-  {
-    id: "obstetricia",
-    icon: Baby,
-    name: "Obstetrícia",
-    description: "Acompanhamento dedicado da gestação, parto e pós-parto.",
-  },
-  {
-    id: "ortopedia",
-    icon: Bone,
-    name: "Ortopedia",
-    description: "Cuidados com ossos, muscles, articulações e lesões.",
-  },
-  {
-    id: "pediatria",
-    icon: Smile,
-    name: "Pediatria",
-    description: "Cuidado e carinho com a saúde e desenvolvimento infantil.",
-  },
-  {
-    id: "psicologia",
-    icon: Brain,
-    name: "Psicologia",
-    description: "Apoio emocional e cuidados com a saúde mental.",
-  },
-  {
-    id: "pneumologista",
-    icon: Wind,
-    name: "Pneumologista",
-    description: "Prevenção e tratamento de problemas do sistema respiratório.",
-  },
-  {
-    id: "nefrologista",
-    icon: Activity,
-    name: "Nefrologista",
-    description: "Prevenção, diagnóstico e tratamento de doenças renais.",
-  },
-  {
-    id: "reumatologista",
-    icon: Accessibility,
-    name: "Reumatologista",
-    description: "Diagnóstico de doenças autoimunes e das articulações.",
-  },
-];
 
 const EspecialidadesSection = () => {
   const navigate = useNavigate();
@@ -131,7 +54,7 @@ const EspecialidadesSection = () => {
 
         {/* Grid de Especialidades */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {especialidades.map((esp, i) => {
+          {especialidadesList.map((esp, i) => {
             const IconComponent = esp.icon;
             return (
               <motion.div
@@ -140,7 +63,7 @@ const EspecialidadesSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
-                onClick={() => navigate(`/especialidades?active=${esp.id}`)}
+                onClick={() => navigate(`/especialidades/${esp.id}`)}
                 className="bg-white rounded-xl p-6 border border-slate-100 shadow-royal hover:shadow-xl hover:border-primary/10 transition-all duration-300 group hover:-translate-y-1.5 flex flex-col justify-between cursor-pointer"
               >
                 <div>
