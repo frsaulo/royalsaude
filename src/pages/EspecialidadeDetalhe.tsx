@@ -238,6 +238,35 @@ export const EspecialidadeDetalhe = () => {
                 </div>
               </motion.div>
 
+              {/* Serviços e Terapias */}
+              {especialidade.services && especialidade.services.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.15 }}
+                  className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm"
+                >
+                  <h2 className="text-xl font-cinzel font-bold text-primary mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                    <span className="w-1.5 h-6 bg-[#2566af] rounded-full inline-block"></span>
+                    Serviços e Terapias Oferecidas
+                  </h2>
+                  <p className="text-muted-foreground font-body text-sm mb-4">
+                    Nossa clínica oferece os seguintes atendimentos e terapias especializadas:
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {especialidade.services.map((service) => (
+                      <div 
+                        key={service}
+                        className="bg-slate-50 border border-slate-100 p-3.5 rounded-xl flex items-start gap-3 hover:bg-slate-100/70 transition-colors"
+                      >
+                        <CheckCircle2 className="w-5 h-5 text-[#2566af] shrink-0 mt-0.5" />
+                        <span className="text-slate-700 font-body text-sm font-medium">{service}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
               {/* Quando Procurar */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}

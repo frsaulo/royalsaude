@@ -19,6 +19,7 @@ export interface Especialidade {
   detailedDescription: string;
   symptoms: string[];
   indications: string;
+  services?: string[];
 }
 
 export const especialidadesList: Especialidade[] = [
@@ -92,7 +93,13 @@ export const especialidadesList: Especialidade[] = [
     description: "Apoio emocional e cuidados com a saúde mental.",
     detailedDescription: "O Psicólogo atua no cuidado com a saúde mental e emocional. Através de sessões de psicoterapia, ele ajuda o paciente a lidar com conflitos internos, ansiedade, depressão, traumas e desafios nos relacionamentos cotidianos.",
     symptoms: ["Tristeza profunda e persistente", "Ansiedade generalizada ou pânico", "Estresse severo", "Luto ou perdas significativas", "Dificuldades de convívio"],
-    indications: "Procure quando sentir que as emoções estão interferindo negativamente na sua rotina, no sono, no trabalho ou em momentos de grandes mudanças de vida."
+    indications: "Procure quando sentir que as emoções estão interferindo negativamente na sua rotina, no sono, no trabalho ou em momentos de grandes mudanças de vida.",
+    services: [
+      "Terapia ABA",
+      "Terapia TCC",
+      "Avaliação Neuropsicológica",
+      "Reabilitação Neuropsicológica"
+    ]
   },
   {
     id: "pneumologista",
