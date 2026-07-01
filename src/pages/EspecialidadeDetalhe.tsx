@@ -358,7 +358,7 @@ export const EspecialidadeDetalhe = () => {
                   </div>
 
                   <span className="text-[10px] text-muted-foreground text-center font-body mt-4">
-                    Assinantes possuem descontos de até 70% em exames e consultas presenciais na nossa clínica.
+                    Assinantes possuem até 80% de desconto em exames e consultas presenciais na nossa clínica.
                   </span>
                 </motion.div>
               </div>
