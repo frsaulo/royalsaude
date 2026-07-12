@@ -182,18 +182,24 @@ const HeroSection = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-12 gap-y-4">
                 {[
                   "Clínico Geral",
-                  "Cardiologista",
+                  "Cardiologia",
+                  "Coloproctologia",
                   "Odontologia",
+                  "Endocrinologia",
+                  "Gastroenterologia",
                   "Ginecologista",
                   "Obstetrícia",
+                  "Neurologia",
                   "Ortopedia",
+                  "Otorrinolaringologia",
                   "Pediatria",
                   "Psicologia",
                   "Pneumologista",
                   "Nefrologista",
-                  "Reumatologista",
-                  "Psiquiatria",
-                  "Ultrassonografia"
+                  "Reumatologia",
+                  "Cirurgia Vascular",
+                  "Ultrassonografia",
+                  "Psiquiatria"
                 ].map((servico) => (
                   <div key={servico} className="flex items-center gap-3">
                     <span className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] flex-shrink-0"></span>

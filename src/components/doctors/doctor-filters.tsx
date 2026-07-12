@@ -15,15 +15,19 @@ import { Search, SlidersHorizontal, MapPin } from "lucide-react";
 const specialties = [
   "Todas as Especialidades",
   "Cardiologia",
+  "Coloproctologia",
   "Dermatologia",
   "Endocrinologia",
+  "Gastroenterologia",
   "Ginecologia",
   "Neurologia",
   "Oftalmologia",
   "Ortopedia",
+  "Otorrinolaringologia",
   "Pediatria",
   "Psiquiatria",
   "Ultrassonografia",
+  "Vascular",
 ];
 
 const locations = [

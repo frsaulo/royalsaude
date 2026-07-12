@@ -152,7 +152,7 @@ export const Agenda = () => {
   const [editBookedSlots, setEditBookedSlots] = useState<string[]>([]);
   const [loadingEditSlots, setLoadingEditSlots] = useState(false);
 
-  const SPECIALTIES = ["Médicos", "Dentista", "Psicologia", "Nutrição", "Exame de Vista", "Psiquiatria", "Ultrassonografia"];
+  const SPECIALTIES = ["Médicos", "Dentista", "Psicologia", "Nutrição", "Exame de Vista", "Psiquiatria", "Ultrassonografia", "Cardiologia", "Coloproctologia", "Endocrinologia", "Gastroenterologia", "Neurologia", "Ortopedia", "Otorrinolaringologia", "Pediatria", "Reumatologia", "Cirurgia Vascular"];
 
   // Dependents state
   const [dependents, setDependents] = useState<Dependent[]>([]);
