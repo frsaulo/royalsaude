@@ -191,7 +191,9 @@ const HeroSection = () => {
                   "Psicologia",
                   "Pneumologista",
                   "Nefrologista",
-                  "Reumatologista"
+                  "Reumatologista",
+                  "Psiquiatria",
+                  "Ultrassonografia"
                 ].map((servico) => (
                   <div key={servico} className="flex items-center gap-3">
                     <span className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] flex-shrink-0"></span>

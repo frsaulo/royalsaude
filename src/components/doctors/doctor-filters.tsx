@@ -23,6 +23,7 @@ const specialties = [
   "Ortopedia",
   "Pediatria",
   "Psiquiatria",
+  "Ultrassonografia",
 ];
 
 const locations = [

@@ -8,7 +8,9 @@ import {
   Brain, 
   Wind, 
   Activity, 
-  Accessibility
+  Accessibility,
+  Scan,
+  BrainCircuit
 } from "lucide-react";
 
 export interface Especialidade {
@@ -127,5 +129,23 @@ export const especialidadesList: Especialidade[] = [
     detailedDescription: "O Reumatologista atua no tratamento de doenças crônicas não-traumáticas das articulações e dos tecidos que as envolvem, além de doenças autoimunes e inflamatórias sistêmicas como artrite reumatoide, gota, fibromialgia, artrose e lúpus.",
     symptoms: ["Dores e inchaços nas articulações", "Rigidez nas juntas ao acordar", "Dores musculares generalizadas e fadiga", "Lesões de pele associadas a dores articulares"],
     indications: "Procure caso sinta dores ou inchaço recorrentes nas juntas que durem mais de algumas semanas, rigidez articular prolongada pela manhã ou dores generalizadas inexplicáveis."
+  },
+  {
+    id: "ultrassonografia",
+    name: "Ultrassonografia",
+    icon: Scan,
+    description: "Exames de imagem precisos para diagnóstico e acompanhamento.",
+    detailedDescription: "A Ultrassonografia (ou ecografia) é um exame de imagem não invasivo e seguro, que utiliza ondas sonoras de alta frequência para visualizar, em tempo real, as estruturas internas do corpo, como órgãos, tecidos, fluxo sanguíneo e o desenvolvimento fetal durante a gravidez.",
+    symptoms: ["Acompanhamento gestacional", "Dor abdominal ou pélvica", "Avaliação de nódulos ou cistos", "Investigação de dores articulares", "Exames preventivos de rotina"],
+    indications: "Recomendada para exames preventivos, diagnóstico de dores inexplicáveis nos órgãos internos, acompanhamento de gestação e monitoramento de alterações sob orientação médica."
+  },
+  {
+    id: "psiquiatria",
+    name: "Psiquiatria",
+    icon: BrainCircuit,
+    description: "Prevenção, diagnóstico e tratamento de distúrbios da mente e comportamento.",
+    detailedDescription: "A Psiquiatria é a especialidade médica focada na prevenção, diagnóstico, tratamento e reabilitação de distúrbios mentais, emocionais e de comportamento. O psiquiatra avalia o paciente sob uma perspectiva médica e biológica, podendo prescrever medicamentos quando necessário para restaurar o equilíbrio e o bem-estar.",
+    symptoms: ["Tristeza profunda ou desânimo", "Ansiedade severa ou crises de pânico", "Alterações graves de humor ou comportamento", "Insônia severa ou distúrbios do sono", "Ideias obsessivas ou medos irracionais", "Alucinações ou delírios"],
+    indications: "Indicada para o tratamento de depressão, transtorno bipolar, esquizofrenia, TDAH, transtornos de ansiedade crônicos e situações em que há necessidade de intervenção medicamentosa associada ou não à psicoterapia."
   }
 ];
