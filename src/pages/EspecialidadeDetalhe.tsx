@@ -195,55 +195,148 @@ export const EspecialidadeDetalhe = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Coluna da Esquerda: Detalhes Médicos (2/3 da largura no desktop) */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Sobre a Especialidade */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm"
-              >
-                <h2 className="text-xl font-cinzel font-bold text-primary mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
-                  <span className="w-1.5 h-6 bg-[#2566af] rounded-full inline-block"></span>
-                  Sobre a Especialidade
-                </h2>
-                <p className="text-slate-700 font-body text-base leading-relaxed whitespace-pre-line">
-                  {especialidade.detailedDescription}
-                </p>
-              </motion.div>
+              {/* Introdução opcional */}
+              {especialidade.introduction && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="bg-primary/5 border-l-4 border-[#dde400] p-6 rounded-r-2xl font-body text-base leading-relaxed text-slate-850 italic font-medium"
+                >
+                  {especialidade.introduction}
+                </motion.div>
+              )}
+
+              {/* Quem é o médico / Sobre a Especialidade */}
+              {especialidade.whoIsDoctor ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.05 }}
+                  className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm"
+                >
+                  <h2 className="text-xl font-cinzel font-bold text-primary mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                    <span className="w-1.5 h-6 bg-[#2566af] rounded-full inline-block"></span>
+                    {especialidade.whoIsDoctor.title}
+                  </h2>
+                  <p className="text-slate-700 font-body text-base leading-relaxed whitespace-pre-line">
+                    {especialidade.whoIsDoctor.description}
+                  </p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm"
+                >
+                  <h2 className="text-xl font-cinzel font-bold text-primary mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                    <span className="w-1.5 h-6 bg-[#2566af] rounded-full inline-block"></span>
+                    Sobre a Especialidade
+                  </h2>
+                  <p className="text-slate-700 font-body text-base leading-relaxed whitespace-pre-line">
+                    {especialidade.detailedDescription}
+                  </p>
+                </motion.div>
+              )}
+
+              {/* Quando marcar consulta (Novo campo) */}
+              {especialidade.whenToConsult && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 }}
+                  className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm"
+                >
+                  <h2 className="text-xl font-cinzel font-bold text-primary mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                    <span className="w-1.5 h-6 bg-[#2566af] rounded-full inline-block"></span>
+                    {especialidade.whenToConsult.title}
+                  </h2>
+                  <p className="text-slate-700 font-body text-base leading-relaxed whitespace-pre-line">
+                    {especialidade.whenToConsult.description}
+                  </p>
+                </motion.div>
+              )}
+
+              {/* Como é a consulta (Novo campo) */}
+              {especialidade.howIsConsult && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.15 }}
+                  className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm"
+                >
+                  <h2 className="text-xl font-cinzel font-bold text-primary mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                    <span className="w-1.5 h-6 bg-[#2566af] rounded-full inline-block"></span>
+                    {especialidade.howIsConsult.title}
+                  </h2>
+                  <p className="text-slate-700 font-body text-base leading-relaxed whitespace-pre-line">
+                    {especialidade.howIsConsult.description}
+                  </p>
+                </motion.div>
+              )}
 
               {/* Sintomas Tratados */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 }}
-                className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm"
-              >
-                <h2 className="text-xl font-cinzel font-bold text-primary mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
-                  <span className="w-1.5 h-6 bg-[#2566af] rounded-full inline-block"></span>
-                  Sintomas Comuns Tratados
-                </h2>
-                <p className="text-muted-foreground font-body text-sm mb-4">
-                  Se você apresenta algum dos sintomas abaixo, a consulta com o especialista é recomendada:
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {especialidade.symptoms.map((symptom) => (
-                    <div 
-                      key={symptom}
-                      className="bg-slate-50 border border-slate-100 p-3.5 rounded-xl flex items-start gap-3 hover:bg-slate-100/70 transition-colors"
-                    >
-                      <CheckCircle2 className="w-5 h-5 text-[#2566af] shrink-0 mt-0.5" />
-                      <span className="text-slate-700 font-body text-sm font-medium">{symptom}</span>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
+              {especialidade.symptoms && especialidade.symptoms.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.2 }}
+                  className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm"
+                >
+                  <h2 className="text-xl font-cinzel font-bold text-primary mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                    <span className="w-1.5 h-6 bg-[#2566af] rounded-full inline-block"></span>
+                    Sintomas Comuns Tratados
+                  </h2>
+                  <p className="text-muted-foreground font-body text-sm mb-4">
+                    Se você apresenta algum dos sintomas abaixo, a consulta com o especialista é recomendada:
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {especialidade.symptoms.map((symptom) => (
+                      <div 
+                        key={symptom}
+                        className="bg-slate-50 border border-slate-100 p-3.5 rounded-xl flex items-start gap-3 hover:bg-slate-100/70 transition-colors"
+                      >
+                        <CheckCircle2 className="w-5 h-5 text-[#2566af] shrink-0 mt-0.5" />
+                        <span className="text-slate-700 font-body text-sm font-medium">{symptom}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Doenças Tratadas (Novo campo estruturado) */}
+              {especialidade.diseasesTreated && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.25 }}
+                  className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm"
+                >
+                  <h2 className="text-xl font-cinzel font-bold text-primary mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                    <span className="w-1.5 h-6 bg-[#2566af] rounded-full inline-block"></span>
+                    {especialidade.diseasesTreated.title}
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                    {especialidade.diseasesTreated.list.map((disease) => (
+                      <div 
+                        key={disease}
+                        className="bg-slate-50 border border-slate-100 p-3.5 rounded-xl flex items-start gap-3 hover:bg-slate-100/70 transition-colors"
+                      >
+                        <CheckCircle2 className="w-5 h-5 text-[#2566af] shrink-0 mt-0.5" />
+                        <span className="text-slate-700 font-body text-sm font-medium">{disease}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
 
               {/* Serviços e Terapias */}
               {especialidade.services && especialidade.services.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.15 }}
+                  transition={{ duration: 0.4, delay: 0.3 }}
                   className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm"
                 >
                   <h2 className="text-xl font-cinzel font-bold text-primary mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
@@ -267,20 +360,22 @@ export const EspecialidadeDetalhe = () => {
                 </motion.div>
               )}
 
-              {/* Quando Procurar */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-                className="bg-primary/5 border-l-4 border-[#2566af] p-6 rounded-r-2xl"
-              >
-                <h3 className="text-base font-cinzel font-bold text-primary mb-2 uppercase tracking-wide">
-                  Quando Procurar?
-                </h3>
-                <p className="text-slate-700 font-body text-sm leading-relaxed">
-                  {especialidade.indications}
-                </p>
-              </motion.div>
+              {/* Quando Procurar - Fallback para quando não há whenToConsult */}
+              {!especialidade.whenToConsult && especialidade.indications && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.35 }}
+                  className="bg-primary/5 border-l-4 border-[#2566af] p-6 rounded-r-2xl"
+                >
+                  <h3 className="text-base font-cinzel font-bold text-primary mb-2 uppercase tracking-wide">
+                    Quando Procurar?
+                  </h3>
+                  <p className="text-slate-700 font-body text-sm leading-relaxed">
+                    {especialidade.indications}
+                  </p>
+                </motion.div>
+              )}
 
               {/* Por que escolher a RoyalMed? */}
               <motion.div
