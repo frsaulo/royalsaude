@@ -15,7 +15,7 @@ const Footer = () => {
         </p>
         <div className="flex flex-col items-center gap-4 mb-6">
           <a 
-            href="https://wa.me/5567991747844" 
+            href="https://wa.me/556791427016" 
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-[#092952] hover:text-green-600 transition-all font-body text-sm group"
@@ -23,7 +23,7 @@ const Footer = () => {
             <div className="bg-green-100 p-2 rounded-full group-hover:bg-green-200 transition-colors">
               <MessageCircle size={18} className="text-green-600" />
             </div>
-            <span className="font-semibold text-base">SAC: (67) 99174-7844</span>
+            <span className="font-semibold text-base">Atendimento: (67) 9142-7016</span>
           </a>
 
           <a 

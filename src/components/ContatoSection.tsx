@@ -46,9 +46,9 @@ const ContatoSection = () => {
             },
             {
               icon: WhatsappIcon,
-              title: "SAC",
+              title: "Atendimento",
               info: "Dúvidas? Fale com nosso suporte.",
-              href: "https://wa.me/5567991747844?text=Olá,%20vim%20do%20site%20e%20gostaria%20de%20mais%20informações.",
+              href: "https://wa.me/556791427016?text=Olá,%20vim%20do%20site%20e%20gostaria%20de%20mais%20informações.",
             },
           ].map((item, i) => (
             <motion.a

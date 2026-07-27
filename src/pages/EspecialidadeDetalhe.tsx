@@ -438,9 +438,11 @@ export const EspecialidadeDetalhe = () => {
                   transition={{ duration: 0.4, type: "spring" }}
                   className="bg-white rounded-2xl p-6 border border-slate-200 shadow-md flex flex-col"
                 >
-                  <div className="bg-[#dde400]/25 text-[#092952] text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider self-start mb-4 font-body">
-                    Atendimento Imediato
-                  </div>
+                  {(especialidade.id === "clinico-geral" || especialidade.name.toLowerCase().includes("clínico geral") || especialidade.name.toLowerCase().includes("clinico geral")) && (
+                    <div className="bg-[#dde400]/25 text-[#092952] text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider self-start mb-4 font-body">
+                      Atendimento Imediato
+                    </div>
+                  )}
 
                   <h3 className="font-cinzel text-lg font-bold text-primary mb-1">
                     Agende sua Consulta
@@ -471,7 +473,7 @@ export const EspecialidadeDetalhe = () => {
                     </button>
 
                     <a
-                      href="https://wa.me/5567991747844?text=Olá,%20vim%20do%20site%20e%20gostaria%20de%20agendar%20uma%20consulta%20de%20"
+                      href="https://wa.me/556791427016?text=Olá,%20vim%20do%20site%20e%20gostaria%20de%20agendar%20uma%20consulta%20de%20"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white font-cinzel font-bold px-5 py-3.5 rounded-xl shadow-md transition-all hover:scale-102 hover:shadow-lg text-sm tracking-wide"
