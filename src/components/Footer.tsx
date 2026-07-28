@@ -1,5 +1,5 @@
 import logo from "@/assets/RoyalMedr.png";
-import { Mail, MessageCircle } from "lucide-react";
+import { Mail, MessageCircle, Headset } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -23,7 +23,19 @@ const Footer = () => {
             <div className="bg-green-100 p-2 rounded-full group-hover:bg-green-200 transition-colors">
               <MessageCircle size={18} className="text-green-600" />
             </div>
-            <span className="font-semibold text-base">Atendimento: (67) 9142-7016</span>
+            <span className="font-semibold text-base">WhatsApp: (67) 9142-7016</span>
+          </a>
+
+          <a 
+            href="https://wa.me/5567991747844" 
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-[#092952] hover:text-blue-600 transition-all font-body text-sm group"
+          >
+            <div className="bg-blue-100 p-2 rounded-full group-hover:bg-blue-200 transition-colors">
+              <Headset size={18} className="text-[#2566af]" />
+            </div>
+            <span className="font-semibold text-base">SAC: (67) 99174-7844</span>
           </a>
 
           <a 

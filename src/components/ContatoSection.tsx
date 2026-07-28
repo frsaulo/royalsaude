@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Phone, MapPin } from "lucide-react";
+import { Phone, MapPin, Headset } from "lucide-react";
 
 const WhatsappIcon = ({ className }: { className?: string }) => (
   <svg 
@@ -33,8 +33,8 @@ const ContatoSection = () => {
         <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           {[
             {
-              icon: Phone,
-              title: "Telefone comercial",
+              icon: WhatsappIcon,
+              title: "WhatsApp Comercial",
               info: "Informações sobre planos e pacotes\n(67) 9142-7016",
               href: "https://wa.me/556791427016?text=Olá,%20vim%20do%20site%20e%20gostaria%20de%20mais%20informações.",
             },
@@ -45,10 +45,10 @@ const ContatoSection = () => {
               href: "https://www.google.com/maps/place/R.+Pedro+Celestino,+2395+-+Centro,+Campo+Grande+-+MS,+79002-372",
             },
             {
-              icon: WhatsappIcon,
-              title: "Atendimento",
-              info: "Dúvidas? Fale com nosso suporte.",
-              href: "https://wa.me/556791427016?text=Olá,%20vim%20do%20site%20e%20gostaria%20de%20mais%20informações.",
+              icon: Headset,
+              title: "SAC",
+              info: "Dúvidas? Fale com nosso suporte\n(67) 99174-7844",
+              href: "https://wa.me/5567991747844?text=Olá,%20vim%20do%20site%20e%20gostaria%20de%20atendimento%20do%20SAC.",
             },
           ].map((item, i) => (
             <motion.a
