@@ -73,7 +73,7 @@ export const Especialidades = () => {
         {/* Grid de Especialidades */}
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {especialidadesList.map((esp, i) => {
+            {[...especialidadesList].sort((a, b) => a.name.localeCompare(b.name, "pt-BR")).map((esp, i) => {
               const IconComponent = esp.icon;
               return (
                 <motion.div

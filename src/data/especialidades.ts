@@ -13,8 +13,104 @@ import {
   BrainCircuit,
   Ear,
   Scale,
-  Flame
+  Flame,
+  Scissors,
+  Weight,
+  BriefcaseMedical,
+  ClipboardPlus,
+  SmilePlus,
+  Heart,
+  UsersRound
 } from "lucide-react";
+import React from "react";
+
+export const MarsIcon = (props: any) =>
+  React.createElement(
+    "svg",
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
+      strokeWidth: "2",
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+      ...props
+    },
+    React.createElement("path", { d: "M16 3h5v5" }),
+    React.createElement("path", { d: "m21 3-7 7" }),
+    React.createElement("circle", { cx: "10", cy: "14", r: "5" })
+  );
+
+export const StomachIcon = (props: any) =>
+  React.createElement(
+    "svg",
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      viewBox: "0 0 33 35",
+      fill: "currentColor",
+      ...props
+    },
+    React.createElement("path", {
+      fillRule: "evenodd",
+      d: "M15.43,1.81c.02.56.12.89.29,1.09.24.29.49.39.78.42.34.03.77-.05,1.34-.23.28-.09.57-.19.88-.3.03-.01.06-.02.1-.03.28-.1.57-.21.86-.3.64-.21,1.38-.41,2.13-.41,4.8,0,7.65,3.75,9.53,7.1,2.3,4.11,2.21,9.24-.25,13.26-1.61,2.65-3.68,4.94-6.81,6.15-4.54,1.76-9.54,1.08-13.67-.96-.92-.45-2,.24-2,1.13v6.27h-2v-6.27c0-2.55,2.8-3.95,4.88-2.93,3.74,1.85,8.16,2.4,12.06.88,2.57-1,4.33-2.89,5.82-5.33,2.08-3.41,2.16-7.77.21-11.24-1.85-3.3-4.19-6.07-7.78-6.07-.42,0-.91.12-1.5.31-.26.09-.53.18-.81.28-.03.01-.06.02-.09.03-.31.11-.63.23-.96.33-.64.2-1.37.37-2.11.31-.79-.07-1.53-.41-2.13-1.12-.6-.72-.74-1.61-.76-2.31-.01-.36,0-.72.02-1.03,0-.05,0-.09,0-.14.01-.27.02-.49.02-.7h2c0,.26-.01.54-.03.81,0,.04,0,.09,0,.13-.02.31-.03.6-.02.87ZM6.86.51c0-.17,0-.34,0-.51h2c0,.13,0,.25,0,.37,0,2.73,0,5.03,1.27,7.17.88,1.49,2.19,2.53,3.68,3.72.22.17.44.35.66.53,1.8,1.46,2.19,3.44,1.57,5.17-.59,1.67-2.08,3.04-3.91,3.57-.98.28-1.92.49-2.77.68-.2.04-.39.09-.58.13-1.01.23-1.87.45-2.63.77-1.44.6-2.62,1.56-3.56,3.87-.39.96-.59,1.98-.59,3.01v6.01H0v-6.01c0-1.29.25-2.57.74-3.77,1.14-2.78,2.69-4.16,4.65-4.97.93-.39,1.94-.64,2.95-.87.2-.05.41-.09.61-.14.84-.19,1.71-.38,2.63-.65,1.25-.36,2.21-1.29,2.58-2.32.34-.95.18-2.03-.95-2.95-.21-.17-.42-.33-.63-.5-1.47-1.17-3.09-2.45-4.17-4.28-1.56-2.63-1.55-5.45-1.55-8.06Z"
+    })
+  );
+
+export const HormoneIcon = (props: any) =>
+  React.createElement(
+    "svg",
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      viewBox: "0 0 33 34.7",
+      fill: "currentColor",
+      ...props
+    },
+    React.createElement("path", {
+      d: "M15.43,24.51c.6,0,1.1-1.21,1.1-2.71,0,1.5.49,2.71,1.1,2.71s1.1-1.21,1.1-2.71-.49-2.71-1.1-2.71-1.1,1.21-1.1,2.71c0-1.5-.49-2.71-1.1-2.71s-1.1,1.21-1.1,2.71.49,2.71,1.1,2.71Z"
+    }),
+    React.createElement("path", {
+      fillRule: "evenodd",
+      d: "M32.95,32.53h0v-1.28c.04-1.22-.18-2.44-.64-3.58-.47-1.14-1.17-2.19-2.07-3.07-.9-.89-1.98-1.6-3.18-2.09-.59-.24-1.21-.43-1.84-.56-.64-.14-1.3-.21-1.97-.22h-1.4v-1.28h.59c.28,0,.55-.03.82-.08h.03c.55-.12,1.06-.36,1.5-.69.1-.08.2-.16.29-.24.7-.65,1.09-1.53,1.1-2.44v-2.27c0,.09.6.04.89.01.07,0,.13-.01.15-.01.26-.04.49-.16.66-.35.16-.19.25-.43.23-.67h0s0,0,0,0c-.06-.36-.19-.71-.38-1.04l-.51-1.2c-.36-.83-.72-1.66-1.06-2.51,0,0-.21-1.97-.4-2.65-.59-1.81-1.78-3.39-3.41-4.52S18.74.01,16.71,0c-1.96,0-3.87.56-5.47,1.62-1.6,1.06-2.8,2.56-3.44,4.28-.64,1.73-.68,3.6-.13,5.35.56,1.75,1.69,3.3,3.23,4.42v6.04h-1.75c-2.36,0-4.62.86-6.31,2.4-1.7,1.54-2.69,3.64-2.75,5.85v2.57s-.07-.02-.1-.02v2.18s.07.01.1.01h32.85s.03,0,.05,0v-2.17s-.03,0-.05,0ZM30.76,31.25v1.28h-13.14v-4.34c0-.6-.49-1.08-1.1-1.08s-1.1.49-1.1,1.08v4.34H2.29v-2.53c.05-1.59.77-3.13,2.04-4.29,1.28-1.16,3.03-1.83,4.87-1.83h1.71c1.21,0,2.19-.97,2.19-2.17v-6.04c0-.69-.33-1.34-.89-1.75-1.18-.86-2.03-2.03-2.44-3.32-.41-1.29-.38-2.67.09-3.95.47-1.28,1.37-2.41,2.6-3.23,1.23-.81,2.71-1.26,4.24-1.26,1.59.01,3.12.5,4.36,1.37,1.23.86,2.12,2.04,2.57,3.36.05.19.12.66.2,1.24.04.27.07.53.09.72.01.09.02.17.03.22v.06s0,.02,0,.02c.02.19.07.39.14.57.35.88.72,1.73,1.08,2.55h0s.17.42.17.42c-.81.32-1.39,1.1-1.39,2.02v2.26c0,.3-.13.62-.41.87-.28.26-.68.43-1.13.43h-.59c-1.21,0-2.19.97-2.19,2.17v1.28c0,1.2.98,2.17,2.19,2.17h1.38c1.03.02,2.05.23,2.98.62.94.39,1.79.94,2.48,1.63.7.68,1.23,1.48,1.58,2.35.35.86.52,1.78.48,2.69,0,.02,0,.05,0,.07Z"
+    })
+  );
+
+export const IntestineIcon = (props: any) =>
+  React.createElement(
+    "svg",
+    { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "currentColor", ...props },
+    React.createElement("g", { fill: "currentColor" },
+      React.createElement("path", { d: "M15.176 2.062a1 1 0 0 1 1 1v2.232a4.43 4.43 0 0 1-.967 2.763c.492.187.962.47 1.356.875A4.4 4.4 0 0 1 17.801 12a4.4 4.4 0 0 1-1.236 3.067c-.4.413-.861.7-1.347.89c.617.775.956 1.746.956 2.749v2.225a1 1 0 1 1-2 0v-2.226c0-.632-.244-1.234-.67-1.673c-.482-.496-1.066-.778-1.584-.778a1 1 0 0 1-.112-.006a1 1 0 0 1-.111.006h-2.17a1 1 0 1 1 0-2h2.17q.056 0 .111.006q.055-.006.112-.006h1.626c.672 0 1.21-.195 1.585-.58c.426-.44.67-1.04.67-1.674s-.244-1.235-.67-1.674c-.358-.368-.98-.58-1.684-.58h-1.625l-.063-.002l-.062.002h-1.085a1 1 0 1 1 0-2h1.085l.062.002q.03-.002.063-.002c.293 0 .582-.06.853-.175c.242-.103.594-.359.83-.602c.211-.218.38-.477.495-.765a2.4 2.4 0 0 0 .176-.91V3.062a1 1 0 0 1 1-1" }),
+      React.createElement("path", { d: "M9.209 13c-.31 0-.618.067-.904.197a2.3 2.3 0 0 0-.757.565a2.43 2.43 0 0 0-.584 1.813a2.48 2.48 0 0 0 .8 1.541c.142.128.46.291.92.419c.44.121.887.176 1.19.17h.69a1.8 1.8 0 0 1 1.293.55a1.84 1.84 0 0 1 .52 1.289v1.37a1 1 0 1 1-2 0v-1.208H9.9a6.5 6.5 0 0 1-1.748-.244c-.575-.159-1.24-.425-1.721-.855A4.48 4.48 0 0 1 4.977 15.8l-.003-.024a4.45 4.45 0 0 1 .192-1.78a4.4 4.4 0 0 1 .88-1.556q.335-.38.743-.669a4.4 4.4 0 0 1-1.081-1.768a4.45 4.45 0 0 1-.191-1.781l.002-.025a4.48 4.48 0 0 1 1.453-2.805a4.3 4.3 0 0 1 2.927-1.099h.479V3.062a1 1 0 1 1 2 0v1.394a1.86 1.86 0 0 1-.521 1.29a1.8 1.8 0 0 1-1.293.548h-.691a2.3 2.3 0 0 0-1.567.59a2.48 2.48 0 0 0-.8 1.541a2.44 2.44 0 0 0 .584 1.813c.214.242.472.434.757.565s.594.197.904.197h2.71a1 1 0 0 1 0 2z" })
+    )
+  );
+
+export const KidneysIcon = (props: any) =>
+  React.createElement(
+    "svg",
+    { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "currentColor", ...props },
+    React.createElement("path", {
+      fill: "currentColor",
+      fillRule: "evenodd",
+      clipRule: "evenodd",
+      d: "M9.193 10.588L9.055 11q.37 0 .644.012c.28.012.618.037.913.152a1.33 1.33 0 0 1 .818.888c.072.253.07.537.07.686V19a1 1 0 0 1-2 0v-5.992A30 30 0 0 0 8.713 13l-.004.13c-.008.281-.017.614-.036.88c-.026.357-.088 1.004-.398 1.598c-.175.337-.46.714-.907.998A2.6 2.6 0 0 1 5.981 17c-1.195 0-1.961-.797-2.293-1.206c-.398-.49-.7-1.075-.922-1.6C2.336 13.176 2 11.879 2 10.909c0-.928.302-2.44.905-3.75C3.44 5.994 4.688 4 7.039 4c.564 0 1.218.13 1.801.56a2.8 2.8 0 0 1 1.04 1.547c.246.912.063 1.878-.083 2.49c-.158.667-.394 1.368-.582 1.928zm-2.485 2.557v.003C6.68 14.151 6.643 15 5.98 15c-.448 0-.941-.673-1.29-1.397c-.413-.906-.69-2.035-.69-2.694C4 9.682 4.912 6 7.039 6c1.587 0 .864 2.15-.268 3.922c-.203.603-.391 1.162-.468 1.578c-.102.55-.118 1.124-.131 1.645M14.945 11l-.138-.412l-.02-.062c-.19-.56-.425-1.26-.583-1.928c-.146-.612-.329-1.578-.083-2.49a2.8 2.8 0 0 1 1.039-1.549C15.742 4.13 16.398 4 16.96 4c2.35 0 3.599 1.994 4.134 3.159c.603 1.31.905 2.822.905 3.75c0 1.072-.468 2.43-1.002 3.44c-.283.536-.656 1.114-1.124 1.588c-.423.43-1.21 1.063-2.305 1.063a2.2 2.2 0 0 1-1.744-.852a2.55 2.55 0 0 1-.476-1.062c-.092-.445-.086-.945-.083-1.244q0-.162.004-.315q.005-.276.005-.527a29 29 0 0 0-.775.007V19a1 1 0 1 1-2-.001v-6.26c0-.15-.002-.433.07-.686a1.33 1.33 0 0 1 .818-.888c.294-.114.633-.14.913-.152q.274-.01.643-.012m2.216.5c.08.431.107.878.113 1.303c0 .19-.001.606-.004.78c-.014.817-.024 1.417.299 1.417c.512 0 1.035-.533 1.464-1.238q.126-.21.242-.434c.434-.85.725-1.826.725-2.419C20 9.682 19.088 6 16.961 6c-1.587 0-.864 2.15-.268 3.922c.203.603.391 1.162.468 1.578"
+    })
+  );
+
+export const DentistryIcon = (props: any) => 
+  React.createElement(
+    "svg",
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      viewBox: "0 0 24 24",
+      fill: "currentColor",
+      ...props
+    },
+    React.createElement("path", {
+      fill: "currentColor",
+      d: "M17 2.125q1.65 0 2.825 1.175T21 6.125q0 .275-.038.738t-.112 1.062L19.475 18q-.125.95-.862 1.55t-1.688.6q-.575 0-1.062-.25t-.813-.7l-2.675-3.9q-.05-.1-.162-.137t-.238-.038q-.1 0-.4.225l-2.6 3.775q-.35.5-.862.763t-1.088.262q-.95 0-1.675-.612t-.85-1.563L3.15 7.925q-.075-.6-.112-1.062T3 6.125Q3 4.475 4.175 3.3T7 2.125q.9 0 1.438.238t1.037.512t1.063.513T12 3.625t1.463-.238t1.062-.512t1.05-.513T17 2.125m0 2q-.575 0-1.012.238t-.963.512t-1.225.513t-1.8.237t-1.8-.238t-1.225-.512t-.962-.513T7 4.126q-.825 0-1.412.588T5 6.125q0 .2.025.575t.1.875L6.5 17.7q.025.2.175.313t.35.112q.125 0 .225-.05t.15-.15l2.525-3.7q.35-.5.9-.8t1.175-.3t1.175.3t.9.8L16.65 18q.05.075.125.113t.175.037q.2 0 .363-.112t.187-.313l1.375-10.15q.075-.5.1-.875T19 6.125q0-.825-.587-1.412T17 4.125m-5 7"
+    })
+  );
 
 export interface Especialidade {
   id: string;
@@ -47,18 +143,31 @@ export interface Especialidade {
 
 export const especialidadesList: Especialidade[] = [
   {
-    id: "clinico-geral",
-    name: "Clínico Geral",
-    icon: Stethoscope,
-    description: "Diagnóstico e cuidados gerais para sua saúde do dia a dia.",
-    detailedDescription: "O Clínico Geral é o profissional de saúde responsável pelo atendimento primário, preventivo e global do paciente. Ele realiza diagnósticos, trata condições comuns e atua na promoção da saúde física e bem-estar, encaminhando para especialistas quando necessário.",
-    symptoms: ["Febre", "Dores no corpo", "Cansaço constante", "Gripes e resfriados", "Mal-estar geral", "Renovação de receitas"],
-    indications: "Recomenda-se procurar o Clínico Geral para check-ups anuais preventivos, sintomas agudos leves a moderados ou para uma avaliação de saúde inicial e integrada."
+    id: "vascular",
+    name: "Angiologia e Cirurgia Vascular",
+    icon: HeartPulse,
+    description: "Prevenção, diagnóstico e tratamento de doenças que afetam veias, artérias e vasos linfáticos.",
+    detailedDescription: "O cirurgião vascular é o especialista responsável por prevenir, diagnosticar e tratar doenças que afetam veias, artérias e vasos linfáticos. Ele cuida de problemas como varizes, trombose, aneurismas, placas de colesterol nas artérias, má circulação, úlceras vasculares e inchaços.",
+    symptoms: ["Inchaço nas pernas", "Cansaço ou dor", "Varizes visíveis ou vasinhos", "Dormência ou formigamento", "Feridas que não cicatrizam"],
+    indications: "As doenças vasculares costumam evoluir de forma silenciosa. Por isso, é essencial realizar avaliações periódicas com um médico vascular para manter a saúde da sua circulação em dia.",
+    introduction: "A sua circulação fala com você: varizes, manchas roxas, inchaço e cansaço são sinais de alerta. Procure um médico vascular.\nAs doenças vasculares costumam evoluir de forma silenciosa. Por isso, é essencial realizar avaliações periódicas com um médico vascular para manter a saúde da sua circulação em dia.",
+    whoIsDoctor: {
+      title: "Quem é o médico vascular?",
+      description: "O cirurgião vascular é o especialista responsável por prevenir, diagnosticar e tratar doenças que afetam veias, artérias e vasos linfáticos. Ele cuida de problemas como varizes, trombose, aneurismas, placas de colesterol nas artérias, má circulação, úlceras vasculares e inchaços.\n\nAlém dos tratamentos clínicos e cirúrgicos, o médico vascular também orienta sobre hábitos que favorecem a saúde circulatória, prevenindo complicações e melhorando a qualidade de vida dos pacientes que o procuram."
+    },
+    whenToConsult: {
+      title: "Quando marcar uma consulta?",
+      description: "Se você apresenta sinais e sintomas como:\n• Inchaço nas pernas\n• Cansaço ou dor nas pernas\n• Sensação de peso nos membros inferiores ou superiores\n• Varizes visíveis ou vasinhos\n• Feridas que não cicatrizam\n• Dormência ou formigamento\n• Manchas escuras na pele\n\nÉ indicado agendar uma consulta para avaliação especializada."
+    },
+    howIsConsult: {
+      title: "Como é a consulta com um médico vascular?",
+      description: "Na consulta vascular, a Dra. Jéssica realiza uma avaliação completa da saúde circulatória do paciente relacionada a sua queixa. O atendimento começa com uma conversa detalhada sobre sinais e sintomas, histórico familiar, estilo de vida e doenças pré-existentes.\nEm seguida, a especialista faz um exame físico e, se necessário, solicita exames complementares, como o Doppler vascular, para avaliar o funcionamento das veias e artérias.\nCom base no diagnóstico, a cirurgiã vascular indica o melhor tratamento, que pode incluir mudanças de hábitos, uso de meias de compressão, medicamentos, procedures minimamente invasivos ou cirurgias, dependendo de cada caso.\nO objetivo é identificar precocemente alterações na circulação, prevenir complicações e proporcionar mais qualidade de vida ao paciente."
+    }
   },
   {
     id: "cardiologista",
     name: "Cardiologia",
-    icon: HeartPulse,
+    icon: Heart,
     description: "Prevenção, diagnóstico e tratamento de doenças do coração e do sistema cardiovascular.",
     detailedDescription: "Um cardiologista é um médico especializado no diagnóstico e tratamento de doenças do coração e do sistema cardiovascular. Eles lidam com uma variedade de condições, como doença arterial coronariana, hipertensão, arritmias cardíacas, insuficiência cardíaca, entre outras. Se alguém estiver preocupado com sua saúde cardíaca, consultar um cardiologista é uma medida importante para garantir um diagnóstico preciso e um plano de tratamento adequado.",
     symptoms: ["Dores no peito", "Palpitações", "Falta de ar", "Fadiga excessiva", "Inchaços nas pernas", "Tonturas"],
@@ -78,9 +187,27 @@ export const especialidadesList: Especialidade[] = [
     }
   },
   {
+    id: "cirurgia-geral",
+    name: "Cirurgia Geral",
+    icon: ClipboardPlus,
+    description: "Tratamento cirúrgico de hérnias, vesícula, apendicite e doenças abdominais.",
+    detailedDescription: "O Cirurgião Geral é o médico especializado em realizar procedimentos cirúrgicos em diversas áreas do corpo, especialmente no aparelho digestivo, parede abdominal e tecidos moles. Atua desde cirurgias eletivas como herniorrafias e colecistectomias, até emergências cirúrgicas.",
+    symptoms: ["Hérnias abdominais", "Dores abdominais agudas", "Nódulos ou cistos", "Pedra na vesícula", "Apendicite"],
+    indications: "Procure o cirurgião geral quando houver indicação médica para procedimento cirúrgico, presença de hérnias, nódulos palpáveis ou dores abdominais que necessitem investigação cirúrgica."
+  },
+  {
+    id: "clinico-geral",
+    name: "Clínico Geral",
+    icon: Stethoscope,
+    description: "Diagnóstico e cuidados gerais para sua saúde do dia a dia.",
+    detailedDescription: "O Clínico Geral é o profissional de saúde responsável pelo atendimento primário, preventivo e global do paciente. Ele realiza diagnósticos, trata condições comuns e atua na promoção da saúde física e bem-estar, encaminhando para especialistas quando necessário.",
+    symptoms: ["Febre", "Dores no corpo", "Cansaço constante", "Gripes e resfriados", "Mal-estar geral", "Renovação de receitas"],
+    indications: "Recomenda-se procurar o Clínico Geral para check-ups anuais preventivos, sintomas agudos leves a moderados ou para uma avaliação de saúde inicial e integrada."
+  },
+  {
     id: "coloproctologia",
     name: "Coloproctologia",
-    icon: Activity,
+    icon: IntestineIcon,
     description: "Diagnóstico, tratamento e prevenção de doenças que afetam o intestino grosso, reto e ânus.",
     detailedDescription: "O Coloproctologista é o médico especialista no diagnóstico, tratamento e prevenção de doenças que afetam o intestino grosso (cólon), reto e ânus. Ele combina conhecimentos de clínica médica e cirurgia, podendo tratar desde problemas simples — como hemorroidas e fissuras anais — até condições mais complexas, como doenças inflamatórias intestinais e câncer colorretal. É o profissional responsável por garantir a saúde intestinal e o bom funcionamento do sistema digestivo inferior.",
     symptoms: ["Hemorróidas", "Fissuras e fístulas anais", "Abscessos", "Constipação intestinal e diarreia crônica", "Doença diverticular", "Doenças inflamatórias intestinais", "Câncer colorretal", "Incontinência fecal e prolapso retal"],
@@ -92,7 +219,7 @@ export const especialidadesList: Especialidade[] = [
     },
     whenToConsult: {
       title: "Quando marcar consulta?",
-      description: "A consulta deve ser marcada sempre que houver alterações no funcionamento intestinal, como constipação, diarreia persistente, dor ao evacuar, sangramento nas fezes, coceira ou desconforto anal. Pessoas com histórico familiar de câncer colorretal ou com mais de 45 anos também devem realizar consultas periódicas para prevenção e rastreamento de doenças. Mesmo sem sintomas, é indicado consultar o especialista anualmente como medida preventiva."
+      description: "A consulta deve ser marcada sempre que houver alterações no funcionamento intestinal, como constipação, diarreia persistente, dor ao evacuar, sangramento nas fezes, coceira ou desconforto anal. Pessoas com histórico familiar de câncer colorretal ou com mais de 45 anos também devem realizar consultas periódicas para prevenção e rastreamento de doenças. Even sem sintomas, é indicado consultar o especialista anualmente como medida preventiva."
     },
     howIsConsult: {
       title: "Como é a consulta?",
@@ -113,18 +240,18 @@ export const especialidadesList: Especialidade[] = [
     }
   },
   {
-    id: "odontologia",
-    name: "Odontologia",
-    icon: Smile,
-    description: "Cuidados completos com a saúde bucal, prevenção e tratamentos dentários.",
-    detailedDescription: "O especialista em Odontologia cuida da saúde dos dentes, gengivas e estruturas da boca. Realiza limpezas, tratamento de cáries, canais, extrações e procedimentos estéticos, essenciais para uma mastigação saudável e um sorriso confiante.",
-    symptoms: ["Dor de dente", "Sangramento na gengiva", "Sensibilidade a alimentos frios/quentes", "Mau hálito", "Dentes quebrados ou ausentes"],
-    indications: "Procure o cirurgião-dentista a cada 6 meses para avaliações preventivas e limpezas, ou sempre que notar dor, sangramento nas gengivas ou desconforto bucal."
+    id: "dermatologia",
+    name: "Dermatologia",
+    icon: SmilePlus,
+    description: "Diagnóstico, prevenção e tratamento de doenças que afetam a pele, cabelos e unhas.",
+    detailedDescription: "A Dermatologia é a especialidade médica responsável pelo estudo, prevenção e tratamento das doenças que afetam a pele, cabelos, pelos, unhas e mucosas. Atua tanto na área clínica e cirúrgica quanto estética, tratando desde acne e eczemas até cânceres de pele.",
+    symptoms: ["Manchas ou alterações na cor da pele", "Acne severa", "Queda excessiva de cabelo", "Lesões, sinais ou verrugas suspeitas", "Coceira persistente ou dermatites"],
+    indications: "Recomendado para todas as idades. Check-up anual de pintas (dermatoscopia) é indicado para prevenção do câncer de pele. Consulte sempre que notar alterações na pele, cabelos ou unhas."
   },
   {
     id: "endocrinologista",
     name: "Endocrinologia",
-    icon: Scale,
+    icon: HormoneIcon,
     description: "Diagnóstico e tratamento de distúrbios hormonais e metabólicos.",
     detailedDescription: "Um endocrinologista é um médico especializado no diagnóstico e tratamento de distúrbios hormonais e metabólicos. Esses distúrbios podem afetar uma ampla gama de sistemas do corpo, incluindo metabolismo, crescimento, reprodução, regulação de peso, entre outros. Alguns dos distúrbios mais comuns tratados por endocrinologistas incluem diabetes, doenças da tireoide, distúrbios da glândula adrenal, distúrbios da hipófise, distúrbios da reprodução, como infertilidade e menopausa, entre outros.",
     symptoms: ["Excesso de peso", "Alterações no ciclo menstrual", "Aumento da tireoide", "Sede excessiva", "Cansaço excessivo", "Sintomas de menopausa"],
@@ -136,7 +263,7 @@ export const especialidadesList: Especialidade[] = [
     },
     whenToConsult: {
       title: "Quando marcar consulta?",
-      description: "É recomendado consultar o endocrinologista quando forem percebidos sinais ou sintomas que possam ser indicativos de alteração na produção de hormônios, como:\n• Excesso de peso;\n• Aumento rápido de peso;\n• Cansaço excessivo;\n• Alterações no ciclo menstrual;\n• Aumento da tireoide;\n• Excesso de pelos nas mulheres;\n• Crescimento das mamas nos meninos;\n• Sinais e sintomas de andropausa e menopausa;\n• Presença de sintomas relacionados com a diabetes como sede excessiva e aumento da vontade para urinar, por exemplo.\n\nNa presença deste tipo de sintomas, o endocrinologista irá fazer uma avaliação clínica e poderá indicar a realização de exames de sangue."
+      description: "É recomendado consultar o endocrinologista quando forem percebidos sinais ou sintomas que possam indicar alteração na produção de hormônios, como:\n• Excesso de peso;\n• Aumento rápido de peso;\n• Cansaço excessivo;\n• Alterações no ciclo menstrual;\n• Aumento da tireoide;\n• Excesso de pelos nas mulheres;\n• Crescimento das mamas nos meninos;\n• Sinais e sintomas de andropausa e menopausa;\n• Presença de sintomas relacionados com a diabetes como sede excessiva e aumento da vontade para urinar, por exemplo.\n\nNa presença deste tipo de sintomas, o endocrinologista irá fazer uma avaliação clínica e poderá indicar a realização de exames de sangue."
     },
     howIsConsult: {
       title: "Como é a consulta?",
@@ -146,7 +273,7 @@ export const especialidadesList: Especialidade[] = [
   {
     id: "gastroenterologia",
     name: "Gastroenterologia",
-    icon: Flame,
+    icon: StomachIcon,
     description: "Diagnóstico, tratamento e prevenção de doenças que afetam o sistema digestivo.",
     detailedDescription: "O Gastroenterologista é o médico especializado em diagnosticar, tratar e prevenir doenças que afetam o sistema digestivo, incluindo esôfago, estômago, intestinos e fígado. Ele cuida tanto de condições comuns, como gastrite e refluxo, quanto de doenças mais complexas que podem comprometer a qualidade de vida. Seu objetivo é garantir o bom funcionamento do sistema digestivo, essencial para a saúde geral do corpo.",
     symptoms: ["Gastrite e refluxo", "Dores abdominais recorrentes", "Intolerâncias alimentares", "Constipação ou diarreia persistente", "Pedra na vesícula", "Inchaço abdominal constante"],
@@ -180,22 +307,22 @@ export const especialidadesList: Especialidade[] = [
     }
   },
   {
-    id: "ginecologista",
-    name: "Ginecologista",
+    id: "ginecologia-obstetricia",
+    name: "Ginecologia e Obstetrícia",
     icon: Flower2,
-    description: "Atenção integral à saúde íntima da mulher em todas as fases.",
-    detailedDescription: "O Ginecologista é o profissional dedicado ao cuidado da saúde do sistema reprodutor feminino (útero, ovários, vagina) e mamas. Acompanha a mulher desde a puberdade até a menopausa, tratando infecções, miomas, endometriose e distúrbios hormonais.",
-    symptoms: ["Irregularidade no ciclo menstrual", "Cólicas muito intensas", "Corrimento com odor ou coceira", "Dor na relação sexual", "Nódulos nas mamas"],
-    indications: "Essencial para a realização de exames anuais de rotina (Papanicolau), escolha de métodos contraceptivos e orientação na transição para a menopausa."
+    description: "Saúde integral da mulher, exames preventivos e acompanhamento pré-natal.",
+    detailedDescription: "A Ginecologia e Obstetrícia cuida da saúde do sistema reprodutor feminino e das mamas, além de acompanhar a gestação, parto e puerpério. Realiza o preventivo (Papanicolau), orienta sobre métodos contraceptivos e trata disfunções hormonais e ginecológicas.",
+    symptoms: ["Cólicas menstruais intensas", "Irregularidade menstrual", "Corrimentos atípicos", "Dores pélvicas", "Acompanhamento pré-natal"],
+    indications: "Recomendado para todas as mulheres a partir da adolescência. Check-up ginecológico anual com Papanicolau, acompanhamento pré-natal e orientação contraceptiva."
   },
   {
-    id: "obstetricia",
-    name: "Obstetrícia",
-    icon: Baby,
-    description: "Acompanhamento dedicado da gestação, parto e pós-parto.",
-    detailedDescription: "O Obstetra é o médico que realiza o acompanhamento pré-natal, garantindo a segurança e a saúde da mãe e do bebê durante toda a gravidez, além de planejar e realizar o parto e monitorar o período pós-parto (puerpério).",
-    symptoms: ["Suspeita ou confirmação de gravidez", "Enjoos frequentes na gestação", "Sangramento gestacional", "Dores abdominais na gravidez"],
-    indications: "Deve ser consultado assim que houver suspeita ou confirmação de gravidez para o início imediato e regular das consultas pré-natais."
+    id: "nefrologista",
+    name: "Nefrologista",
+    icon: KidneysIcon,
+    description: "Prevenção, diagnóstico e tratamento de doenças renais.",
+    detailedDescription: "O Nefrologista é o médico responsável pela saúde dos rins. Ele previne a perda da função renal, trata infecções urinárias de repetição, cálculos renais, nefrites e acompanha pacientes com doença renal crônica.",
+    symptoms: ["Urina com sangue ou muita espuma", "Inchaço constante nas pernas e olhos", "Dores na região lombar", "Infecções urinárias recorrentes"],
+    indications: "Essencial para pacientes hipertensos ou diabéticos de longa data realizarem o rastreamento preventivo de perda de função renal, ou ao detectar alterações nos exames de ureia e creatinina."
   },
   {
     id: "neurologia",
@@ -220,6 +347,15 @@ export const especialidadesList: Especialidade[] = [
     }
   },
   {
+    id: "odontologia",
+    name: "Odontologia",
+    icon: DentistryIcon,
+    description: "Cuidados completos com a saúde bucal, prevenção e tratamentos dentários.",
+    detailedDescription: "O especialista em Odontologia cuida da saúde dos dentes, gengivas e estruturas da boca. Realiza limpezas, tratamento de cáries, canais, extrações e procedimentos estéticos, essenciais para uma mastigação saudável e um sorriso confiante.",
+    symptoms: ["Dor de dente", "Sangramento na gengiva", "Sensibilidade a alimentos frios/quentes", "Mau hálito", "Dentes quebrados ou ausentes"],
+    indications: "Procure o cirurgião-dentista a cada 6 meses para avaliações preventivas e limpezas, ou sempre que notar dor, sangramento nas gengivas ou desconforto bucal."
+  },
+  {
     id: "ortopedia",
     name: "Ortopedia",
     icon: Bone,
@@ -230,7 +366,7 @@ export const especialidadesList: Especialidade[] = [
     introduction: "Você está sofrendo de dores nas articulações, lesões esportivas, fraturas ósseas ou outras condições relacionadas ao sistema musculoesquelético?\nProcure um ortopedista, ele pode ajudá-lo a se sentir melhor e a recuperar a sua mobilidade.",
     whoIsDoctor: {
       title: "O que faz um ortopedista?",
-      description: "A ortopedia é a especialidade médica responsável pelo diagnóstico, tratamento e prevenção de doenças e lesões do sistema musculoesquelético, ou seja, ossos, músculos, tendões, ligamentos e articulações. Os ortopedistas são médicos que se especializam nessa área e são treinados para ajudar a restaurar a mobilidade e a função das pessoas que sofrem de lesões ou doenças relacionadas ao sistema musculoesquelético.\nOs ortopedistas são médicos especializados em diagnosticar e tratar doenças e lesões musculoesqueléticas. Eles trabalham em estreita colaboração com outros profissionais de saúde para garantir que seus pacientes recebam o melhor tratamento possível e se recuperem completamente após uma lesão ou cirurgia."
+      description: "A ortopedia é a especialidade médica responsável pelo diagnóstico, tratamento e prevenção de doenças e lesões do sistema musculoesquelético, ou seja, ossos, muscles, tendões, ligamentos e articulações. Os ortopedistas são médicos que se especializam nessa área e são treinados para ajudar a restaurar a mobilidade e a função das pessoas que sofrem de lesões ou doenças relacionadas ao sistema musculoesquelético.\nOs ortopedistas são médicos especializados em diagnosticar e tratar doenças e lesões musculoesqueléticas. Eles trabalham em estreita colaboração com outros profissionais de saúde para garantir que seus pacientes recebam o melhor tratamento possível e se recuperem completamente após uma lesão ou cirurgia."
     },
     whenToConsult: {
       title: "Por que consultar um ortopedista?",
@@ -299,21 +435,6 @@ export const especialidadesList: Especialidade[] = [
     }
   },
   {
-    id: "psicologia",
-    name: "Psicologia",
-    icon: Brain,
-    description: "Apoio emocional e cuidados com a saúde mental.",
-    detailedDescription: "O Psicólogo atua no cuidado com a saúde mental e emocional. Através de sessões de psicoterapia, ele ajuda o paciente a lidar com conflitos internos, ansiedade, depressão, traumas e desafios nos relacionamentos cotidianos.",
-    symptoms: ["Tristeza profunda e persistente", "Ansiedade generalizada ou pânico", "Estresse severo", "Luto ou perdas significativas", "Dificuldades de convívio"],
-    indications: "Procure quando sentir que as emoções estão interferindo negativamente na sua rotina, no sono, no trabalho ou em momentos de grandes mudanças de vida.",
-    services: [
-      "Terapia ABA",
-      "Terapia TCC",
-      "Avaliação Neuropsicológica",
-      "Reabilitação Neuropsicológica"
-    ]
-  },
-  {
     id: "pneumologista",
     name: "Pneumologista",
     icon: Wind,
@@ -336,13 +457,28 @@ export const especialidadesList: Especialidade[] = [
     }
   },
   {
-    id: "nefrologista",
-    name: "Nefrologista",
-    icon: Activity,
-    description: "Prevenção, diagnóstico e tratamento de doenças renais.",
-    detailedDescription: "O Nefrologista é o médico responsável pela saúde dos rins. Ele previne a perda da função renal, trata infecções urinárias de repetição, cálculos renais, nefrites e acompanha pacientes com doença renal crônica.",
-    symptoms: ["Urina com sangue ou muita espuma", "Inchaço constante nas pernas e olhos", "Dores na região lombar", "Infecções urinárias recorrentes"],
-    indications: "Essencial para pacientes hipertensos ou diabéticos de longa data realizarem o rastreamento preventivo de perda de função renal, ou ao detectar alterações nos exames de ureia e creatinina."
+    id: "psicologia",
+    name: "Psicologia",
+    icon: Brain,
+    description: "Apoio emocional e cuidados com a saúde mental.",
+    detailedDescription: "O Psicólogo atua no cuidado com a saúde mental e emocional. Através de sessões de psicoterapia, ele ajuda o paciente a lidar com conflitos internos, ansiedade, depressão, traumas e desafios nos relacionamentos cotidianos.",
+    symptoms: ["Tristeza profunda e persistente", "Ansiedade generalizada ou pânico", "Estresse severo", "Luto ou perdas significativas", "Dificuldades de convívio"],
+    indications: "Procure quando sentir que as emoções estão interferindo negativamente na sua rotina, no sono, no trabalho ou em momentos de grandes mudanças de vida.",
+    services: [
+      "Terapia ABA",
+      "Terapia TCC",
+      "Avaliação Neuropsicológica",
+      "Reabilitação Neuropsicológica"
+    ]
+  },
+  {
+    id: "psiquiatria",
+    name: "Psiquiatria",
+    icon: BrainCircuit,
+    description: "Prevenção, diagnóstico e tratamento de distúrbios da mente e comportamento.",
+    detailedDescription: "A Psiquiatria é a especialidade médica focada na prevenção, diagnóstico, tratamento e reabilitação de distúrbios mentais, emocionais e de comportamento. O psiquiatra avalia o paciente sob uma perspectiva médica e biológica, podendo prescrever medicamentos quando necessário para restaurar o equilíbrio e o bem-estar.",
+    symptoms: ["Tristeza profunda ou desânimo", "Ansiedade severa ou crises de pânico", "Alterações graves de humor ou comportamento", "Insônia severa ou distúrbios do sono", "Ideias obsessivas ou medos irracionais", "Alucinações ou delírios"],
+    indications: "Indicada para o tratamento de depression, transtorno bipolar, esquizofrenia, TDAH, transtornos de ansiedade crônicos e situações em que há necessidade de intervenção medicamentosa associada ou não à psicoterapia."
   },
   {
     id: "reumatologista",
@@ -355,7 +491,7 @@ export const especialidadesList: Especialidade[] = [
     introduction: "Atendimento integral e especializado para você aproveitar o melhor da vida com saúde e independência!\nConsultar um Reumatologista é importante para obter um diagnóstico preciso e um plano de tratamento adequado.",
     whoIsDoctor: {
       title: "Quem é o médico Reumatologista?",
-      description: "O reumatologista é o médico que cuida dos problemas inflamatórios relacionados às articulações e à todas as estruturas que ficam em seu entorno, também conhecido como “reumatismo de partes moles” (músculos, ligamentos, bursas e tendões).\nApesar das articulações serem o local mais acometido, praticamente todos os órgãos do corpo humano podem apresentar manifestações de doenças reumáticas, como pulmões, rins, cérebro, pele e coração.\nNa consulta com o reumatologista a abordagem é avaliar o paciente como um todo e não apenas levar em consideração um problema em específico, para realizarmos o diagnóstico de forma correta é importante compreender as particularidades de cada indivíduo, para identificar as melhores estratégias de tratamento e alcançar o sucesso desejado."
+      description: "O reumatologista é o médico que cuida dos problemas inflamatórios relacionados às articulações e à todas as estruturas que ficam em seu entorno, também conhecido como “reumatismo de partes moles” (músculos, ligamentos, bursas e tendões).\nApesar das articulações serem o local mais acometido, praticamente todos os órgãos do corpo humano podem apresentar manifestações de doenças reumáticas, como pulmões, rins, cérebro, pele e coração.\nNa consulta com o reumatologista a abordagem é avaliar o paciente como um tempo todo e não apenas levar em consideração um problema em específico, para realizarmos o diagnóstico de forma correta é importante compreender as particularidades de cada indivíduo, para identificar as melhores estratégias de tratamento e alcançar o sucesso desejado."
     },
     whenToConsult: {
       title: "Quando marcar consulta?",
@@ -367,26 +503,13 @@ export const especialidadesList: Especialidade[] = [
     }
   },
   {
-    id: "vascular",
-    name: "Cirurgia Vascular",
-    icon: HeartPulse,
-    description: "Prevenção, diagnóstico e tratamento de doenças que afetam veias, artérias e vasos linfáticos.",
-    detailedDescription: "O cirurgião vascular é o especialista responsável por prevenir, diagnosticar e tratar doenças que afetam veias, artérias e vasos linfáticos. Ele cuida de problemas como varizes, trombose, aneurismas, placas de colesterol nas artérias, má circulação, úlceras vasculares e inchaços.",
-    symptoms: ["Inchaço nas pernas", "Cansaço ou dor", "Varizes visíveis ou vasinhos", "Dormência ou formigamento", "Feridas que não cicatrizam"],
-    indications: "As doenças vasculares costumam evoluir de forma silenciosa. Por isso, é essencial realizar avaliações periódicas com um médico vascular para manter a saúde da sua circulação em dia.",
-    introduction: "A sua circulação fala com você: varizes, manchas roxas, inchaço e cansaço são sinais de alerta. Procure um médico vascular.\nAs doenças vasculares costumam evoluir de forma silenciosa. Por isso, é essencial realizar avaliações periódicas com um médico vascular para manter a saúde da sua circulação em dia.",
-    whoIsDoctor: {
-      title: "Quem é o médico vascular?",
-      description: "O cirurgião vascular é o especialista responsável por prevenir, diagnosticar e tratar doenças que afetam veias, artérias e vasos linfáticos. Ele cuida de problemas como varizes, trombose, aneurismas, placas de colesterol nas artérias, má circulação, úlceras vasculares e inchaços.\n\nAlém dos tratamentos clínicos e cirúrgicos, o médico vascular também orienta sobre hábitos que favorecem a saúde circulatória, prevenindo complicações e melhorando a qualidade de vida dos pacientes que o procuram."
-    },
-    whenToConsult: {
-      title: "Quando marcar uma consulta?",
-      description: "Se você apresenta sinais e sintomas como:\n• Inchaço nas pernas\n• Cansaço ou dor nas pernas\n• Sensação de peso nos membros inferiores ou superiores\n• Varizes visíveis ou vasinhos\n• Feridas que não cicatrizam\n• Dormência ou formigamento\n• Manchas escuras na pele\n\nÉ indicado agendar uma consulta para avaliação especializada."
-    },
-    howIsConsult: {
-      title: "Como é a consulta com um médico vascular?",
-      description: "Na consulta vascular, a Dra. Jéssica realiza uma avaliação completa da saúde circulatória do paciente relacionada a sua queixa. O atendimento começa com uma conversa detalhada sobre sinais e sintomas, histórico familiar, estilo de vida e doenças pré-existentes.\nEm seguida, a especialista faz um exame físico e, se necessário, solicita exames complementares, como o Doppler vascular, para avaliar o funcionamento das veias e artérias.\nCom base no diagnóstico, a cirurgiã vascular indica o melhor tratamento, que pode incluir mudanças de hábitos, uso de meias de compressão, medicamentos, procedimentos minimamente invasivos ou cirurgias, dependendo de cada caso.\nO objetivo é identificar precocemente alterações na circulação, prevenir complicações e proporcionar mais qualidade de vida ao paciente."
-    }
+    id: "obesidade-emagrecimento",
+    name: "Tratamento da Obesidade e Emagrecimento",
+    icon: UsersRound,
+    description: "Tratamento multidisciplinar da obesidade e emagrecimento saudável com acompanhamento médico.",
+    detailedDescription: "O tratamento da obesidade e emagrecimento envolve abordagem médica especializada, com avaliação metabólica, hormonal e nutricional. O médico especialista elabora um plano individualizado que pode incluir mudanças de estilo de vida, medicamentos e, quando indicado, acompanhamento para cirurgia bariátrica.",
+    symptoms: ["Sobrepeso ou obesidade", "Dificuldade para emagrecer", "Compulsão alimentar", "Síndrome metabólica", "Hipertensão e diabetes associados ao peso"],
+    indications: "Indicado para pessoas com IMC elevado, dificuldade de perder peso com dieta e exercícios, ou com doenças associadas ao excesso de peso. O acompanhamento médico é fundamental para um emagrecimento seguro e duradouro."
   },
   {
     id: "ultrassonografia",
@@ -398,12 +521,12 @@ export const especialidadesList: Especialidade[] = [
     indications: "Recomendada para exames preventivos, diagnóstico de dores inexplicáveis nos órgãos internos, acompanhamento de gestação e monitoramento de alterações sob orientação médica."
   },
   {
-    id: "psiquiatria",
-    name: "Psiquiatria",
-    icon: BrainCircuit,
-    description: "Prevenção, diagnóstico e tratamento de distúrbios da mente e comportamento.",
-    detailedDescription: "A Psiquiatria é a especialidade médica focada na prevenção, diagnóstico, tratamento e reabilitação de distúrbios mentais, emocionais e de comportamento. O psiquiatra avalia o paciente sob uma perspectiva médica e biológica, podendo prescrever medicamentos quando necessário para restaurar o equilíbrio e o bem-estar.",
-    symptoms: ["Tristeza profunda ou desânimo", "Ansiedade severa ou crises de pânico", "Alterações graves de humor ou comportamento", "Insônia severa ou distúrbios do sono", "Ideias obsessivas ou medos irracionais", "Alucinações ou delírios"],
-    indications: "Indicada para o tratamento de depression, transtorno bipolar, esquizofrenia, TDAH, transtornos de ansiedade crônicos e situações em que há necessidade de intervenção medicamentosa associada ou não à psicoterapia."
+    id: "urologia",
+    name: "Urologia",
+    icon: MarsIcon,
+    description: "Saúde do sistema urinário e saúde sexual e prostática do homem.",
+    detailedDescription: "A Urologia é a especialidade clínico-cirúrgica que trata do sistema urinário de homens e mulheres e do sistema reprodutor masculino. Cuida de infecções urinárias, cálculos renais, incontinência urinária, próstata e saúde sexual masculina.",
+    symptoms: ["Pedras nos rins (cólica renal)", "Dificuldade ou dor ao urinar", "Infecções urinárias de repetição", "Alterações na próstata", "Incontinência urinária"],
+    indications: "Homens a partir dos 45 anos devem realizar check-up de próstata anualmente. Procure sempre ao sentir dor ao urinar, sangue na urina ou sintomas de pedra nos rins."
   }
 ];
