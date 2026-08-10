@@ -104,13 +104,36 @@ interface FlattenedUser {
 
 const formatCreatedAt = (dateStr?: string) => {
   if (!dateStr) return "N/A";
+  const trimmed = dateStr.trim();
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+    return trimmed;
+  }
   try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return "N/A";
+    if (trimmed.includes('-')) {
+      const parts = trimmed.split('T')[0].split('-');
+      if (parts.length === 3) {
+        const [year, month, day] = parts;
+        if (year.length === 4 && month && day) {
+          return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+        }
+      }
+    }
+    const d = new Date(trimmed);
+    if (isNaN(d.getTime())) return trimmed || "N/A";
     return d.toLocaleDateString('pt-BR');
   } catch {
-    return "N/A";
+    return trimmed || "N/A";
   }
+};
+
+const parseDateToISO = (dateStr?: string) => {
+  if (!dateStr) return new Date().toISOString();
+  const trimmed = dateStr.trim();
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+    const [day, month, year] = trimmed.split('/');
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T12:00:00.000Z`;
+  }
+  return trimmed;
 };
 
 export const AdminUsers = () => {
@@ -257,7 +280,7 @@ export const AdminUsers = () => {
             subscriptionStatus: subStatus, // inherits titular subscription
             titularName: p.full_name,
             appointmentsCount: depAppointments,
-            createdAt: p.created_at || ""
+            createdAt: d.created_at || d.created_date || d.adesao_date || p.created_at || ""
           });
         });
       });
@@ -360,7 +383,10 @@ export const AdminUsers = () => {
   };
 
   const handleEdit = (user: FlattenedUser) => {
-    setEditingUser(user);
+    setEditingUser({
+      ...user,
+      createdAt: formatCreatedAt(user.createdAt)
+    });
     setNewPassword("");
     setShowPassword(false);
     setIsEditDialogOpen(true);
@@ -370,6 +396,8 @@ export const AdminUsers = () => {
     if (!editingUser) return;
     setIsSaving(true);
     try {
+      const isoCreatedAt = parseDateToISO(editingUser.createdAt);
+
       if (editingUser.isDependent) {
         // Update dependent in JSONB
         const { data: pData } = await supabase
@@ -388,7 +416,8 @@ export const AdminUsers = () => {
               phone: editingUser.phone,
               email: editingUser.email,
               relationship: editingUser.relationship,
-              birth_date: editingUser.birthDate
+              birth_date: editingUser.birthDate,
+              created_at: isoCreatedAt
             };
 
             const { error } = await supabase
@@ -409,7 +438,8 @@ export const AdminUsers = () => {
             phone: editingUser.phone,
             email: editingUser.email,
             address: editingUser.address,
-            birth_date: editingUser.birthDate
+            birth_date: editingUser.birthDate,
+            created_at: isoCreatedAt
           })
           .eq('id', editingUser.id);
         
@@ -722,6 +752,20 @@ export const AdminUsers = () => {
                     if (digits.length > 2) formatted = `${digits.slice(0, 2)}/${digits.slice(2)}`;
                     if (digits.length > 4) formatted = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
                     setEditingUser(prev => prev ? {...prev, birthDate: formatted} : null);
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Data de Adesão</Label>
+                <Input 
+                  value={editingUser?.createdAt || ""} 
+                  placeholder="dd/mm/aaaa"
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+                    let formatted = digits;
+                    if (digits.length > 2) formatted = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+                    if (digits.length > 4) formatted = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+                    setEditingUser(prev => prev ? {...prev, createdAt: formatted} : null);
                   }}
                 />
               </div>
