@@ -21,13 +21,32 @@ import {
   UserPlus,
   ArrowLeft,
   Eye,
-  EyeOff
+  EyeOff,
+  Sparkles,
+  KeyRound
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { toast } from "sonner";
+import { fetchPlans, type Plan } from "../lib/pagbank";
+
+const formatCpf = (value: string) => {
+  const d = value.replace(/\D/g, "").slice(0, 11);
+  return d
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+};
+
+const formatPhone = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
 import {
   AlertDialog,
   AlertDialogAction,
@@ -159,6 +178,23 @@ export const AdminUsers = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   
+  // Estados para Cadastro Manual de Usuário
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [showNewUserPassword, setShowNewUserPassword] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({
+    fullName: "",
+    cpf: "",
+    email: "",
+    password: "",
+    phone: "",
+    birthDate: "",
+    address: "",
+    planId: "",
+    status: "ACTIVE",
+  });
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -285,11 +321,89 @@ export const AdminUsers = () => {
         });
       });
 
+      // Busca planos disponíveis para vinculação imediata
+      try {
+        const plansData = await fetchPlans();
+        setPlans(plansData || []);
+      } catch (err) {
+        console.warn("Erro ao buscar planos:", err);
+      }
+
       setFlattenedUsers(allUsers);
     } catch (error: any) {
       toast.error("Erro ao carregar dados: " + error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const generateRandomPassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+    let pwd = "Rm";
+    for (let i = 0; i < 8; i++) {
+      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewUserForm(prev => ({ ...prev, password: pwd }));
+    setShowNewUserPassword(true);
+    toast.success("Senha segura gerada com sucesso!");
+  };
+
+  const handleOpenAddUserModal = () => {
+    setNewUserForm({
+      fullName: "",
+      cpf: "",
+      email: "",
+      password: "",
+      phone: "",
+      birthDate: "",
+      address: "",
+      planId: plans.length > 0 ? plans[0].id : "",
+      status: "ACTIVE",
+    });
+    setShowNewUserPassword(false);
+    setIsAddUserDialogOpen(true);
+  };
+
+  const handleCreateUser = async () => {
+    if (!newUserForm.fullName.trim()) {
+      toast.error("O nome completo é obrigatório.");
+      return;
+    }
+    if (!newUserForm.email.trim() || !newUserForm.email.includes("@")) {
+      toast.error("Informe um e-mail válido.");
+      return;
+    }
+    if (!newUserForm.password || newUserForm.password.length < 6) {
+      toast.error("A senha deve conter no mínimo 6 caracteres.");
+      return;
+    }
+
+    setIsCreatingUser(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-create-user", {
+        body: {
+          fullName: newUserForm.fullName.trim(),
+          email: newUserForm.email.trim(),
+          password: newUserForm.password,
+          cpf: newUserForm.cpf.trim(),
+          phone: newUserForm.phone.trim(),
+          birthDate: newUserForm.birthDate ? parseDateToISO(newUserForm.birthDate) : null,
+          address: newUserForm.address.trim(),
+          planId: newUserForm.planId || undefined,
+          status: newUserForm.status || "ACTIVE",
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success(data?.message || "Usuário cadastrado com sucesso!");
+      setIsAddUserDialogOpen(false);
+      fetchData();
+    } catch (error: any) {
+      toast.error("Erro ao cadastrar usuário: " + (error.message || error));
+    } finally {
+      setIsCreatingUser(false);
     }
   };
 
@@ -581,11 +695,18 @@ export const AdminUsers = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
              <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total de Registros</p>
                 <p className="text-2xl font-bold text-slate-900">{filteredUsers.length}</p>
              </div>
+             <Button
+                onClick={handleOpenAddUserModal}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-2 h-11 px-4 shadow-sm transition-all rounded-lg"
+             >
+                <UserPlus className="w-4 h-4" />
+                <span>Novo Usuário</span>
+             </Button>
           </div>
         </div>
 
@@ -985,6 +1106,222 @@ export const AdminUsers = () => {
                 {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
                 Adicionar Dependente
              </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Cadastrar Novo Usuário */}
+      <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-4 border-b border-slate-100 bg-slate-50/50 shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                <UserPlus className="w-5 h-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-bold text-slate-900">Cadastrar Novo Usuário</DialogTitle>
+                <DialogDescription className="text-xs text-slate-500">
+                  Crie a conta de acesso e ative o plano do paciente sem cobrança ou necessidade de checkout.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="p-6 overflow-y-auto space-y-5">
+            {/* Seção 1: Dados Pessoais */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Dados Pessoais</h3>
+              
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-slate-700">
+                  Nome Completo <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  value={newUserForm.fullName}
+                  onChange={(e) => setNewUserForm(prev => ({ ...prev, fullName: e.target.value }))}
+                  placeholder="Nome do titular"
+                  className="h-10 border-slate-200"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-slate-700">CPF</Label>
+                  <Input
+                    value={newUserForm.cpf}
+                    onChange={(e) => setNewUserForm(prev => ({ ...prev, cpf: formatCpf(e.target.value) }))}
+                    placeholder="000.000.000-00"
+                    maxLength={14}
+                    className="h-10 border-slate-200"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-slate-700">Data de Nascimento</Label>
+                  <Input
+                    value={newUserForm.birthDate}
+                    placeholder="DD/MM/AAAA"
+                    maxLength={10}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+                      let formatted = digits;
+                      if (digits.length > 2) formatted = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+                      if (digits.length > 4) formatted = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+                      setNewUserForm(prev => ({ ...prev, birthDate: formatted }));
+                    }}
+                    className="h-10 border-slate-200"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-slate-700">
+                    E-mail (Login) <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="email"
+                    value={newUserForm.email}
+                    onChange={(e) => setNewUserForm(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="paciente@exemplo.com"
+                    className="h-10 border-slate-200"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-slate-700">Telefone / WhatsApp</Label>
+                  <Input
+                    value={newUserForm.phone}
+                    onChange={(e) => setNewUserForm(prev => ({ ...prev, phone: formatPhone(e.target.value) }))}
+                    placeholder="(00) 00000-0000"
+                    maxLength={15}
+                    className="h-10 border-slate-200"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-slate-700">Endereço Completo</Label>
+                <Input
+                  value={newUserForm.address}
+                  onChange={(e) => setNewUserForm(prev => ({ ...prev, address: e.target.value }))}
+                  placeholder="Rua, Número, Bairro, Cidade - UF"
+                  className="h-10 border-slate-200"
+                />
+              </div>
+            </div>
+
+            {/* Seção 2: Credenciais de Acesso */}
+            <div className="space-y-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Acesso ao Sistema</h3>
+                <button
+                  type="button"
+                  onClick={generateRandomPassword}
+                  className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1.5 transition-colors"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Gerar senha segura
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-slate-700">
+                  Senha Inicial <span className="text-red-500">*</span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    type={showNewUserPassword ? "text" : "password"}
+                    value={newUserForm.password}
+                    onChange={(e) => setNewUserForm(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="Defina uma senha (mínimo 6 caracteres)"
+                    className="pr-10 h-10 border-slate-200 font-mono text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewUserPassword(!showNewUserPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    {showNewUserPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  O usuário utilizará este e-mail e senha para fazer login no portal e aplicativo.
+                </p>
+              </div>
+            </div>
+
+            {/* Seção 3: Vínculo de Plano */}
+            <div className="space-y-4 pt-3 border-t border-slate-100">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Assinatura & Plano</h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-slate-700">Plano Vinculado</Label>
+                  <select
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-slate-900"
+                    value={newUserForm.planId}
+                    onChange={(e) => setNewUserForm(prev => ({ ...prev, planId: e.target.value }))}
+                  >
+                    {plans.length === 0 && <option value="">Nenhum plano ativo cadastrado</option>}
+                    {plans.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} - R$ {(p.price_cents / 100).toFixed(2).replace('.', ',')}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-slate-700">Status da Assinatura</Label>
+                  <select
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-slate-900"
+                    value={newUserForm.status}
+                    onChange={(e) => setNewUserForm(prev => ({ ...prev, status: e.target.value }))}
+                  >
+                    <option value="ACTIVE">Ativa (Acesso Liberado)</option>
+                    <option value="PENDING">Pendente</option>
+                    <option value="SUSPENDED">Suspensa</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="bg-emerald-50/80 border border-emerald-200/80 p-3 rounded-lg text-emerald-800 text-xs flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <p>
+                  O plano será ativado imediatamente para o usuário sem necessidade de registrar cartão ou passar por gateway de pagamento.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="p-4 sm:p-6 pt-3 border-t border-slate-100 bg-slate-50 shrink-0 flex flex-row justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsAddUserDialogOpen(false)}
+              disabled={isCreatingUser}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={handleCreateUser}
+              disabled={isCreatingUser}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+            >
+              {isCreatingUser ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Cadastrando...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Concluir Cadastro
+                </>
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
