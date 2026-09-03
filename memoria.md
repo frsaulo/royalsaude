@@ -38,8 +38,18 @@
 ### 0. Pacote de Deploy para Hospedagem Hostgator
 - **Data**: 03/09/2026
 - **Solicitação**: Preparar os arquivos compilados de produção em um arquivo `.zip` para upload no cPanel da Hostgator.
-- **Arquivo Gerado**: `site-royal-saude-hostgator.zip` (1.84 MB) na raiz do projeto.
+- **Arquivo Gerado**: `site-royal-saude-hostgator.zip` (1.85 MB) na raiz do projeto (atualizado).
 - **Conteúdo**: Arquivos de `dist/` com `index.html`, `.htaccess` (configurado com regras de mod_rewrite para SPA React Router), `robots.txt`, `web.config`, `favicon.ico` e pasta `assets/`.
+
+### 0.1. Filtros Avançados, Busca e Classificação na Gestão de Usuários
+- **Data**: 03/09/2026
+- **Solicitação**: Incluir pesquisa e filtros por tipo de vínculo, assinatura (ativa, suspensa, sem plano, etc.), adesão e contato para classificar a base de usuários.
+- **Implementação**:
+  - **Filtros dedicados**: Dropdowns para status de assinatura (`ACTIVE`, `SUSPENDED`, `PENDING`, `CANCELLED`, `EXPIRED`, `NONE`) e tipo de vínculo (Titulares vs Dependentes).
+  - **Ordenação Dinâmica**: Por data de adesão (mais recentes / mais antigas), ordem alfabética (A-Z / Z-A) e status de assinatura.
+  - **Busca Textual Expandida**: Normalização de texto sem acentos para pesquisar por telefone/contato (com e sem formatação), parentesco/vínculo, adesão e palavras-chave de status.
+  - **Ações Rápidas**: Botão para limpar filtros e contador em tempo real de registros encontrados.
+  - **Arquivo**: `src/pages/AdminUsers.tsx`.
 
 ### 1. Cadastro Manual de Usuários pelo Administrador (Sem Pagamento)
 - **Data**: 03/09/2026

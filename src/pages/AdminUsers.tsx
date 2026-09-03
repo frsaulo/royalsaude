@@ -23,7 +23,11 @@ import {
   Eye,
   EyeOff,
   Sparkles,
-  KeyRound
+  KeyRound,
+  Filter,
+  ArrowUpDown,
+  X,
+  RotateCcw
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
@@ -160,6 +164,9 @@ export const AdminUsers = () => {
   const [flattenedUsers, setFlattenedUsers] = useState<FlattenedUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [typeFilter, setTypeFilter] = useState<string>("ALL");
+  const [sortBy, setSortBy] = useState<string>("created_desc");
   const [editingUser, setEditingUser] = useState<FlattenedUser | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDependentDialogOpen, setIsAddDependentDialogOpen] = useState(false);
@@ -645,13 +652,130 @@ export const AdminUsers = () => {
     }
   };
 
-  const filteredUsers = flattenedUsers.filter(u => {
-    const term = searchTerm.toLowerCase();
-    return u.name.toLowerCase().includes(term) || 
-           u.cpf.toLowerCase().includes(term) || 
-           u.email.toLowerCase().includes(term) ||
-           (u.titularName?.toLowerCase().includes(term) || '');
-  });
+  // Normalização de texto para pesquisa (sem acentos e minúsculo)
+  const normalizeText = (text?: string) => {
+    if (!text) return "";
+    return text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  };
+
+  const getStatusSearchKeywords = (status: string) => {
+    switch (status) {
+      case "ACTIVE": return "ativa ativo active";
+      case "PENDING": return "pendente pending";
+      case "SUSPENDED": return "suspensa suspenso suspended";
+      case "CANCELLED": return "cancelada cancelado cancelled";
+      case "EXPIRED": return "expirada expirado expired";
+      case "NONE": return "sem plano sem assinatura none";
+      default: return "";
+    }
+  };
+
+  const parseDateForSorting = (dateStr?: string): number => {
+    if (!dateStr) return 0;
+    const trimmed = dateStr.trim();
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+      const [d, m, y] = trimmed.split('/');
+      return new Date(`${y}-${m}-${d}`).getTime() || 0;
+    }
+    const t = new Date(trimmed).getTime();
+    return isNaN(t) ? 0 : t;
+  };
+
+  const filteredUsers = flattenedUsers
+    .filter(u => {
+      // 1. Filtro por status da assinatura
+      if (statusFilter !== "ALL") {
+        if (statusFilter === "NONE") {
+          if (u.subscriptionStatus !== "NONE" && u.subscriptionStatus) return false;
+        } else if (u.subscriptionStatus !== statusFilter) {
+          return false;
+        }
+      }
+
+      // 2. Filtro por tipo de vínculo
+      if (typeFilter !== "ALL") {
+        if (typeFilter === "TITULAR" && u.isDependent) return false;
+        if (typeFilter === "DEPENDENTE" && !u.isDependent) return false;
+      }
+
+      // 3. Busca textual abrangente (Nome, CPF, E-mail, Telefone/Contato, Titular, Vínculo, Adesão e Status)
+      if (!searchTerm.trim()) return true;
+
+      const normTerm = normalizeText(searchTerm.trim());
+      const digitsOnlyTerm = searchTerm.replace(/\D/g, "");
+
+      const normName = normalizeText(u.name);
+      const normEmail = normalizeText(u.email);
+      const normTitular = normalizeText(u.titularName);
+      const relationshipLabel = relationshipLabelMap[u.relationship] || u.relationship;
+      const normRel = normalizeText(relationshipLabel);
+      const normType = u.isDependent ? "dependente" : "titular";
+      const normAddress = normalizeText(u.address);
+      const normStatusKeywords = normalizeText(getStatusSearchKeywords(u.subscriptionStatus));
+      const formattedAdesao = formatCreatedAt(u.createdAt);
+      
+      const userCpfDigits = (u.cpf || "").replace(/\D/g, "");
+      const userPhoneDigits = (u.phone || "").replace(/\D/g, "");
+
+      const matchesText = 
+        normName.includes(normTerm) ||
+        normEmail.includes(normTerm) ||
+        normTitular.includes(normTerm) ||
+        normRel.includes(normTerm) ||
+        normType.includes(normTerm) ||
+        normAddress.includes(normTerm) ||
+        normStatusKeywords.includes(normTerm) ||
+        formattedAdesao.includes(normTerm) ||
+        (u.cpf && u.cpf.toLowerCase().includes(normTerm)) ||
+        (u.phone && u.phone.toLowerCase().includes(normTerm));
+
+      const matchesDigits = digitsOnlyTerm.length >= 3 && (
+        userCpfDigits.includes(digitsOnlyTerm) ||
+        userPhoneDigits.includes(digitsOnlyTerm)
+      );
+
+      return matchesText || matchesDigits;
+    })
+    .sort((a, b) => {
+      if (sortBy === "created_desc") {
+        return parseDateForSorting(b.createdAt) - parseDateForSorting(a.createdAt);
+      }
+      if (sortBy === "created_asc") {
+        return parseDateForSorting(a.createdAt) - parseDateForSorting(b.createdAt);
+      }
+      if (sortBy === "name_asc") {
+        return a.name.localeCompare(b.name, "pt-BR");
+      }
+      if (sortBy === "name_desc") {
+        return b.name.localeCompare(a.name, "pt-BR");
+      }
+      if (sortBy === "status") {
+        const order: Record<string, number> = {
+          ACTIVE: 1,
+          PENDING: 2,
+          SUSPENDED: 3,
+          CANCELLED: 4,
+          EXPIRED: 5,
+          NONE: 6,
+        };
+        const orderA = order[a.subscriptionStatus] || 7;
+        const orderB = order[b.subscriptionStatus] || 7;
+        return orderA - orderB;
+      }
+      return 0;
+    });
+
+  const hasActiveFilters = searchTerm.trim() !== "" || statusFilter !== "ALL" || typeFilter !== "ALL" || sortBy !== "created_desc";
+
+  const clearAllFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("ALL");
+    setTypeFilter("ALL");
+    setSortBy("created_desc");
+  };
 
   if (loading) {
     return (
@@ -685,28 +809,118 @@ export const AdminUsers = () => {
       </header>
 
       <main className="max-w-7xl mx-auto p-4 sm:p-6 py-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-          <div className="relative w-full md:w-96">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Buscar por nome, CPF ou e-mail..."
-              className="pl-10 h-12 shadow-sm border-slate-200"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-             <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total de Registros</p>
-                <p className="text-2xl font-bold text-slate-900">{filteredUsers.length}</p>
-             </div>
-             <Button
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 space-y-4">
+          <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
+            {/* Input de Busca Principal */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Buscar por nome, CPF, e-mail, telefone, adesão..."
+                className="pl-10 pr-10 h-11 border-slate-200 bg-slate-50/50 focus:bg-white transition-all text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <button 
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                  title="Limpar busca"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Ações e Novo Usuário */}
+            <div className="flex items-center gap-3 justify-end">
+              <Button
                 onClick={handleOpenAddUserModal}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-2 h-11 px-4 shadow-sm transition-all rounded-lg"
-             >
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-2 h-11 px-4 shadow-sm transition-all rounded-lg shrink-0"
+              >
                 <UserPlus className="w-4 h-4" />
                 <span>Novo Usuário</span>
-             </Button>
+              </Button>
+            </div>
+          </div>
+
+          {/* Barra de Filtros e Ordenação */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs text-slate-600">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex items-center gap-1.5 font-medium text-slate-500 mr-1">
+                <Filter className="w-3.5 h-3.5" />
+                <span>Filtrar:</span>
+              </div>
+
+              {/* Filtro de Status da Assinatura */}
+              <div className="flex items-center">
+                <select
+                  aria-label="Filtrar por Status de Assinatura"
+                  className="h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="ALL">Todas as Assinaturas</option>
+                  <option value="ACTIVE">🟢 Ativa</option>
+                  <option value="SUSPENDED">🔴 Suspensa</option>
+                  <option value="PENDING">🟡 Pendente</option>
+                  <option value="CANCELLED">⚪ Cancelada</option>
+                  <option value="EXPIRED">⚪ Expirada</option>
+                  <option value="NONE">Sem Plano</option>
+                </select>
+              </div>
+
+              {/* Filtro de Tipo / Vínculo */}
+              <div className="flex items-center">
+                <select
+                  aria-label="Filtrar por Vínculo"
+                  className="h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                >
+                  <option value="ALL">Todos os Vínculos</option>
+                  <option value="TITULAR">Titulares</option>
+                  <option value="DEPENDENTE">Dependentes</option>
+                </select>
+              </div>
+
+              {/* Ordenação */}
+              <div className="flex items-center gap-1.5 ml-1">
+                <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
+                <select
+                  aria-label="Classificar por"
+                  className="h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="created_desc">Adesão (Mais recente)</option>
+                  <option value="created_asc">Adesão (Mais antiga)</option>
+                  <option value="name_asc">Nome (A-Z)</option>
+                  <option value="name_desc">Nome (Z-A)</option>
+                  <option value="status">Status da Assinatura</option>
+                </select>
+              </div>
+
+              {/* Botão Limpar Filtros */}
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="inline-flex items-center gap-1 h-9 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium transition-colors"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Limpar Filtros
+                </button>
+              )}
+            </div>
+
+            {/* Totalizador */}
+            <div className="flex items-center gap-2 ml-auto">
+              <span className="text-slate-500">Encontrados:</span>
+              <span className="font-bold text-slate-900 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+                {filteredUsers.length} {filteredUsers.length === 1 ? 'registro' : 'registros'}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -756,7 +970,7 @@ export const AdminUsers = () => {
                             {user.cpf}
                           </td>
                           <td className="px-6 py-4">
-                            <Badge variant="outline" className={user.isDependent ? "bg-purple-50 text-purple-700 border-purple-100" : "bg-blue-50 text-blue-700 border-blue-100"}>
+                            <Badge variant="outline" className={user.isDependent ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-blue-50 text-blue-700 border-blue-100"}>
                               {relationshipLabelMap[user.relationship] || user.relationship}
                             </Badge>
                           </td>
