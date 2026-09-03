@@ -35,4 +35,5 @@ dist-ssr
 
 # Build archives
 build-deploy.zip
+*.zip
 

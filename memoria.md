@@ -35,6 +35,12 @@
 
 ## 📜 Histórico de Solicitações e Funcionalidades Implementadas
 
+### 0. Pacote de Deploy para Hospedagem Hostgator
+- **Data**: 03/09/2026
+- **Solicitação**: Preparar os arquivos compilados de produção em um arquivo `.zip` para upload no cPanel da Hostgator.
+- **Arquivo Gerado**: `site-royal-saude-hostgator.zip` (1.84 MB) na raiz do projeto.
+- **Conteúdo**: Arquivos de `dist/` com `index.html`, `.htaccess` (configurado com regras de mod_rewrite para SPA React Router), `robots.txt`, `web.config`, `favicon.ico` e pasta `assets/`.
+
 ### 1. Cadastro Manual de Usuários pelo Administrador (Sem Pagamento)
 - **Data**: 03/09/2026
 - **Solicitação do Usuário**: No painel administrativo em Gestão de Usuários, permitir que o administrador consiga cadastrar usuários sem a necessidade de passar pelo pagamento.
