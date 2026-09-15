@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase";
 import { getCurrentAdmin, logAuditEvent, type AdminActor } from "../lib/audit";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Trash2, Users, Search, Calendar as CalendarIcon, Phone, MapPin, MonitorPlay, Loader2, LogOut, Mail, Clock, RefreshCw, ShieldAlert, Lock, Plus, Tag } from "lucide-react";
+import { Trash2, Users, Search, Calendar as CalendarIcon, Phone, MapPin, MonitorPlay, Loader2, LogOut, Mail, Clock, RefreshCw, ShieldAlert, ShieldCheck, Lock, Plus, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
@@ -427,6 +427,14 @@ export const AdminDashboard = () => {
             >
               <Tag className="w-4 h-4 mr-2" />
               Gestão de Cupons
+            </Button>
+            <Button 
+              onClick={() => navigate("/admin-audit")}
+              variant="outline"
+              className="border-slate-300 text-slate-700 hover:bg-slate-800 hover:text-white w-full sm:w-auto"
+            >
+              <ShieldCheck className="w-4 h-4 mr-2" />
+              Relatório de Auditoria
             </Button>
             <Button 
               onClick={() => setIsGlobalModalOpen(true)}

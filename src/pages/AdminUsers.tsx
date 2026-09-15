@@ -28,7 +28,8 @@ import {
   Filter,
   ArrowUpDown,
   X,
-  RotateCcw
+  RotateCcw,
+  ShieldCheck
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
@@ -1019,6 +1020,14 @@ export const AdminUsers = () => {
 
             {/* Ações e Novo Usuário */}
             <div className="flex items-center gap-3 justify-end">
+              <Button
+                onClick={() => navigate("/admin-audit")}
+                variant="outline"
+                className="border-slate-300 text-slate-700 hover:bg-slate-800 hover:text-white font-medium flex items-center gap-2 h-11 px-4 shadow-xs transition-all rounded-lg shrink-0"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Auditoria</span>
+              </Button>
               <Button
                 onClick={handleOpenAddUserModal}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-2 h-11 px-4 shadow-sm transition-all rounded-lg shrink-0"

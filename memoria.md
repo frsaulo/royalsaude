@@ -54,6 +54,11 @@
     - Na tabela de `AdminUsers.tsx`: badges dinâmicos sob o nome indicando "Modificado por: [Nome] ([Data/Hora])" ou "Cadastrado por: [Nome]" ou "Origem: Auto-cadastro (Site)".
     - No Modal de Edição: quadro de auditoria exibindo o ID, quem cadastrou e quem realizou a última modificação com data/hora.
     - Registro de logs automáticos em criação de usuário, edição de titular/dependente, redefinição de senha, exclusão, bloqueios de agenda e cupons.
+  - **Tela Central de Relatório de Auditoria (`/admin-audit`)**:
+    - Página dedicada (`AdminAuditLogs.tsx`) acessível via botão "Relatório de Auditoria" no `AdminDashboard.tsx` e botão "Auditoria" no `AdminUsers.tsx`.
+    - Cards com métricas rápidas: Total de Ações, Ações em Usuários, Alterações de Agenda, Senhas Redefinidas.
+    - Filtros por Administrador (autor), Tipo de Ação (cadastro, edição, exclusão, bloqueio, cupons) e Período (hoje, 7 dias, 30 dias).
+    - Modal interativo para inspecionar os detalhes em JSON e metadados de cada ação.
 
 ### 0. Pacote de Deploy para Hospedagem Hostgator
 - **Data**: 03/09/2026
