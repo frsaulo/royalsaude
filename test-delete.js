@@ -7,8 +7,8 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 async function test() {
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-    email: 'master@royalsaude.com',
-    password: 'Royal123!@#'
+    email: process.env.TEST_EMAIL || '',
+    password: process.env.TEST_PASSWORD || ''
   })
 
   if (authError) {

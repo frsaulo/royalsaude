@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import { getCurrentAdmin, logAuditEvent, type AdminActor } from "../lib/audit";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Plus, Tag, Trash2, ArrowLeft, Loader2, ShieldAlert } from "lucide-react";
@@ -41,6 +42,7 @@ interface Coupon {
 export const AdminCoupons = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentAdmin, setCurrentAdmin] = useState<AdminActor | null>(null);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newCode, setNewCode] = useState("");
@@ -64,7 +66,7 @@ export const AdminCoupons = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('is_admin')
+        .select('id, full_name, email, is_admin')
         .eq('id', session.user.id)
         .single();
 
@@ -74,6 +76,13 @@ export const AdminCoupons = () => {
         toast.error("Acesso negado.");
         return;
       }
+
+      const adminName = profile.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "Administrador";
+      setCurrentAdmin({
+        id: session.user.id,
+        name: adminName,
+        email: profile.email || session.user.email || ""
+      });
 
       fetchCoupons();
     } catch (error) {
@@ -107,19 +116,36 @@ export const AdminCoupons = () => {
 
     setIsSaving(true);
     try {
-      const { error } = await supabase
+      const codeUpper = newCode.toUpperCase().trim();
+      const valNum = parseFloat(newValue);
+
+      const { data, error } = await supabase
         .from('coupons')
         .insert({
-          code: newCode.toUpperCase().trim(),
+          code: codeUpper,
           type: newType,
-          value: parseFloat(newValue),
+          value: valNum,
           active: true
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         if (error.code === '23505') throw new Error("Já existe um cupom com este código.");
         throw error;
       }
+
+      await logAuditEvent({
+        action: 'CRIACAO_CUPOM',
+        targetType: 'coupon',
+        targetId: data?.id,
+        targetName: codeUpper,
+        details: {
+          code: codeUpper,
+          type: newType,
+          value: valNum
+        }
+      });
 
       toast.success("Cupom criado com sucesso!");
       setIsModalOpen(false);
@@ -134,6 +160,7 @@ export const AdminCoupons = () => {
   };
 
   const handleDelete = async (id: string) => {
+    const target = coupons.find(c => c.id === id);
     try {
       const { error } = await supabase
         .from('coupons')
@@ -141,6 +168,18 @@ export const AdminCoupons = () => {
         .eq('id', id);
 
       if (error) throw error;
+
+      await logAuditEvent({
+        action: 'EXCLUSAO_CUPOM',
+        targetType: 'coupon',
+        targetId: id,
+        targetName: target?.code || 'Cupom',
+        details: {
+          code: target?.code,
+          type: target?.type,
+          value: target?.value
+        }
+      });
 
       setCoupons(prev => prev.filter(c => c.id !== id));
       toast.success("Cupom excluído com sucesso.");
@@ -150,6 +189,7 @@ export const AdminCoupons = () => {
   };
 
   const toggleStatus = async (id: string, currentStatus: boolean) => {
+    const target = coupons.find(c => c.id === id);
     try {
       const { error } = await supabase
         .from('coupons')
@@ -157,6 +197,18 @@ export const AdminCoupons = () => {
         .eq('id', id);
 
       if (error) throw error;
+
+      await logAuditEvent({
+        action: !currentStatus ? 'ATIVACAO_CUPOM' : 'DESATIVACAO_CUPOM',
+        targetType: 'coupon',
+        targetId: id,
+        targetName: target?.code || 'Cupom',
+        details: {
+          code: target?.code,
+          active: !currentStatus
+        }
+      });
+
       fetchCoupons();
       toast.success(`Cupom ${!currentStatus ? 'ativado' : 'desativado'}.`);
     } catch (err: any) {
@@ -175,7 +227,7 @@ export const AdminCoupons = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
           <div className="flex items-center gap-3">
              <Button variant="ghost" className="text-white hover:bg-slate-800 p-2" onClick={() => navigate("/admin-dashboard")}>
                <ArrowLeft className="w-5 h-5" />
@@ -184,6 +236,31 @@ export const AdminCoupons = () => {
                 <h1 className="text-xl font-bold">Gestão de Cupons</h1>
                 <p className="text-xs text-slate-400">Descontos em assinaturas</p>
              </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {currentAdmin && (
+              <div className="flex items-center gap-2.5 bg-slate-800/90 border border-slate-700/80 rounded-full px-3.5 py-1.5 shadow-xs">
+                <div className="relative">
+                  <div className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">
+                    {currentAdmin.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-slate-900 animate-pulse" />
+                </div>
+                <div className="text-left leading-tight hidden sm:block">
+                  <div className="text-xs font-semibold text-white flex items-center gap-1.5">
+                    <span>{currentAdmin.name}</span>
+                    <span className="text-[10px] bg-blue-500/20 text-blue-300 font-mono px-1.5 py-0.5 rounded border border-blue-500/30">Super Admin</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono">{currentAdmin.email}</div>
+                </div>
+              </div>
+            )}
+            
+            <Button variant="ghost" onClick={() => navigate("/admin-dashboard")} className="text-slate-300 hover:text-white">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              <span className="hidden sm:block">Voltar ao Painel</span>
+            </Button>
           </div>
         </div>
       </header>

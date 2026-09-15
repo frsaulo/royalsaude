@@ -1,7 +1,7 @@
 import pg from 'pg'
 const { Client } = pg
 
-const connectionString = "postgresql://postgres.bxkwonqrflctvbjskhmj:Vnq3wB5ocsMQJW5d@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?sslmode=require"
+const connectionString = process.env.DATABASE_URL || ''
 
 const client = new Client({
   connectionString,
@@ -13,8 +13,8 @@ async function run() {
     await client.connect()
     console.log("Conectado direto no Banco de Dados via PG...")
 
-    const emailToAdmin = 'master@royalsaude.com'
-    const password = 'Royal123!@#' // Uma senha limpa para garantir que não haja erros de escape
+    const emailToAdmin = process.env.ADMIN_EMAIL || ''
+    const password = process.env.ADMIN_PASSWORD || ''
     
     console.log(`[1] Injetando email ${emailToAdmin} diretamente na auth.users...`)
     

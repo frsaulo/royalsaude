@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import { getCurrentAdmin, logAuditEvent, type AdminActor } from "../lib/audit";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Trash2, Users, Search, Calendar as CalendarIcon, Phone, MapPin, MonitorPlay, Loader2, LogOut, Mail, Clock, RefreshCw, ShieldAlert, Lock, Plus, Tag } from "lucide-react";
@@ -55,6 +56,7 @@ export const AdminDashboard = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentAdmin, setCurrentAdmin] = useState<AdminActor | null>(null);
   
   // States for Reschedule Modal
   const [rescheduleData, setRescheduleData] = useState<{ id: string, date: string, time: string, patientName: string } | null>(null);
@@ -122,7 +124,7 @@ export const AdminDashboard = () => {
       // Verifica perfil real
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('is_admin')
+        .select('id, full_name, email, is_admin')
         .eq('id', session.user.id)
         .single();
 
@@ -132,6 +134,13 @@ export const AdminDashboard = () => {
         toast.error("Acesso negado.");
         return;
       }
+
+      const adminName = profile.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "Administrador";
+      setCurrentAdmin({
+        id: session.user.id,
+        name: adminName,
+        email: profile.email || session.user.email || ""
+      });
 
       // Se passou, carrega todos agendamentos
       fetchAppointments();
@@ -177,6 +186,7 @@ export const AdminDashboard = () => {
   };
 
   const handleDelete = async (id: string) => {
+    const target = appointments.find(a => a.id === id);
     try {
       const { error } = await supabase
         .from('appointments')
@@ -184,6 +194,19 @@ export const AdminDashboard = () => {
         .eq('id', id);
 
       if (error) throw error;
+
+      await logAuditEvent({
+        action: target?.type === 'blocked' ? 'EXCLUSAO_BLOQUEIO_AGENDA' : 'CANCELAMENTO_CONSULTA',
+        targetType: 'appointment',
+        targetId: id,
+        targetName: target?.patient_name || target?.profiles?.full_name || 'Agendamento',
+        details: {
+          date: target?.date,
+          time: target?.time,
+          specialty: target?.specialty,
+          type: target?.type
+        }
+      });
 
       setAppointments(prev => prev.filter(app => app.id !== id));
       toast.success("Agendamento excluído com sucesso.");
@@ -215,6 +238,19 @@ export const AdminDashboard = () => {
         if (error.code === '23505') throw new Error("Atenção: Este horário já contém uma consulta para este dia. Escolha outro.");
         throw error;
       }
+
+      await logAuditEvent({
+        action: 'REMARCACAO_CONSULTA',
+        targetType: 'appointment',
+        targetId: rescheduleData.id,
+        targetName: rescheduleData.patientName,
+        details: {
+          oldDate: rescheduleData.date,
+          oldTime: rescheduleData.time,
+          newDate,
+          newTime
+        }
+      });
       
       toast.success("Consulta remarcada com sucesso!");
       setRescheduleData(null);
@@ -257,6 +293,18 @@ export const AdminDashboard = () => {
         if (error.code === '23505') throw new Error("Um ou mais horários selecionados já possuem agendamento ou bloqueio.");
         throw error;
       }
+
+      await logAuditEvent({
+        action: 'BLOQUEIO_GLOBAL_AGENDA',
+        targetType: 'appointment',
+        targetName: `${globalSpecialty} (${globalDate})`,
+        details: {
+          specialty: globalSpecialty,
+          date: globalDate,
+          slots: selectedSlots,
+          totalBlocked: selectedSlots.length
+        }
+      });
 
       toast.success(`${selectedSlots.length} horários bloqueados com sucesso!`);
       setIsGlobalModalOpen(false);
@@ -322,7 +370,7 @@ export const AdminDashboard = () => {
     <div className="min-h-screen bg-slate-50">
       {/* Admin Header */}
       <header className="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
           <div className="flex items-center gap-3">
              <div className="bg-red-500/20 p-2 rounded-full hidden sm:block">
                <ShieldAlert className="w-6 h-6 text-red-500" />
@@ -332,11 +380,31 @@ export const AdminDashboard = () => {
                 <p className="text-xs text-slate-400">Gerenciamento Interno (RoyalMed Health)</p>
              </div>
           </div>
-          
-          <Button variant="ghost" onClick={handleLogout} className="text-slate-300 hover:text-white hover:bg-slate-800">
-            <LogOut className="w-4 h-4 sm:mr-2" />
-            <span className="hidden sm:block">Sair do Painel</span>
-          </Button>
+
+          <div className="flex items-center gap-3">
+            {currentAdmin && (
+              <div className="flex items-center gap-2.5 bg-slate-800/90 border border-slate-700/80 rounded-full px-3.5 py-1.5 shadow-xs">
+                <div className="relative">
+                  <div className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">
+                    {currentAdmin.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-slate-900 animate-pulse" />
+                </div>
+                <div className="text-left leading-tight hidden sm:block">
+                  <div className="text-xs font-semibold text-white flex items-center gap-1.5">
+                    <span>{currentAdmin.name}</span>
+                    <span className="text-[10px] bg-blue-500/20 text-blue-300 font-mono px-1.5 py-0.5 rounded border border-blue-500/30">Super Admin</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono">{currentAdmin.email}</div>
+                </div>
+              </div>
+            )}
+            
+            <Button variant="ghost" onClick={handleLogout} className="text-slate-300 hover:text-white hover:bg-slate-800">
+              <LogOut className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:block">Sair do Painel</span>
+            </Button>
+          </div>
         </div>
       </header>
 

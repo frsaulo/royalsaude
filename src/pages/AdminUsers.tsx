@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import { getCurrentAdmin, logAuditEvent, type AdminActor } from "../lib/audit";
 import { 
   Users, 
   Search, 
@@ -105,6 +106,11 @@ interface Profile {
   created_at: string;
   subscriptions: any[];
   appointment_count?: number;
+  created_by_name?: string;
+  created_by_id?: string;
+  updated_by_name?: string;
+  updated_by_id?: string;
+  updated_at?: string;
 }
 
 interface FlattenedUser {
@@ -123,7 +129,29 @@ interface FlattenedUser {
   titularName?: string;
   appointmentsCount: number;
   createdAt?: string;
+  createdByName?: string;
+  createdById?: string;
+  updatedByName?: string;
+  updatedById?: string;
+  updatedAt?: string;
 }
+
+const formatDateTime = (dateStr?: string) => {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  } catch {
+    return dateStr;
+  }
+};
 
 const formatCreatedAt = (dateStr?: string) => {
   if (!dateStr) return "N/A";
@@ -202,6 +230,8 @@ export const AdminUsers = () => {
     status: "ACTIVE",
   });
 
+  const [currentAdmin, setCurrentAdmin] = useState<AdminActor | null>(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -219,7 +249,7 @@ export const AdminUsers = () => {
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('is_admin')
+        .select('id, full_name, email, is_admin')
         .eq('id', session.user.id)
         .single();
 
@@ -229,6 +259,13 @@ export const AdminUsers = () => {
         toast.error("Acesso negado.");
         return;
       }
+
+      const adminName = profile.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "Administrador";
+      setCurrentAdmin({
+        id: session.user.id,
+        name: adminName,
+        email: profile.email || session.user.email || ""
+      });
 
       fetchData();
     } catch (error) {
@@ -301,7 +338,12 @@ export const AdminUsers = () => {
           relationship: "TITULAR",
           subscriptionStatus: subStatus,
           appointmentsCount: titularAppointments,
-          createdAt: p.created_at || ""
+          createdAt: p.created_at || "",
+          createdByName: p.created_by_name || undefined,
+          createdById: p.created_by_id || undefined,
+          updatedByName: p.updated_by_name || undefined,
+          updatedById: p.updated_by_id || undefined,
+          updatedAt: p.updated_at || undefined,
         });
 
         // Add Dependents
@@ -323,7 +365,12 @@ export const AdminUsers = () => {
             subscriptionStatus: subStatus, // inherits titular subscription
             titularName: p.full_name,
             appointmentsCount: depAppointments,
-            createdAt: d.created_at || d.created_date || d.adesao_date || p.created_at || ""
+            createdAt: d.created_at || d.created_date || d.adesao_date || p.created_at || "",
+            createdByName: d.created_by_name || p.created_by_name || undefined,
+            createdById: d.created_by_id || p.created_by_id || undefined,
+            updatedByName: d.updated_by_name || p.updated_by_name || undefined,
+            updatedById: d.updated_by_id || p.updated_by_id || undefined,
+            updatedAt: d.updated_at || p.updated_at || undefined,
           });
         });
       });
@@ -404,6 +451,30 @@ export const AdminUsers = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
+      if (data?.userId) {
+        await supabase.from('profiles').update({
+          created_by_name: currentAdmin?.name || 'Administrador',
+          created_by_id: currentAdmin?.id,
+          updated_by_name: currentAdmin?.name || 'Administrador',
+          updated_by_id: currentAdmin?.id,
+          updated_at: new Date().toISOString()
+        }).eq('id', data.userId);
+      }
+
+      await logAuditEvent({
+        action: 'CADASTRO_USUARIO',
+        targetType: 'profile',
+        targetId: data?.userId || '',
+        targetName: newUserForm.fullName.trim(),
+        details: {
+          email: newUserForm.email.trim(),
+          cpf: newUserForm.cpf.trim(),
+          phone: newUserForm.phone.trim(),
+          planId: newUserForm.planId,
+          status: newUserForm.status
+        }
+      });
+
       toast.success(data?.message || "Usuário cadastrado com sucesso!");
       setIsAddUserDialogOpen(false);
       fetchData();
@@ -451,6 +522,16 @@ export const AdminUsers = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
+      await logAuditEvent({
+        action: 'ALTERACAO_SENHA',
+        targetType: 'profile',
+        targetId: editingUser.id,
+        targetName: editingUser.name,
+        details: {
+          email: editingUser.email
+        }
+      });
+
       toast.success("Senha redefinida com sucesso!");
       setNewPassword("");
     } catch (error: any) {
@@ -484,14 +565,41 @@ export const AdminUsers = () => {
         .single();
       
       const currentDependents = Array.isArray(pData?.dependents) ? pData.dependents : [];
-      const updatedDependents = [...currentDependents, newDependent];
+      const depWithAudit = {
+        ...newDependent,
+        created_by_name: currentAdmin?.name || 'Administrador',
+        created_by_id: currentAdmin?.id,
+        updated_by_name: currentAdmin?.name || 'Administrador',
+        updated_by_id: currentAdmin?.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      const updatedDependents = [...currentDependents, depWithAudit];
 
       const { error } = await supabase
         .from('profiles')
-        .update({ dependents: updatedDependents })
+        .update({ 
+          dependents: updatedDependents,
+          updated_by_name: currentAdmin?.name || 'Administrador',
+          updated_by_id: currentAdmin?.id,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', targetTitularId);
 
       if (error) throw error;
+
+      await logAuditEvent({
+        action: 'CADASTRO_DEPENDENTE',
+        targetType: 'dependent',
+        targetId: targetTitularId,
+        targetName: newDependent.full_name,
+        details: {
+          relationship: newDependent.relationship,
+          cpf: newDependent.cpf,
+          phone: newDependent.phone,
+          titularId: targetTitularId
+        }
+      });
 
       toast.success("Dependente adicionado com sucesso!");
       setIsAddDependentDialogOpen(false);
@@ -538,15 +646,36 @@ export const AdminUsers = () => {
               email: editingUser.email,
               relationship: editingUser.relationship,
               birth_date: editingUser.birthDate,
-              created_at: isoCreatedAt
+              created_at: isoCreatedAt,
+              updated_by_name: currentAdmin?.name || 'Administrador',
+              updated_by_id: currentAdmin?.id,
+              updated_at: new Date().toISOString()
             };
 
             const { error } = await supabase
               .from('profiles')
-              .update({ dependents: newDependents })
+              .update({ 
+                dependents: newDependents,
+                updated_by_name: currentAdmin?.name || 'Administrador',
+                updated_by_id: currentAdmin?.id,
+                updated_at: new Date().toISOString()
+              })
               .eq('id', editingUser.id);
             
             if (error) throw error;
+
+            await logAuditEvent({
+              action: 'EDICAO_DEPENDENTE',
+              targetType: 'dependent',
+              targetId: editingUser.id,
+              targetName: editingUser.name,
+              details: {
+                relationship: editingUser.relationship,
+                cpf: editingUser.cpf,
+                phone: editingUser.phone,
+                email: editingUser.email
+              }
+            });
           }
         }
       } else {
@@ -560,7 +689,10 @@ export const AdminUsers = () => {
             email: editingUser.email,
             address: editingUser.address,
             birth_date: editingUser.birthDate,
-            created_at: isoCreatedAt
+            created_at: isoCreatedAt,
+            updated_by_name: currentAdmin?.name || 'Administrador',
+            updated_by_id: currentAdmin?.id,
+            updated_at: new Date().toISOString()
           })
           .eq('id', editingUser.id);
         
@@ -605,6 +737,20 @@ export const AdminUsers = () => {
             console.warn("Nenhum plano ativo encontrado para criar a assinatura.");
           }
         }
+
+        await logAuditEvent({
+          action: 'EDICAO_USUARIO',
+          targetType: 'profile',
+          targetId: editingUser.id,
+          targetName: editingUser.name,
+          details: {
+            cpf: editingUser.cpf,
+            phone: editingUser.phone,
+            email: editingUser.email,
+            address: editingUser.address,
+            status: editingUser.subscriptionStatus
+          }
+        });
       }
 
       toast.success("Usuário atualizado com sucesso!");
@@ -631,7 +777,12 @@ export const AdminUsers = () => {
           const newDependents = pData.dependents.filter((_: any, i: number) => i !== user.dependentIndex);
           const { error } = await supabase
             .from('profiles')
-            .update({ dependents: newDependents })
+            .update({ 
+              dependents: newDependents,
+              updated_by_name: currentAdmin?.name || 'Administrador',
+              updated_by_id: currentAdmin?.id,
+              updated_at: new Date().toISOString()
+            })
             .eq('id', user.id);
           if (error) throw error;
         }
@@ -644,6 +795,20 @@ export const AdminUsers = () => {
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
       }
+
+      await logAuditEvent({
+        action: user.isDependent ? 'EXCLUSAO_DEPENDENTE' : 'EXCLUSAO_USUARIO',
+        targetType: user.isDependent ? 'dependent' : 'profile',
+        targetId: user.id,
+        targetName: user.name,
+        details: {
+          cpf: user.cpf,
+          email: user.email,
+          phone: user.phone,
+          isDependent: user.isDependent,
+          titularName: user.titularName
+        }
+      });
 
       toast.success("Usuário removido com sucesso.");
       fetchData();
@@ -790,7 +955,7 @@ export const AdminUsers = () => {
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <header className="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
           <div className="flex items-center gap-3">
              <Button variant="ghost" size="icon" onClick={() => navigate("/admin-dashboard")} className="text-slate-300 hover:text-white">
                 <ChevronLeft className="w-6 h-6" />
@@ -801,10 +966,30 @@ export const AdminUsers = () => {
              </div>
           </div>
           
-          <Button variant="ghost" onClick={() => navigate("/admin-dashboard")} className="text-slate-300 hover:text-white">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            <span className="hidden sm:block">Voltar ao Painel</span>
-          </Button>
+          <div className="flex items-center gap-3">
+            {currentAdmin && (
+              <div className="flex items-center gap-2.5 bg-slate-800/90 border border-slate-700/80 rounded-full px-3.5 py-1.5 shadow-xs">
+                <div className="relative">
+                  <div className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">
+                    {currentAdmin.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-slate-900 animate-pulse" />
+                </div>
+                <div className="text-left leading-tight hidden sm:block">
+                  <div className="text-xs font-semibold text-white flex items-center gap-1.5">
+                    <span>{currentAdmin.name}</span>
+                    <span className="text-[10px] bg-blue-500/20 text-blue-300 font-mono px-1.5 py-0.5 rounded border border-blue-500/30">Super Admin</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono">{currentAdmin.email}</div>
+                </div>
+              </div>
+            )}
+
+            <Button variant="ghost" onClick={() => navigate("/admin-dashboard")} className="text-slate-300 hover:text-white">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              <span className="hidden sm:block">Voltar ao Painel</span>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -965,6 +1150,30 @@ export const AdminUsers = () => {
                                <span className="text-slate-300">•</span>
                                <span>Adesão: {formatCreatedAt(user.createdAt)}</span>
                             </div>
+
+                            {/* Indicador de Auditoria / Rastreamento */}
+                            {user.updatedByName ? (
+                              <div className="mt-1.5 flex items-center">
+                                <span className="inline-flex items-center gap-1.5 text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200/80 px-2 py-0.5 rounded shadow-2xs">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                  Modificado por: <strong>{user.updatedByName}</strong>
+                                  {user.updatedAt && (
+                                    <span className="text-amber-700 font-mono text-[9px]">({formatDateTime(user.updatedAt)})</span>
+                                  )}
+                                </span>
+                              </div>
+                            ) : user.createdByName ? (
+                              <div className="mt-1.5 flex items-center">
+                                <span className="inline-flex items-center gap-1.5 text-[10px] font-medium bg-blue-50 text-blue-800 border border-blue-200/80 px-2 py-0.5 rounded shadow-2xs">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                  Cadastrado por: <strong>{user.createdByName}</strong>
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="mt-1 text-[10px] text-slate-400">
+                                Origem: Auto-cadastro (Site)
+                              </div>
+                            )}
                           </td>
                           <td className="px-6 py-4 text-sm text-slate-600 font-mono">
                             {user.cpf}
@@ -1055,6 +1264,46 @@ export const AdminUsers = () => {
           
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             <div className="grid grid-cols-2 gap-4">
+              {/* Card de Informações de Auditoria */}
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs col-span-2 space-y-1.5 shadow-2xs">
+                <div className="font-semibold text-slate-800 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-blue-900">
+                    <ShieldAlert className="w-3.5 h-3.5 text-blue-600" />
+                    Auditoria e Rastreamento
+                  </span>
+                  <span className="text-[10px] bg-blue-100/70 text-blue-700 px-2 py-0.5 rounded-full font-mono">
+                    ID: {editingUser?.id.slice(0, 8)}...
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1.5 border-t border-slate-200/70 text-[11px]">
+                  <div>
+                    <span className="text-slate-500">Cadastrado por:</span>
+                    <div className="font-medium text-slate-800">
+                      {editingUser?.createdByName ? (
+                        <span className="text-blue-700 font-semibold">{editingUser.createdByName}</span>
+                      ) : (
+                        <span className="text-slate-500">Auto-cadastro / Site</span>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Última alteração:</span>
+                    <div className="font-medium text-slate-800">
+                      {editingUser?.updatedByName ? (
+                        <span className="text-amber-700 font-semibold">
+                          {editingUser.updatedByName}
+                          {editingUser.updatedAt && (
+                            <span className="text-slate-400 font-normal ml-1">({formatDateTime(editingUser.updatedAt)})</span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">Nenhuma alteração registrada</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2 col-span-2">
                 <Label>Nome Completo</Label>
                 <Input 

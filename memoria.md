@@ -35,6 +35,26 @@
 
 ## 📜 Histórico de Solicitações e Funcionalidades Implementadas
 
+### 0.0. Superusuários, Auditoria Completa e Rastreamento de Alterações
+- **Data**: 15/09/2026
+- **Solicitação**: Criar acessos de superusuários para AndreFerrari, AdriaNobre, RonaldoNeves e SauloFreitas com senhas exclusivas, registrar todas as ações realizadas na plataforma para auditoria futura, exibir quem está logado no painel e identificar na linha/edição do usuário quem realizou inclusões ou alterações.
+- **Implementações Técnicas**:
+  - **Superusuários Criados**:
+    - `André Ferrari` (`andreferrari@royalsaude.com`)
+    - `Adria Nobre` (`adrianobre@royalsaude.com`)
+    - `Ronaldo Neves` (`ronaldoneves@royalsaude.com`)
+    - `Saulo Freitas` (`saulofreitas@royalsaude.com`)
+    - Criados no Supabase Auth e em `public.profiles` com privilégios `is_admin = true` e `account_type = 'ADMIN'`.
+  - **Banco de Dados (Supabase PostgreSQL)**:
+    - Criada a tabela `public.audit_logs` com RLS restrito a administradores para histórico detalhado (autor, email, ação, tabela/alvo, id, nome do alvo e JSONB de detalhes).
+    - Adicionadas colunas em `public.profiles`: `created_by_name`, `created_by_id`, `updated_by_name`, `updated_by_id` e `updated_at`.
+  - **Módulo de Auditoria**: `src/lib/audit.ts` com funções `getCurrentAdmin()` e `logAuditEvent()`.
+  - **Exibição de Sessão no Cabeçalho**: Adicionado card com avatar, nome, e-mail, indicador de status ativo e selo "Super Admin" nos headers do `AdminDashboard.tsx`, `AdminUsers.tsx` e `AdminCoupons.tsx`.
+  - **Rastreamento Visual na Gestão de Usuários**:
+    - Na tabela de `AdminUsers.tsx`: badges dinâmicos sob o nome indicando "Modificado por: [Nome] ([Data/Hora])" ou "Cadastrado por: [Nome]" ou "Origem: Auto-cadastro (Site)".
+    - No Modal de Edição: quadro de auditoria exibindo o ID, quem cadastrou e quem realizou a última modificação com data/hora.
+    - Registro de logs automáticos em criação de usuário, edição de titular/dependente, redefinição de senha, exclusão, bloqueios de agenda e cupons.
+
 ### 0. Pacote de Deploy para Hospedagem Hostgator
 - **Data**: 03/09/2026
 - **Solicitação**: Preparar os arquivos compilados de produção em um arquivo `.zip` para upload no cPanel da Hostgator.
