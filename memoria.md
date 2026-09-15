@@ -40,10 +40,10 @@
 - **Solicitação**: Criar acessos de superusuários para AndreFerrari, AdriaNobre, RonaldoNeves e SauloFreitas com senhas exclusivas, registrar todas as ações realizadas na plataforma para auditoria futura, exibir quem está logado no painel e identificar na linha/edição do usuário quem realizou inclusões ou alterações.
 - **Implementações Técnicas**:
   - **Superusuários Criados**:
-    - `André Ferrari` (`andreferrari@royalsaude.com`)
-    - `Adria Nobre` (`adrianobre@royalsaude.com`)
-    - `Ronaldo Neves` (`ronaldoneves@royalsaude.com`)
-    - `Saulo Freitas` (`saulofreitas@royalsaude.com`)
+    - `André Ferrari` (`andreferrari@royalsaude.com.br`)
+    - `Adria Nobre` (`adrianobre@royalsaude.com.br`)
+    - `Ronaldo Neves` (`ronaldoneves@royalsaude.com.br`)
+    - `Saulo Freitas` (`saulofreitas@royalsaude.com.br`)
     - Criados no Supabase Auth e em `public.profiles` com privilégios `is_admin = true` e `account_type = 'ADMIN'`.
   - **Banco de Dados (Supabase PostgreSQL)**:
     - Criada a tabela `public.audit_logs` com RLS restrito a administradores para histórico detalhado (autor, email, ação, tabela/alvo, id, nome do alvo e JSONB de detalhes).
